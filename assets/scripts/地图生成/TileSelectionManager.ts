@@ -136,7 +136,7 @@ export class TileSelectionManager extends Component {
     /**
      * 鼠标按下事件
      */
-    onMouseDown(event: EventMouse) {
+    public onMouseDown(event: EventMouse) {
         if (!this.isEnabled) {
             return;
         }
@@ -212,7 +212,7 @@ export class TileSelectionManager extends Component {
                 if (match) {
                     const i = parseInt(match[1]);
                     const j = parseInt(match[2]);
-                    console.log(`检测到地块: ${tileName}, 本地坐标: (${localPos.x.toFixed(2)}, ${localPos.y.toFixed(2)})`);
+                    // console.log(`检测到地块: ${tileName}, 本地坐标: (${localPos.x.toFixed(2)}, ${localPos.y.toFixed(2)})`);
                     return { row: i, col: j };
                 }
             }
@@ -233,7 +233,7 @@ export class TileSelectionManager extends Component {
         
         // 直接使用摄像机的screenToWorld方法转换屏幕坐标
         const worldPos = this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
-        console.log(`屏幕坐标: (${screenPos.x}, ${screenPos.y}) -> 世界坐标: (${worldPos.x}, ${worldPos.y})`);
+        // console.log(`屏幕坐标: (${screenPos.x}, ${screenPos.y}) -> 世界坐标: (${worldPos.x}, ${worldPos.y})`);
         
         return worldPos;
     }

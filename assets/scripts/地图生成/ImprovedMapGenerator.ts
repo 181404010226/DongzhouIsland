@@ -23,8 +23,10 @@ export class ImprovedMapGenerator extends Component {
     @property({ tooltip: '启用框选功能' })
     enableTileSelection: boolean = true;
     
+    @property({ type: TileSelectionManager, tooltip: '地块选择管理器' })
+    tileSelectionManager: TileSelectionManager = null;
+    
     private mapContainer: Node = null;
-    private tileSelectionManager: TileSelectionManager = null;
     private allTiles: Node[] = []; // 存储所有地块的数组
     
     start() {
@@ -427,10 +429,9 @@ export class ImprovedMapGenerator extends Component {
       * 设置地块框选功能
       */
      private setupTileSelection() {
-         // 创建或获取TileSelectionManager组件
-         this.tileSelectionManager = this.node.getComponent(TileSelectionManager);
          if (!this.tileSelectionManager) {
-             this.tileSelectionManager = this.node.addComponent(TileSelectionManager);
+             console.warn('TileSelectionManager未设置，无法启用框选功能');
+             return;
          }
          
          // 初始化框选管理器
@@ -457,10 +458,14 @@ export class ImprovedMapGenerator extends Component {
      setTileSelectionEnabled(enabled: boolean) {
          this.enableTileSelection = enabled;
          
-         if (enabled && !this.tileSelectionManager) {
-             this.setupTileSelection();
-         } else if (!enabled && this.tileSelectionManager) {
-             this.tileSelectionManager.setEnabled(false);
+         if (this.tileSelectionManager) {
+             if (enabled) {
+                 this.setupTileSelection();
+             } else {
+                 this.tileSelectionManager.setEnabled(false);
+             }
+         } else if (enabled) {
+             console.warn('TileSelectionManager未设置，无法启用框选功能');
          }
      }
 }
