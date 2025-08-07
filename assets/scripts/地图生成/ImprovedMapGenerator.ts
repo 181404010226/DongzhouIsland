@@ -104,8 +104,13 @@ export class ImprovedMapGenerator extends Component {
      * @param col 列索引
      */
     createTile(row: number, col: number) {
+        // 计算新的坐标系统：每新起一行i+1，每往右走一格i-1,j+1
+        // 从第一行第一列开始，假设初始坐标为(1,1)
+        const i = row + 1 - col; // 每新起一行i+1，每往右走一格i-1
+        const j = 1 + col; // 每往右走一格j+1（从1开始）
+        
         // 创建地块节点
-        const tileNode = new Node(`Tile_${row}_${col}`);
+        const tileNode = new Node(`Tile_${i}_${j}`);
         tileNode.parent = this.mapContainer;
         
         // 添加UITransform
