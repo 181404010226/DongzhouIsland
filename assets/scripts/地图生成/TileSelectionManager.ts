@@ -18,8 +18,7 @@ export class TileSelectionManager extends Component {
     private rows: number = 10;
     private columns: number = 10;
     
-    @property({ tooltip: '选择框颜色' })
-    selectionBoxColor: Color = new Color(0, 255, 255, 100); // 青色半透明
+    // 删除选择框颜色属性
     
     @property({ tooltip: '有效选择颜色（蓝色）' })
     validSelectionColor: Color = new Color(0, 0, 255, 150); // 蓝色
@@ -32,11 +31,10 @@ export class TileSelectionManager extends Component {
     
     // 私有变量
     private isSelecting: boolean = false;
-    private startPos: Vec3 = new Vec3();
-    private endPos: Vec3 = new Vec3();
-    private selectionBox: Node = null;
+    private startTile: { row: number, col: number } | null = null;
+    private endTile: { row: number, col: number } | null = null;
     private selectedTiles: Node[] = [];
-    private selectionGraphics: Graphics = null;
+    private tileMap: Map<string, Node> = new Map(); // 存储地块索引映射
     
     start() {
         // 初始化将由ImprovedMapGenerator调用
@@ -54,9 +52,11 @@ export class TileSelectionManager extends Component {
         this.tileWidth = mapConfig.tileWidth;
         this.tileHeight = mapConfig.tileHeight;
         
+        // 建立地块索引映射
+        this.buildTileMap();
+        
         this.findCamera();
         this.setupInput();
-        this.createSelectionBox();
         
         console.log('TileSelectionManager 初始化完成');
     }
@@ -69,17 +69,38 @@ export class TileSelectionManager extends Component {
         const canvas = this.node.scene.getComponentInChildren(Canvas);
         if (canvas && canvas.cameraComponent) {
             this.camera = canvas.cameraComponent;
+            console.log('找到Canvas摄像机');
         } else {
             // 如果没找到Canvas摄像机，查找场景中的第一个摄像机
             const cameraNode = this.node.scene.getComponentInChildren(Camera);
             if (cameraNode) {
                 this.camera = cameraNode;
+                console.log('找到场景摄像机');
             }
         }
         
         if (!this.camera) {
             console.warn('未找到摄像机，框选功能可能无法正常工作');
+        } else {
+            console.log('摄像机初始化成功:', this.camera.node.name);
         }
+    }
+    
+    /**
+     * 建立地块索引映射
+     */
+    private buildTileMap() {
+        this.tileMap.clear();
+        this.allTiles.forEach(tile => {
+            const tileName = tile.name;
+            const match = tileName.match(/Tile_(\d+)_(\d+)/);
+            if (match) {
+                const i = parseInt(match[1]);
+                const j = parseInt(match[2]);
+                const key = `${i}_${j}`;
+                this.tileMap.set(key, tile);
+            }
+        });
     }
     
     /**
@@ -88,6 +109,7 @@ export class TileSelectionManager extends Component {
      */
     updateTiles(tiles: Node[]) {
         this.allTiles = tiles;
+        this.buildTileMap();
     }
     
     /**
@@ -99,9 +121,6 @@ export class TileSelectionManager extends Component {
         
         if (!enabled) {
             this.clearSelection();
-            if (this.selectionBox) {
-                this.selectionBox.active = false;
-            }
         }
     }
     
@@ -114,38 +133,29 @@ export class TileSelectionManager extends Component {
         input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
     }
     
-    /**
-     * 创建选择框
-     */
-    createSelectionBox() {
-        this.selectionBox = new Node('SelectionBox');
-        this.selectionBox.parent = this.node;
-        
-        const transform = this.selectionBox.addComponent(UITransform);
-        transform.setContentSize(0, 0);
-        
-        this.selectionGraphics = this.selectionBox.addComponent(Graphics);
-        this.selectionBox.setPosition(0, 0, 0);
-        this.selectionBox.active = false;
-    }
+
     
     /**
      * 鼠标按下事件
      */
     onMouseDown(event: EventMouse) {
-        if (!this.isEnabled) return;
+        if (!this.isEnabled) {
+            return;
+        }
         
-        if (event.getButton() === EventMouse.BUTTON_LEFT) {
+        const screenPos = event.getLocation();
+        console.log(`鼠标点击位置: (${screenPos.x}, ${screenPos.y})`);
+        
+        const tileInfo = this.getTileAtScreenPos(screenPos);
+        if (tileInfo) {
+            console.log(`找到地块: i=${tileInfo.row}, j=${tileInfo.col}`);
             this.isSelecting = true;
-            this.startPos = this.screenToWorldPos(event.getLocation());
-            this.endPos = this.startPos.clone();
-            
-            // 清除之前的选择
+            this.startTile = tileInfo;
+            this.endTile = tileInfo;
+            this.updateSelectionByTileIndex();
+        } else {
+            console.log('未找到地块，清除选择');
             this.clearSelection();
-            
-            // 显示选择框
-            this.selectionBox.active = true;
-            this.updateSelectionBox();
         }
     }
     
@@ -153,12 +163,15 @@ export class TileSelectionManager extends Component {
      * 鼠标移动事件
      */
     onMouseMove(event: EventMouse) {
-        if (!this.isEnabled || !this.isSelecting) return;
+        if (!this.isEnabled || !this.isSelecting) {
+            return;
+        }
         
-        if (this.isSelecting) {
-            this.endPos = this.screenToWorldPos(event.getLocation());
-            this.updateSelectionBox();
-            this.updateTileSelection();
+        const screenPos = event.getLocation();
+        const tileInfo = this.getTileAtScreenPos(screenPos);
+        if (tileInfo) {
+            this.endTile = tileInfo;
+            this.updateSelectionByTileIndex();
         }
     }
     
@@ -166,15 +179,53 @@ export class TileSelectionManager extends Component {
      * 鼠标抬起事件
      */
     onMouseUp(event: EventMouse) {
-        if (!this.isEnabled) return;
-        
-        if (event.getButton() === EventMouse.BUTTON_LEFT && this.isSelecting) {
-            this.isSelecting = false;
-            this.selectionBox.active = false;
-            
-            // 最终确定选择
-            this.finalizeSelection();
+        if (!this.isEnabled || !this.isSelecting) {
+            return;
         }
+        
+        this.isSelecting = false;
+        console.log('选择完成');
+    }
+    
+    /**
+     * 获取屏幕位置对应的地块索引
+     */
+    private getTileAtScreenPos(screenPos: Vec2): { row: number, col: number } | null {
+        const worldPos = this.screenToWorldPos(screenPos);
+        
+        let closestTile: Node | null = null;
+        let minDistance = Infinity;
+        
+        // 遍历所有地块，找到距离最近的
+        for (const tile of this.allTiles) {
+            const tilePos = tile.getWorldPosition();
+            const distance = Vec2.distance(
+                new Vec2(worldPos.x, worldPos.y),
+                new Vec2(tilePos.x, tilePos.y)
+            );
+            
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestTile = tile;
+            }
+        }
+        
+        // 检查是否在合理的点击范围内
+        const maxClickDistance = Math.max(this.tileWidth, this.tileHeight) * 0.6;
+        if (closestTile && minDistance < maxClickDistance) {
+            // 解析地块名称获取索引
+            const tileName = closestTile.name;
+            const match = tileName.match(/Tile_(\d+)_(\d+)/);
+            if (match) {
+                const i = parseInt(match[1]);
+                const j = parseInt(match[2]);
+                console.log(`检测到地块: ${tileName}, 距离: ${minDistance.toFixed(2)}`);
+                return { row: i, col: j };
+            }
+        }
+        
+        console.log(`未找到有效地块，最近距离: ${minDistance.toFixed(2)}`);
+        return null;
     }
     
     /**
@@ -182,87 +233,47 @@ export class TileSelectionManager extends Component {
      */
     screenToWorldPos(screenPos: Vec2): Vec3 {
         if (!this.camera) {
-            console.warn('摄像机引用为空');
-            return new Vec3(screenPos.x, screenPos.y, 0);
+            console.error('Camera not found for coordinate conversion');
+            return new Vec3(0, 0, 0);
         }
         
-        const worldPos = new Vec3();
-        this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0), worldPos);
+        // 直接使用摄像机的screenToWorld方法转换屏幕坐标
+        const worldPos = this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+        console.log(`屏幕坐标: (${screenPos.x}, ${screenPos.y}) -> 世界坐标: (${worldPos.x}, ${worldPos.y})`);
+        
         return worldPos;
     }
     
     /**
-     * 更新选择框显示
+     * 基于地块索引更新选择
      */
-    updateSelectionBox() {
-        if (!this.selectionGraphics) return;
-        
-        const minX = Math.min(this.startPos.x, this.endPos.x);
-        const maxX = Math.max(this.startPos.x, this.endPos.x);
-        const minY = Math.min(this.startPos.y, this.endPos.y);
-        const maxY = Math.max(this.startPos.y, this.endPos.y);
-        
-        const width = maxX - minX;
-        const height = maxY - minY;
-        const centerX = (minX + maxX) * 0.5;
-        const centerY = (minY + maxY) * 0.5;
-        
-        // 设置选择框位置和大小
-        this.selectionBox.setPosition(centerX, centerY, 0);
-        const transform = this.selectionBox.getComponent(UITransform);
-        transform.setContentSize(width, height);
-        
-        // 绘制选择框
-        this.selectionGraphics.clear();
-        this.selectionGraphics.strokeColor = this.selectionBoxColor;
-        this.selectionGraphics.lineWidth = 2;
-        this.selectionGraphics.rect(-width * 0.5, -height * 0.5, width, height);
-        this.selectionGraphics.stroke();
-    }
-    
-    /**
-     * 更新地块选择状态
-     */
-    updateTileSelection() {
-        if (this.allTiles.length === 0) return;
+    private updateSelectionByTileIndex() {
+        if (!this.startTile || !this.endTile) return;
         
         // 清除之前的选择
         this.clearTileColors();
         this.selectedTiles = [];
         
-        // 计算选择区域
-        const minX = Math.min(this.startPos.x, this.endPos.x);
-        const maxX = Math.max(this.startPos.x, this.endPos.x);
-        const minY = Math.min(this.startPos.y, this.endPos.y);
-        const maxY = Math.max(this.startPos.y, this.endPos.y);
+        // 计算选择区域的边界
+        const minI = Math.min(this.startTile.row, this.endTile.row);
+        const maxI = Math.max(this.startTile.row, this.endTile.row);
+        const minJ = Math.min(this.startTile.col, this.endTile.col);
+        const maxJ = Math.max(this.startTile.col, this.endTile.col);
         
-        // 遍历所有地块，检查是否在选择区域内
-        let selectedRows = new Set<number>();
-        let selectedCols = new Set<number>();
-        
-        this.allTiles.forEach(tile => {
-            const tilePos = tile.getWorldPosition();
-            
-            // 检查地块是否在选择区域内
-            if (tilePos.x >= minX && tilePos.x <= maxX && 
-                tilePos.y >= minY && tilePos.y <= maxY) {
-                this.selectedTiles.push(tile);
-                
-                // 从tile名称中提取行列信息
-                const tileName = tile.name;
-                const match = tileName.match(/Tile_(\d+)_(\d+)/);
-                if (match) {
-                    const row = parseInt(match[1]);
-                    const col = parseInt(match[2]);
-                    selectedRows.add(row);
-                    selectedCols.add(col);
+        // 选择矩形区域内的所有地块
+        for (let i = minI; i <= maxI; i++) {
+            for (let j = minJ; j <= maxJ; j++) {
+                const key = `${i}_${j}`;
+                const tile = this.tileMap.get(key);
+                if (tile) {
+                    this.selectedTiles.push(tile);
                 }
             }
-        });
+        }
         
         // 计算选择区域的尺寸
-        const selectionWidth = selectedCols.size;
-        const selectionHeight = selectedRows.size;
+        const selectionWidth = maxJ - minJ + 1;
+        const selectionHeight = maxI - minI + 1;
         
         // 根据选择尺寸决定颜色
         const isValidSelection = selectionWidth <= this.maxSelectionSize && selectionHeight <= this.maxSelectionSize;
@@ -271,6 +282,8 @@ export class TileSelectionManager extends Component {
         // 应用颜色到选中的地块
         this.applyColorToTiles(this.selectedTiles, tileColor);
     }
+    
+
     
     /**
      * 应用颜色到地块
@@ -322,8 +335,11 @@ export class TileSelectionManager extends Component {
      * 清除选择
      */
     clearSelection() {
-        this.clearTileColors();
+        this.isSelecting = false;
+        this.startTile = null;
+        this.endTile = null;
         this.selectedTiles = [];
+        this.clearTileColors();
     }
     
     /**
@@ -356,39 +372,32 @@ export class TileSelectionManager extends Component {
      * 获取选择区域信息
      */
     getSelectionInfo() {
-        if (this.selectedTiles.length === 0) {
+        if (this.selectedTiles.length === 0 || !this.startTile || !this.endTile) {
             return null;
         }
         
-        // 计算选择区域的行列范围
-        let minRow = Infinity, maxRow = -Infinity;
-        let minCol = Infinity, maxCol = -Infinity;
+        // 计算选择区域的边界
+        const minI = Math.min(this.startTile.row, this.endTile.row);
+        const maxI = Math.max(this.startTile.row, this.endTile.row);
+        const minJ = Math.min(this.startTile.col, this.endTile.col);
+        const maxJ = Math.max(this.startTile.col, this.endTile.col);
         
-        this.selectedTiles.forEach(tile => {
-            const tileName = tile.name;
-            const match = tileName.match(/Tile_(\d+)_(\d+)/);
-            if (match) {
-                const row = parseInt(match[1]);
-                const col = parseInt(match[2]);
-                minRow = Math.min(minRow, row);
-                maxRow = Math.max(maxRow, row);
-                minCol = Math.min(minCol, col);
-                maxCol = Math.max(maxCol, col);
-            }
-        });
+        const width = maxJ - minJ + 1;
+        const height = maxI - minI + 1;
         
         return {
             tileCount: this.selectedTiles.length,
-            rowRange: { min: minRow, max: maxRow },
-            colRange: { min: minCol, max: maxCol },
-            width: maxCol - minCol + 1,
-            height: maxRow - minRow + 1,
-            isValid: (maxCol - minCol + 1) <= this.maxSelectionSize && (maxRow - minRow + 1) <= this.maxSelectionSize
+            startTile: { row: this.startTile.row, col: this.startTile.col },
+            endTile: { row: this.endTile.row, col: this.endTile.col },
+            rowRange: { min: minI, max: maxI },
+            colRange: { min: minJ, max: maxJ },
+            width: width,
+            height: height,
+            isValid: width <= this.maxSelectionSize && height <= this.maxSelectionSize
         };
     }
     
     onDestroy() {
-        // 清理输入事件监听
         input.off(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
         input.off(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
         input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);

@@ -37,6 +37,7 @@ export class ImprovedMapGenerator extends Component {
     
     private mapContainer: Node = null;
     private tileSelectionManager: TileSelectionManager = null;
+    private allTiles: Node[] = []; // 存储所有地块的数组
     
     start() {
         this.generateMap();
@@ -78,6 +79,8 @@ export class ImprovedMapGenerator extends Component {
             this.mapContainer.destroy();
             this.mapContainer = null;
         }
+        // 清空地块数组
+        this.allTiles = [];
     }
     
     /**
@@ -128,6 +131,9 @@ export class ImprovedMapGenerator extends Component {
             // 直接显示矩形地块
             this.createSimpleTile(tileNode);
         }
+        
+        // 将地块添加到数组中
+        this.allTiles.push(tileNode);
     }
     
     /**
@@ -459,35 +465,7 @@ export class ImprovedMapGenerator extends Component {
      * @returns 所有地块节点数组
      */
     getAllTiles(): Node[] {
-        const tiles: Node[] = [];
-        if (!this.mapContainer) {
-            return tiles;
-        }
-        
-        const totalRows = this.rows + this.columns - 1;
-        const minDimension = Math.min(this.rows, this.columns);
-        const maxDimension = Math.max(this.rows, this.columns);
-        
-        for (let row = 0; row < totalRows; row++) {
-            // 计算当前行的地块数量
-            let tilesInRow: number;
-            if (row < minDimension) {
-                tilesInRow = row + 1;
-            } else if (row < maxDimension) {
-                tilesInRow = minDimension;
-            } else {
-                tilesInRow = totalRows - row;
-            }
-            
-            for (let col = 0; col < tilesInRow; col++) {
-                const tile = this.getTileAt(row, col);
-                if (tile) {
-                    tiles.push(tile);
-                }
-            }
-        }
-        
-        return tiles;
+        return this.allTiles;
     }
     
     /**
