@@ -97,10 +97,21 @@ export class ImprovedMapGenerator extends Component {
      * @param col 列索引
      */
     createTile(row: number, col: number) {
-        // 计算新的坐标系统：每新起一行i+1，每往右走一格i-1,j+1
-        // 从第一行第一列开始，假设初始坐标为(1,1)
-        const i = row + 1 - col; // 每新起一行i+1，每往右走一格i-1
-        const j = 1 + col; // 每往右走一格j+1（从1开始）
+        const maxDimension = Math.max(this.rows, this.columns);
+        
+        // 计算优化后的坐标系统
+        let i: number;
+        let j: number;
+        
+        if (row < maxDimension) {
+            // 在max(n,m)行之前：每新起一行i+1，每往右走一格i-1
+            i = row + 1 - col;
+            j = 1 + col; // j从1开始
+        } else {
+            // 到达max(n,m)行后：新起的行不再每次i+1
+            i = maxDimension - col;
+            j = col + (row - maxDimension + 2); // j从x-max(n,m)开始
+        }
         
         // 创建地块节点
         const tileNode = new Node(`Tile_${i}_${j}`);
