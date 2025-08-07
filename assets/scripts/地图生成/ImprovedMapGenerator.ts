@@ -1,10 +1,10 @@
-import { _decorator, Component, Node, UITransform, Sprite, SpriteFrame, Graphics, Mask, Vec3, Color } from 'cc';
+import { _decorator, Component, Node, UITransform, Sprite, SpriteFrame, Vec3 } from 'cc';
 import { TileSelectionManager } from './TileSelectionManager';
 const { ccclass, property } = _decorator;
 
 /**
  * 改进版地图生成器
- * 使用Graphics组件绘制菱形遮罩，不依赖外部遮罩图片
+ * 生成正方形地块并旋转45度形成菱形效果
  */
 @ccclass('ImprovedMapGenerator')
 export class ImprovedMapGenerator extends Component {
@@ -17,20 +17,8 @@ export class ImprovedMapGenerator extends Component {
     @property({ tooltip: '网格列数' })
     columns: number = 10;
     
-    @property({ tooltip: '单个地块宽度' })
-    tileWidth: number = 100;
-    
-    @property({ tooltip: '单个地块高度' })
-    tileHeight: number = 100;
-    
-    @property({ tooltip: '是否使用菱形遮罩' })
-    useDiamondMask: boolean = true;
-    
-    @property({ tooltip: '遮罩颜色' })
-    maskColor: Color = Color.WHITE;
-    
-    @property({ tooltip: '菱形遮罩缩放比例(0-1)' })
-    diamondScale: number = 0.9;
+    @property({ tooltip: '地块尺寸（正方形对角线长度）' })
+    tileSize: number = 100;
     
     @property({ tooltip: '启用框选功能' })
     enableTileSelection: boolean = true;
@@ -116,97 +104,40 @@ export class ImprovedMapGenerator extends Component {
         const tileNode = new Node(`Tile_${i}_${j}`);
         tileNode.parent = this.mapContainer;
         
-        // 添加UITransform
+        // 添加UITransform（正方形）
+        // tileSize是对角线长度，边长 = tileSize / √2
         const tileTransform = tileNode.addComponent(UITransform);
-        tileTransform.setContentSize(this.tileWidth, this.tileHeight);
+        const sideLength = this.tileSize / Math.sqrt(2);
+        tileTransform.setContentSize(sideLength, sideLength);
         
         // 计算菱形网格位置
         const pos = this.calculateTilePosition(row, col);
         tileNode.setPosition(pos);
         
-        if (this.useDiamondMask) {
-            // 使用菱形遮罩
-            this.createTileWithDiamondMask(tileNode, row, col);
-        } else {
-            // 直接显示矩形地块
-            this.createSimpleTile(tileNode);
-        }
+        // 创建旋转的正方形地块
+        this.createRotatedSquareTile(tileNode);
         
         // 将地块添加到数组中
         this.allTiles.push(tileNode);
     }
     
     /**
-     * 创建带菱形遮罩的地块
-     * @param tileNode 地块节点
-     * @param row 行索引
-     * @param col 列索引
-     */
-    createTileWithDiamondMask(tileNode: Node, row: number, col: number) {
-        // 创建遮罩节点
-        const maskNode = new Node('DiamondMask');
-        maskNode.parent = tileNode;
-        
-        // 添加UITransform
-        const maskTransform = maskNode.addComponent(UITransform);
-        maskTransform.setContentSize(this.tileWidth, this.tileHeight);
-        
-        // 添加Mask组件（会自动添加Graphics组件）
-        const mask = maskNode.addComponent(Mask);
-        mask.type = Mask.Type.GRAPHICS_STENCIL;
-        
-        // 通过mask获取Graphics组件进行绘制
-        const graphics = maskNode.getComponent(Graphics);
-        if (graphics) {
-            this.drawDiamondMask(graphics);
-        }
-        
-        // 设置遮罩位置
-        maskNode.setPosition(0, 0, 0);
-        
-        // 创建地块内容节点（被遮罩的内容）
-        const contentNode = new Node('TileContent');
-        contentNode.parent = maskNode;
-        
-        const contentTransform = contentNode.addComponent(UITransform);
-        contentTransform.setContentSize(this.tileWidth, this.tileHeight);
-        
-        // 添加地块图片
-        const sprite = contentNode.addComponent(Sprite);
-        sprite.spriteFrame = this.getRandomTileSprite();
-        
-        contentNode.setPosition(0, 0, 0);
-    }
-    
-    /**
-     * 创建简单矩形地块
+     * 创建旋转45度的正方形地块
      * @param tileNode 地块节点
      */
-    createSimpleTile(tileNode: Node) {
+    createRotatedSquareTile(tileNode: Node) {
         // 直接添加Sprite组件
         const sprite = tileNode.addComponent(Sprite);
         sprite.spriteFrame = this.getRandomTileSprite();
-    }
-    
-    /**
-     * 绘制菱形遮罩
-     * @param graphics Graphics组件
-     */
-    drawDiamondMask(graphics: Graphics) {
-        graphics.clear();
-        graphics.fillColor = this.maskColor;
         
-        const halfWidth = (this.tileWidth * this.diamondScale) * 0.5;
-        const halfHeight = (this.tileHeight * this.diamondScale) * 0.5;
+        // 确保UITransform组件存在并设置正确的尺寸
+        // tileSize是对角线长度，边长 = tileSize / √2
+        const transform = tileNode.getComponent(UITransform) || tileNode.addComponent(UITransform);
+        const sideLength = this.tileSize / Math.sqrt(2);
+        transform.setContentSize(sideLength, sideLength);
         
-        // 菱形的四个顶点
-        graphics.moveTo(0, halfHeight);           // 上顶点
-        graphics.lineTo(halfWidth, 0);            // 右顶点
-        graphics.lineTo(0, -halfHeight);          // 下顶点
-        graphics.lineTo(-halfWidth, 0);           // 左顶点
-        graphics.close();                         // 闭合路径
-        
-        graphics.fill();
+        // 旋转45度形成菱形效果
+        tileNode.setRotationFromEuler(0, 0, 45);
     }
     
     /**
@@ -260,10 +191,10 @@ export class ImprovedMapGenerator extends Component {
         }
         
         // 计算水平偏移，使地块居中
-        let startX = -(tilesInRow - 1) * this.tileWidth * 0.5;
+        let startX = -(tilesInRow - 1) * this.tileSize * 0.5;
         
         // 计算中间部分的最大偏移量
-        const maxMiddleOffset = (maxDimension - minDimension) * this.tileWidth * 0.5;
+        const maxMiddleOffset = (maxDimension - minDimension) * this.tileSize * 0.5;
         
         // 在中间部分添加额外的偏移
         if (row >= minDimension && row < maxDimension) {
@@ -273,10 +204,10 @@ export class ImprovedMapGenerator extends Component {
             // 根据rows和columns的大小关系决定偏移方向
             if (this.rows > this.columns) {
                 // rows更大，向右偏移
-                startX += middleRowIndex * this.tileWidth * 0.5;
+                startX += middleRowIndex * this.tileSize * 0.5;
             } else if (this.columns > this.rows) {
                 // columns更大，向左偏移
-                startX -= middleRowIndex * this.tileWidth * 0.5;
+                startX -= middleRowIndex * this.tileSize * 0.5;
             }
             // 如果rows == columns，不需要偏移
         }
@@ -292,11 +223,11 @@ export class ImprovedMapGenerator extends Component {
             }
         }
         
-        const x = startX + col * this.tileWidth;
+        const x = startX + col * this.tileSize;
         
         // 计算垂直位置（0.25才是中心）
-        const startY = (totalRows - 1) * this.tileHeight * 0.25;
-        const y = startY - row * this.tileHeight*0.5; // 上下合缝
+        const startY = (totalRows - 1) * this.tileSize * 0.25;
+        const y = startY - row * this.tileSize * 0.5; // 上下合缝
         
         return new Vec3(x, y, 0);
     }
@@ -330,33 +261,11 @@ export class ImprovedMapGenerator extends Component {
     
     /**
      * 设置地块尺寸
-     * @param width 地块宽度
-     * @param height 地块高度
+     * @param size 地块尺寸（正方形边长）
      */
-    setTileSize(width: number, height: number) {
-        this.tileWidth = Math.max(10, width);
-        this.tileHeight = Math.max(10, height);
+    setTileSize(size: number) {
+        this.tileSize = Math.max(10, size);
         this.generateMap();
-    }
-    
-    /**
-     * 切换遮罩模式
-     * @param useMask 是否使用菱形遮罩
-     */
-    toggleDiamondMask(useMask: boolean) {
-        this.useDiamondMask = useMask;
-        this.generateMap();
-    }
-    
-    /**
-     * 设置菱形遮罩缩放
-     * @param scale 缩放比例(0-1)
-     */
-    setDiamondScale(scale: number) {
-        this.diamondScale = Math.max(0.1, Math.min(1.0, scale));
-        if (this.useDiamondMask) {
-            this.generateMap();
-        }
     }
     
     /**
@@ -449,10 +358,7 @@ export class ImprovedMapGenerator extends Component {
         return {
             rows: this.rows,
             columns: this.columns,
-            tileWidth: this.tileWidth,
-            tileHeight: this.tileHeight,
-            useDiamondMask: this.useDiamondMask,
-            diamondScale: this.diamondScale,
+            tileSize: this.tileSize,
             totalTiles: totalTiles,
             spriteCount: this.tileSprites.length,
             actualRows: totalRows,
@@ -509,7 +415,7 @@ export class ImprovedMapGenerator extends Component {
         }
         
         // 检查距离是否在合理范围内（地块大小的一半）
-        const maxDistance = Math.max(this.tileWidth, this.tileHeight) * 0.5;
+        const maxDistance = this.tileSize * 0.5;
         if (closestDistance <= maxDistance) {
             return { tile: closestTile, row: closestRow, col: closestCol };
         }
@@ -531,8 +437,7 @@ export class ImprovedMapGenerator extends Component {
          const mapConfig = {
              rows: this.rows,
              columns: this.columns,
-             tileWidth: this.tileWidth,
-             tileHeight: this.tileHeight
+             tileSize: this.tileSize
          };
          this.tileSelectionManager.initialize(this.getAllTiles(), mapConfig);
          

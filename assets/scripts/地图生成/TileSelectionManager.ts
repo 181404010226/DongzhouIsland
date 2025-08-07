@@ -13,8 +13,7 @@ export class TileSelectionManager extends Component {
     private camera: Camera = null;
     private allTiles: Node[] = [];
     private isEnabled: boolean = true;
-    private tileWidth: number = 100;
-    private tileHeight: number = 100;
+    private tileSize: number = 100;
     private rows: number = 10;
     private columns: number = 10;
     
@@ -45,12 +44,11 @@ export class TileSelectionManager extends Component {
      * @param tiles 所有地块节点
      * @param mapConfig 地图配置信息
      */
-    initialize(tiles: Node[], mapConfig: { rows: number, columns: number, tileWidth: number, tileHeight: number }) {
+    initialize(tiles: Node[], mapConfig: { rows: number, columns: number, tileSize: number }) {
         this.allTiles = tiles;
         this.rows = mapConfig.rows;
         this.columns = mapConfig.columns;
-        this.tileWidth = mapConfig.tileWidth;
-        this.tileHeight = mapConfig.tileHeight;
+        this.tileSize = mapConfig.tileSize;
         
         // 建立地块索引映射
         this.buildTileMap();
@@ -189,42 +187,38 @@ export class TileSelectionManager extends Component {
     
     /**
      * 获取屏幕位置对应的地块索引
+     * 使用UITransform的isHit方法进行精确检测
      */
     private getTileAtScreenPos(screenPos: Vec2): { row: number, col: number } | null {
         const worldPos = this.screenToWorldPos(screenPos);
         
-        let closestTile: Node | null = null;
-        let minDistance = Infinity;
-        
-        // 遍历所有地块，找到距离最近的
+        // 遍历所有地块，使用UITransform的isHit方法检测
         for (const tile of this.allTiles) {
-            const tilePos = tile.getWorldPosition();
-            const distance = Vec2.distance(
-                new Vec2(worldPos.x, worldPos.y),
-                new Vec2(tilePos.x, tilePos.y)
-            );
+            const tileTransform = tile.getComponent(UITransform);
+            if (!tileTransform) continue;
             
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestTile = tile;
+            // 使用UITransform的isHit方法，它会自动处理旋转
+            // 将世界坐标转换为地块的本地坐标进行检测
+            const localPos = tile.getComponent(UITransform).convertToNodeSpaceAR(worldPos);
+            
+            // 检查是否在UITransform的矩形范围内（本地坐标系）
+            const halfWidth = tileTransform.width * 0.5;
+            const halfHeight = tileTransform.height * 0.5;
+            
+            if (Math.abs(localPos.x) <= halfWidth && Math.abs(localPos.y) <= halfHeight) {
+                // 解析地块名称获取索引
+                const tileName = tile.name;
+                const match = tileName.match(/Tile_(\d+)_(\d+)/);
+                if (match) {
+                    const i = parseInt(match[1]);
+                    const j = parseInt(match[2]);
+                    console.log(`检测到地块: ${tileName}, 本地坐标: (${localPos.x.toFixed(2)}, ${localPos.y.toFixed(2)})`);
+                    return { row: i, col: j };
+                }
             }
         }
         
-        // 检查是否在合理的点击范围内
-        const maxClickDistance = Math.max(this.tileWidth, this.tileHeight) * 0.6;
-        if (closestTile && minDistance < maxClickDistance) {
-            // 解析地块名称获取索引
-            const tileName = closestTile.name;
-            const match = tileName.match(/Tile_(\d+)_(\d+)/);
-            if (match) {
-                const i = parseInt(match[1]);
-                const j = parseInt(match[2]);
-                console.log(`检测到地块: ${tileName}, 距离: ${minDistance.toFixed(2)}`);
-                return { row: i, col: j };
-            }
-        }
-        
-        console.log(`未找到有效地块，最近距离: ${minDistance.toFixed(2)}`);
+        console.log(`未找到有效地块，世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)})`);
         return null;
     }
     
