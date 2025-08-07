@@ -88,7 +88,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 375,
-      "y": 821.5000000000002,
+      "y": 821.5,
       "z": 0
     },
     "_lrot": {
@@ -173,7 +173,7 @@
     "_priority": 0,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 821.5000000000001,
+    "_orthoHeight": 821.4999999999999,
     "_near": 0,
     "_far": 2000,
     "_color": {
@@ -334,7 +334,7 @@
       }
     ],
     "rows": 10,
-    "columns": 10,
+    "columns": 20,
     "tileWidth": 100,
     "tileHeight": 100,
     "useDiamondMask": true,
@@ -346,6 +346,7 @@
       "a": 255
     },
     "diamondScale": 1,
+    "enableTileSelection": true,
     "_id": "42lE6LAnZLy7apqxORS+rr"
   },
   {
@@ -361,7 +362,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 750,
-      "height": 1643.0000000000002
+      "height": 1642.9999999999998
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

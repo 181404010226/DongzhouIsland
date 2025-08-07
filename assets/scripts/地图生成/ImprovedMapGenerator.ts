@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, UITransform, Sprite, SpriteFrame, Graphics, Mask, Vec3, Color } from 'cc';
+import { TileSelectionManager } from './TileSelectionManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -31,10 +32,18 @@ export class ImprovedMapGenerator extends Component {
     @property({ tooltip: '菱形遮罩缩放比例(0-1)' })
     diamondScale: number = 0.9;
     
+    @property({ tooltip: '启用框选功能' })
+    enableTileSelection: boolean = true;
+    
     private mapContainer: Node = null;
+    private tileSelectionManager: TileSelectionManager = null;
     
     start() {
         this.generateMap();
+        
+        if (this.enableTileSelection) {
+            this.setupTileSelection();
+        }
     }
     
     /**
@@ -52,12 +61,13 @@ export class ImprovedMapGenerator extends Component {
         // 创建地图容器
         this.createMapContainer();
         
-        // 生成网格
-        for (let row = 0; row < this.rows; row++) {
-            for (let col = 0; col < this.columns; col++) {
-                this.createTile(row, col);
-            }
-        }
+        // 生成菱形网格
+        this.generateDiamondGrid();
+        
+        // 如果启用了框选功能，更新tiles引用
+         if (this.enableTileSelection && this.tileSelectionManager) {
+             this.tileSelectionManager.updateTiles(this.getAllTiles());
+         }
     }
     
     /**
@@ -189,21 +199,93 @@ export class ImprovedMapGenerator extends Component {
     }
     
     /**
+     * 生成菱形网格
+     */
+    private generateDiamondGrid() {
+        const totalRows = this.rows + this.columns - 1;
+        const minDimension = Math.min(this.rows, this.columns);
+        const maxDimension = Math.max(this.rows, this.columns);
+        
+        for (let row = 0; row < totalRows; row++) {
+            // 计算当前行的地块数量
+            let tilesInRow: number;
+            if (row < minDimension) {
+                // 前半部分：逐行增加
+                tilesInRow = row + 1;
+            } else if (row < maxDimension) {
+                // 中间部分：保持最大宽度
+                tilesInRow = minDimension;
+            } else {
+                // 后半部分：逐行减少
+                tilesInRow = totalRows - row;
+            }
+            
+            // 生成当前行的地块
+            for (let col = 0; col < tilesInRow; col++) {
+                this.createTile(row, col);
+            }
+        }
+    }
+    
+    /**
      * 计算地块在菱形网格中的位置
      * @param row 行索引
      * @param col 列索引
      * @returns 世界坐标位置
      */
     calculateTilePosition(row: number, col: number): Vec3 {
-        // 菱形网格的偏移计算
-        // 奇数行向右偏移半个地块宽度
-        const offsetX = (row % 2) * (this.tileWidth * 0.5);
-        // 奇数行向下偏移半个地块高度，避免上下缝隙
-        const offsetY = (row % 2) * (this.tileHeight * 0.0);
+        const totalRows = this.rows + this.columns - 1;
+        const minDimension = Math.min(this.rows, this.columns);
+        const maxDimension = Math.max(this.rows, this.columns);
         
-        // 计算实际位置
-        const x = col * this.tileWidth + offsetX - (this.columns * this.tileWidth * 0.5) + (this.tileWidth * 0.5);
-        const y = (this.rows * this.tileHeight * 0.375) - row * (this.tileHeight * 0.5) - offsetY - (this.tileHeight * 0.5);
+        // 计算当前行的地块数量
+        let tilesInRow: number;
+        if (row < minDimension) {
+            tilesInRow = row + 1;
+        } else if (row < maxDimension) {
+            tilesInRow = minDimension;
+        } else {
+            tilesInRow = totalRows - row;
+        }
+        
+        // 计算水平偏移，使地块居中
+        let startX = -(tilesInRow - 1) * this.tileWidth * 0.5;
+        
+        // 计算中间部分的最大偏移量
+        const maxMiddleOffset = (maxDimension - minDimension) * this.tileWidth * 0.5;
+        
+        // 在中间部分添加额外的偏移
+        if (row >= minDimension && row < maxDimension) {
+            // 计算在中间部分的相对行数
+            const middleRowIndex = row - minDimension + 1;
+            
+            // 根据rows和columns的大小关系决定偏移方向
+            if (this.rows > this.columns) {
+                // rows更大，向右偏移
+                startX += middleRowIndex * this.tileWidth * 0.5;
+            } else if (this.columns > this.rows) {
+                // columns更大，向左偏移
+                startX -= middleRowIndex * this.tileWidth * 0.5;
+            }
+            // 如果rows == columns，不需要偏移
+        }
+        // 在后半部分也添加偏移影响
+        else if (row >= maxDimension) {
+            // 后半部分需要保持与中间部分最后一行相同的偏移
+            if (this.rows > this.columns) {
+                // rows更大，保持最大右偏移
+                startX += maxMiddleOffset;
+            } else if (this.columns > this.rows) {
+                // columns更大，保持最大左偏移
+                startX -= maxMiddleOffset;
+            }
+        }
+        
+        const x = startX + col * this.tileWidth;
+        
+        // 计算垂直位置（0.25才是中心）
+        const startY = (totalRows - 1) * this.tileHeight * 0.25;
+        const y = startY - row * this.tileHeight*0.5; // 上下合缝
         
         return new Vec3(x, y, 0);
     }
@@ -301,7 +383,30 @@ export class ImprovedMapGenerator extends Component {
      * @returns 地块节点或null
      */
     getTileAt(row: number, col: number): Node | null {
-        if (!this.mapContainer || row < 0 || row >= this.rows || col < 0 || col >= this.columns) {
+        if (!this.mapContainer) {
+            return null;
+        }
+        
+        const totalRows = this.rows + this.columns - 1;
+        const minDimension = Math.min(this.rows, this.columns);
+        const maxDimension = Math.max(this.rows, this.columns);
+        
+        // 检查行索引是否有效
+        if (row < 0 || row >= totalRows) {
+            return null;
+        }
+        
+        // 计算当前行的地块数量并检查列索引
+        let tilesInRow: number;
+        if (row < minDimension) {
+            tilesInRow = row + 1;
+        } else if (row < maxDimension) {
+            tilesInRow = minDimension;
+        } else {
+            tilesInRow = totalRows - row;
+        }
+        
+        if (col < 0 || col >= tilesInRow) {
             return null;
         }
         
@@ -314,6 +419,22 @@ export class ImprovedMapGenerator extends Component {
      * @returns 地图信息对象
      */
     getMapInfo() {
+        // 计算菱形布局的总地块数
+        const totalRows = this.rows + this.columns - 1;
+        const minDimension = Math.min(this.rows, this.columns);
+        const maxDimension = Math.max(this.rows, this.columns);
+        let totalTiles = 0;
+        
+        for (let row = 0; row < totalRows; row++) {
+            if (row < minDimension) {
+                totalTiles += row + 1;
+            } else if (row < maxDimension) {
+                totalTiles += minDimension;
+            } else {
+                totalTiles += totalRows - row;
+            }
+        }
+        
         return {
             rows: this.rows,
             columns: this.columns,
@@ -321,8 +442,137 @@ export class ImprovedMapGenerator extends Component {
             tileHeight: this.tileHeight,
             useDiamondMask: this.useDiamondMask,
             diamondScale: this.diamondScale,
-            totalTiles: this.rows * this.columns,
-            spriteCount: this.tileSprites.length
+            totalTiles: totalTiles,
+            spriteCount: this.tileSprites.length,
+            actualRows: totalRows,
+            maxTilesPerRow: minDimension
         };
     }
+    
+    /**
+     * 获取所有地块节点
+     * @returns 所有地块节点数组
+     */
+    getAllTiles(): Node[] {
+        const tiles: Node[] = [];
+        if (!this.mapContainer) {
+            return tiles;
+        }
+        
+        const totalRows = this.rows + this.columns - 1;
+        const minDimension = Math.min(this.rows, this.columns);
+        const maxDimension = Math.max(this.rows, this.columns);
+        
+        for (let row = 0; row < totalRows; row++) {
+            // 计算当前行的地块数量
+            let tilesInRow: number;
+            if (row < minDimension) {
+                tilesInRow = row + 1;
+            } else if (row < maxDimension) {
+                tilesInRow = minDimension;
+            } else {
+                tilesInRow = totalRows - row;
+            }
+            
+            for (let col = 0; col < tilesInRow; col++) {
+                const tile = this.getTileAt(row, col);
+                if (tile) {
+                    tiles.push(tile);
+                }
+            }
+        }
+        
+        return tiles;
+    }
+    
+    /**
+     * 获取地图容器节点
+     * @returns 地图容器节点
+     */
+    getMapContainer(): Node {
+        return this.mapContainer;
+    }
+    
+    /**
+     * 根据世界坐标获取对应的地块
+     * @param worldPos 世界坐标
+     * @returns 地块节点或null
+     */
+    getTileAtWorldPosition(worldPos: Vec3): { tile: Node, row: number, col: number } | null {
+        if (!this.mapContainer) {
+            return null;
+        }
+        
+        let closestTile = null;
+        let closestDistance = Infinity;
+        let closestRow = -1;
+        let closestCol = -1;
+        
+        for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.columns; col++) {
+                const tile = this.getTileAt(row, col);
+                if (tile) {
+                    const tileWorldPos = tile.getWorldPosition();
+                    const distance = Vec3.distance(worldPos, tileWorldPos);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestTile = tile;
+                        closestRow = row;
+                        closestCol = col;
+                    }
+                }
+            }
+        }
+        
+        // 检查距离是否在合理范围内（地块大小的一半）
+        const maxDistance = Math.max(this.tileWidth, this.tileHeight) * 0.5;
+        if (closestDistance <= maxDistance) {
+            return { tile: closestTile, row: closestRow, col: closestCol };
+        }
+        
+        return null;
+     }
+     
+     /**
+      * 设置地块框选功能
+      */
+     private setupTileSelection() {
+         // 创建或获取TileSelectionManager组件
+         this.tileSelectionManager = this.node.getComponent(TileSelectionManager);
+         if (!this.tileSelectionManager) {
+             this.tileSelectionManager = this.node.addComponent(TileSelectionManager);
+         }
+         
+         // 初始化框选管理器
+         const mapConfig = {
+             rows: this.rows,
+             columns: this.columns,
+             tileWidth: this.tileWidth,
+             tileHeight: this.tileHeight
+         };
+         this.tileSelectionManager.initialize(this.getAllTiles(), mapConfig);
+         
+         console.log('地块框选功能已启用');
+     }
+     
+     /**
+      * 获取框选管理器
+      */
+     getTileSelectionManager(): TileSelectionManager {
+         return this.tileSelectionManager;
+     }
+     
+     /**
+      * 启用/禁用框选功能
+      */
+     setTileSelectionEnabled(enabled: boolean) {
+         this.enableTileSelection = enabled;
+         
+         if (enabled && !this.tileSelectionManager) {
+             this.setupTileSelection();
+         } else if (!enabled && this.tileSelectionManager) {
+             this.tileSelectionManager.setEnabled(false);
+         }
+     }
 }
