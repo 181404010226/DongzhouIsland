@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, UITransform, Sprite, SpriteFrame, Vec3, Vec2, Prefab, instantiate, EventTouch, input, Input, Color, Camera } from 'cc';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
 import { InteractionManager } from '../交互管理/InteractionManager';
+import { BuildInfo } from './BuildInfo';
 const { ccclass, property } = _decorator;
 
 /**
@@ -9,11 +10,8 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('BuildingPlacer')
 export class BuildingPlacer extends Component {
-    @property({ type: SpriteFrame, tooltip: '建筑预览图片' })
-    previewImage: SpriteFrame = null;
-    
-    @property({ type: Prefab, tooltip: '建筑预制体' })
-    buildingPrefab: Prefab = null;
+    @property({ type: [Node], tooltip: '包含BuildInfo组件的建筑节点数组' })
+    buildingNodes: Node[] = [];
     
     @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
     mapGenerator: ImprovedMapGenerator = null;
@@ -30,8 +28,9 @@ export class BuildingPlacer extends Component {
     // 私有变量
     private previewNode: Node = null; // 预览节点
     private isDragging: boolean = false; // 是否正在拖拽
-    // 移除placedBuildings，改为直接检查tile子节点
     private dragStartPos: Vec3 = new Vec3(); // 拖拽开始位置
+    private currentBuildingIndex: number = -1; // 当前选中的建筑索引
+    private activeBuildingNode: Node = null; // 当前激活的建筑节点
     
     start() {
         this.setupInputEvents();
@@ -56,12 +55,19 @@ export class BuildingPlacer extends Component {
      * 创建预览节点
      */
     private createPreviewNode() {
-        if (!this.buildingPrefab) {
+        if (this.currentBuildingIndex < 0 || this.currentBuildingIndex >= this.buildingNodes.length) {
+            return;
+        }
+        
+        const buildingNode = this.buildingNodes[this.currentBuildingIndex];
+        const buildInfo = buildingNode.getComponent(BuildInfo);
+        
+        if (!buildInfo || !buildInfo.getBuildingPrefab()) {
             return;
         }
         
         // 直接实例化建筑预制体作为预览节点
-        this.previewNode = instantiate(this.buildingPrefab);
+        this.previewNode = instantiate(buildInfo.getBuildingPrefab());
         this.previewNode.name = 'BuildingPreview';
         
         // 初始时隐藏预览节点，不设置父节点
@@ -95,11 +101,12 @@ export class BuildingPlacer extends Component {
             return;
         }
         
-        // 检查触摸点是否在当前节点范围内
+        // 检查触摸点是否在任何建筑节点范围内
         const touchPos = event.getUILocation();
-        const nodeTransform = this.node.getComponent(UITransform);
+        const touchedNodeIndex = this.getTouchedBuildingNodeIndex(new Vec3(touchPos.x, touchPos.y, 0));
         
-        if (nodeTransform && this.isPointInNode(new Vec3(touchPos.x, touchPos.y, 0), nodeTransform)) {
+        if (touchedNodeIndex >= 0) {
+            this.setCurrentBuilding(touchedNodeIndex);
             this.startDrag(new Vec3(touchPos.x, touchPos.y, 0));
         }
     }
@@ -133,16 +140,60 @@ export class BuildingPlacer extends Component {
      */
     private canStartDrag(): boolean {
         return this.enableDragPlacement && 
-               this.buildingPrefab != null && 
+               this.buildingNodes.length > 0 && 
                this.mapGenerator != null &&
                this.mainCamera != null;
     }
     
     /**
+     * 获取触摸点对应的建筑节点索引
+     */
+    private getTouchedBuildingNodeIndex(touchPos: Vec3): number {
+        for (let i = 0; i < this.buildingNodes.length; i++) {
+            const node = this.buildingNodes[i];
+            const buildInfo = node.getComponent(BuildInfo);
+            
+            if (!buildInfo || !buildInfo.isEnabled()) {
+                continue;
+            }
+            
+            const nodeTransform = node.getComponent(UITransform);
+            if (nodeTransform && this.isPointInNode(touchPos, nodeTransform, node)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    
+    /**
+     * 设置当前选中的建筑
+     */
+    public setCurrentBuilding(index: number) {
+        if (index < 0 || index >= this.buildingNodes.length) {
+            this.currentBuildingIndex = -1;
+            this.activeBuildingNode = null;
+            return;
+        }
+        
+        this.currentBuildingIndex = index;
+        this.activeBuildingNode = this.buildingNodes[index];
+        
+        // 销毁旧的预览节点并创建新的
+        if (this.previewNode) {
+            this.previewNode.destroy();
+            this.previewNode = null;
+        }
+        
+        this.createPreviewNode();
+        
+        console.log(`选中建筑: ${this.activeBuildingNode.name}`);
+    }
+    
+    /**
      * 检查点是否在节点范围内
      */
-    private isPointInNode(point: Vec3, nodeTransform: UITransform): boolean {
-        const nodePos = this.node.getWorldPosition();
+    private isPointInNode(point: Vec3, nodeTransform: UITransform, node: Node): boolean {
+        const nodePos = node.getWorldPosition();
         const size = nodeTransform.contentSize;
         
         return point.x >= nodePos.x - size.width / 2 &&
@@ -328,8 +379,14 @@ export class BuildingPlacer extends Component {
      * 尝试在地图上放置建筑
      */
     private tryPlaceBuilding(touchPos: Vec3) {
-        if (!this.mapGenerator || !this.buildingPrefab) {
-            console.warn('缺少必要组件，无法放置建筑');
+        if (!this.mapGenerator || this.currentBuildingIndex < 0) {
+            console.warn('缺少必要组件或未选中建筑，无法放置建筑');
+            return;
+        }
+        
+        const buildInfo = this.activeBuildingNode.getComponent(BuildInfo);
+        if (!buildInfo || !buildInfo.getBuildingPrefab()) {
+            console.warn('当前建筑节点缺少BuildInfo组件或建筑预制体');
             return;
         }
         
@@ -349,37 +406,38 @@ export class BuildingPlacer extends Component {
         }
         
         // 放置建筑
-        this.placeBuilding(tileInfo.tile, tileInfo.row, tileInfo.col);
+        this.placeBuilding(tileInfo.tile, tileInfo.row, tileInfo.col, buildInfo);
     }
     
     /**
      * 在指定地块上放置建筑
      */
-    private placeBuilding(tile: Node, row: number, col: number) {
-        if (!this.buildingPrefab) {
+    private placeBuilding(tile: Node, row: number, col: number, buildInfo: BuildInfo) {
+        if (!buildInfo.getBuildingPrefab()) {
             return;
         }
         
         // 实例化建筑预制体
-        const buildingInstance = instantiate(this.buildingPrefab);
-        buildingInstance.name = `Building_${row}_${col}`;
+        const buildingInstance = instantiate(buildInfo.getBuildingPrefab());
+        buildingInstance.name = `Building_${row}_${col}_${buildInfo.getBuildingType()}`;
         
         // 将建筑放置在地块上
         buildingInstance.parent = tile;
         buildingInstance.setPosition(0, 0, 1); // 稍微抬高一点
         
-        console.log(`成功在地块 (${row}, ${col}) 放置建筑`);
+        console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getBuildingType()}`);
         
         // 触发建筑放置事件（可扩展）
-        this.onBuildingPlaced(buildingInstance, row, col);
+        this.onBuildingPlaced(buildingInstance, row, col, buildInfo);
     }
     
     /**
      * 建筑放置完成回调
      */
-    private onBuildingPlaced(building: Node, row: number, col: number) {
+    private onBuildingPlaced(building: Node, row: number, col: number, buildInfo: BuildInfo) {
         // 可以在这里添加建筑放置后的逻辑
         // 比如播放音效、更新UI、记录数据等
+        console.log(`建筑放置完成: ${buildInfo.getBuildingType()} at (${row}, ${col})`);
     }
     
     /**
@@ -479,27 +537,73 @@ export class BuildingPlacer extends Component {
     }
     
     /**
-     * 设置预览图片
+     * 添加建筑节点
      */
-    public setPreviewImage(spriteFrame: SpriteFrame) {
-        this.previewImage = spriteFrame;
-        // 注意：现在预览节点使用buildingPrefab，previewImage仅用于UI显示
+    public addBuildingNode(node: Node): boolean {
+        if (!node || !node.getComponent(BuildInfo)) {
+            console.warn('节点必须包含BuildInfo组件');
+            return false;
+        }
+        
+        if (this.buildingNodes.indexOf(node) >= 0) {
+            console.warn('节点已存在于数组中');
+            return false;
+        }
+        
+        this.buildingNodes.push(node);
+        console.log(`添加建筑节点: ${node.name}`);
+        return true;
     }
     
     /**
-     * 设置建筑预制体
+     * 移除建筑节点
      */
-    public setBuildingPrefab(prefab: Prefab) {
-        this.buildingPrefab = prefab;
-        
-        // 销毁旧的预览节点
-        if (this.previewNode) {
-            this.previewNode.destroy();
-            this.previewNode = null;
+    public removeBuildingNode(node: Node): boolean {
+        const index = this.buildingNodes.indexOf(node);
+        if (index < 0) {
+            console.warn('节点不存在于数组中');
+            return false;
         }
         
-        // 重新创建预览节点
-        this.createPreviewNode();
+        this.buildingNodes.splice(index, 1);
+        
+        // 如果移除的是当前选中的节点，重置选择
+        if (this.currentBuildingIndex === index) {
+            this.currentBuildingIndex = -1;
+            this.activeBuildingNode = null;
+            
+            if (this.previewNode) {
+                this.previewNode.destroy();
+                this.previewNode = null;
+            }
+        } else if (this.currentBuildingIndex > index) {
+            // 调整当前选中索引
+            this.currentBuildingIndex--;
+        }
+        
+        console.log(`移除建筑节点: ${node.name}`);
+        return true;
+    }
+    
+    /**
+     * 获取建筑节点数组
+     */
+    public getBuildingNodes(): Node[] {
+        return this.buildingNodes.slice(); // 返回副本
+    }
+    
+    /**
+     * 获取当前选中的建筑索引
+     */
+    public getCurrentBuildingIndex(): number {
+        return this.currentBuildingIndex;
+    }
+    
+    /**
+     * 获取当前激活的建筑节点
+     */
+    public getActiveBuildingNode(): Node | null {
+        return this.activeBuildingNode;
     }
     
     /**
@@ -544,10 +648,56 @@ export class BuildingPlacer extends Component {
      */
     public getBuildingStats() {
         const positions = this.getPlacedBuildingPositions();
+        const buildingTypes: { [key: string]: number } = {};
+        
+        // 统计不同类型建筑的数量
+        if (this.mapGenerator) {
+            const allTiles = this.mapGenerator.getAllTiles();
+            for (const tile of allTiles) {
+                for (let i = 0; i < tile.children.length; i++) {
+                    const child = tile.children[i];
+                    if (child.name.startsWith('Building_')) {
+                        // 从建筑名称中提取类型
+                        const nameParts = child.name.split('_');
+                        if (nameParts.length >= 4) {
+                            const buildingType = nameParts.slice(3).join('_');
+                            buildingTypes[buildingType] = (buildingTypes[buildingType] || 0) + 1;
+                        }
+                    }
+                }
+            }
+        }
+        
         return {
             totalPlaced: positions.length,
-            positions: positions
+            positions: positions,
+            buildingTypes: buildingTypes,
+            availableBuildingNodes: this.buildingNodes.length,
+            currentSelectedIndex: this.currentBuildingIndex
         };
+    }
+    
+    /**
+     * 获取可用的建筑类型列表
+     */
+    public getAvailableBuildingTypes(): Array<{index: number, name: string, type: string, enabled: boolean}> {
+        const types: Array<{index: number, name: string, type: string, enabled: boolean}> = [];
+        
+        for (let i = 0; i < this.buildingNodes.length; i++) {
+            const node = this.buildingNodes[i];
+            const buildInfo = node.getComponent(BuildInfo);
+            
+            if (buildInfo) {
+                types.push({
+                    index: i,
+                    name: node.name,
+                    type: buildInfo.getBuildingType(),
+                    enabled: buildInfo.isEnabled()
+                });
+            }
+        }
+        
+        return types;
     }
     
     onDestroy() {
