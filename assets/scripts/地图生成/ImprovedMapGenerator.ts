@@ -42,8 +42,7 @@ export class ImprovedMapGenerator extends Component {
      */
     generateMap() {
         if (this.tileSprites.length === 0) {
-            console.warn('地块图片数组为空，无法生成地图');
-            return;
+            console.warn('地块图片数组为空，将生成没有图片的空节点');
         }
         
         // 清除之前的地图
@@ -139,9 +138,11 @@ export class ImprovedMapGenerator extends Component {
      * @param tileNode 地块节点
      */
     createRotatedSquareTile(tileNode: Node) {
-        // 直接添加Sprite组件
-        const sprite = tileNode.addComponent(Sprite);
-        sprite.spriteFrame = this.getRandomTileSprite();
+        // 如果有图片资源，则添加Sprite组件
+        if (this.tileSprites.length > 0) {
+            const sprite = tileNode.addComponent(Sprite);
+            sprite.spriteFrame = this.getRandomTileSprite();
+        }
         
         // 确保UITransform组件存在并设置正确的尺寸
         // tileSize是对角线长度，边长 = tileSize / √2
@@ -247,9 +248,12 @@ export class ImprovedMapGenerator extends Component {
     
     /**
      * 随机获取一个地块图片
-     * @returns 随机选择的SpriteFrame
+     * @returns 随机选择的SpriteFrame，如果数组为空则返回null
      */
-    getRandomTileSprite(): SpriteFrame {
+    getRandomTileSprite(): SpriteFrame | null {
+        if (this.tileSprites.length === 0) {
+            return null;
+        }
         const randomIndex = Math.floor(Math.random() * this.tileSprites.length);
         return this.tileSprites[randomIndex];
     }
