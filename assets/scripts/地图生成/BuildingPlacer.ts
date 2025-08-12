@@ -30,7 +30,7 @@ export class BuildingPlacer extends Component {
     // 私有变量
     private previewNode: Node = null; // 预览节点
     private isDragging: boolean = false; // 是否正在拖拽
-    private placedBuildings: Set<string> = new Set(); // 已放置建筑的地块标记
+    // 移除placedBuildings，改为直接检查tile子节点
     private dragStartPos: Vec3 = new Vec3(); // 拖拽开始位置
     
     start() {
@@ -343,8 +343,7 @@ export class BuildingPlacer extends Component {
         }
         
         // 检查该地块是否已经放置了建筑
-        const tileKey = `${tileInfo.row}_${tileInfo.col}`;
-        if (this.placedBuildings.has(tileKey)) {
+        if (this.isBuildingPlaced(tileInfo.row, tileInfo.col)) {
             console.log(`地块 (${tileInfo.row}, ${tileInfo.col}) 已经放置了建筑`);
             return;
         }
@@ -369,10 +368,6 @@ export class BuildingPlacer extends Component {
         buildingInstance.parent = tile;
         buildingInstance.setPosition(0, 0, 1); // 稍微抬高一点
         
-        // 标记该地块已放置建筑
-        const tileKey = `${row}_${col}`;
-        this.placedBuildings.add(tileKey);
-        
         console.log(`成功在地块 (${row}, ${col}) 放置建筑`);
         
         // 触发建筑放置事件（可扩展）
@@ -391,9 +386,7 @@ export class BuildingPlacer extends Component {
      * 移除指定地块上的建筑
      */
     public removeBuilding(row: number, col: number): boolean {
-        const tileKey = `${row}_${col}`;
-        
-        if (!this.placedBuildings.has(tileKey)) {
+        if (!this.isBuildingPlaced(row, col)) {
             console.log(`地块 (${row}, ${col}) 没有建筑可移除`);
             return false;
         }
@@ -411,7 +404,6 @@ export class BuildingPlacer extends Component {
         
         if (building) {
             building.destroy();
-            this.placedBuildings.delete(tileKey);
             console.log(`成功移除地块 (${row}, ${col}) 上的建筑`);
             return true;
         }
@@ -421,10 +413,27 @@ export class BuildingPlacer extends Component {
     
     /**
      * 检查指定地块是否已放置建筑
+     * 通过检查tile节点下是否有Building_开头的子节点来判断
      */
     public isBuildingPlaced(row: number, col: number): boolean {
-        const tileKey = `${row}_${col}`;
-        return this.placedBuildings.has(tileKey);
+        if (!this.mapGenerator) {
+            return false;
+        }
+        
+        const tile = this.mapGenerator.getTileAt(row, col);
+        if (!tile) {
+            return false;
+        }
+        
+        // 检查tile下是否有Building_开头的子节点
+        for (let i = 0; i < tile.children.length; i++) {
+            const child = tile.children[i];
+            if (child.name.startsWith('Building_')) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**
@@ -433,10 +442,25 @@ export class BuildingPlacer extends Component {
     public getPlacedBuildingPositions(): Array<{row: number, col: number}> {
         const positions: Array<{row: number, col: number}> = [];
         
-        this.placedBuildings.forEach(tileKey => {
-            const [row, col] = tileKey.split('_').map(Number);
-            positions.push({ row, col });
-        });
+        if (!this.mapGenerator) {
+            return positions;
+        }
+        
+        const allTiles = this.mapGenerator.getAllTiles();
+        for (const tile of allTiles) {
+            // 解析地块名称获取坐标
+            const tileName = tile.name;
+            const match = tileName.match(/Tile_(\d+)_(\d+)/);
+            if (match) {
+                const row = parseInt(match[1]);
+                const col = parseInt(match[2]);
+                
+                // 检查该地块是否有建筑
+                if (this.isBuildingPlaced(row, col)) {
+                    positions.push({ row, col });
+                }
+            }
+        }
         
         return positions;
     }
@@ -519,9 +543,10 @@ export class BuildingPlacer extends Component {
      * 获取建筑放置统计信息
      */
     public getBuildingStats() {
+        const positions = this.getPlacedBuildingPositions();
         return {
-            totalPlaced: this.placedBuildings.size,
-            positions: this.getPlacedBuildingPositions()
+            totalPlaced: positions.length,
+            positions: positions
         };
     }
     
