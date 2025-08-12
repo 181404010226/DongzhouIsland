@@ -32,6 +32,16 @@ export class BuildingPlacer extends Component {
     private currentBuildingIndex: number = -1; // 当前选中的建筑索引
     private activeBuildingNode: Node = null; // 当前激活的建筑节点
     
+    // 地块占用管理系统
+    private tileOccupancyMap: Map<string, {
+        buildingId: string,
+        buildingType: string,
+        anchorRow: number,
+        anchorCol: number,
+        width: number,
+        height: number
+    }> = new Map(); // 使用"row_col"作为key
+    
     start() {
         this.setupInputEvents();
         this.createPreviewNode();
@@ -334,8 +344,8 @@ export class BuildingPlacer extends Component {
         // 使用与TileSelectionManager相同的方式获取地块
         const tileInfo = this.getTileAtScreenPos(screenPos);
         
-        if (tileInfo && !this.isBuildingPlaced(tileInfo.row, tileInfo.col)) {
-            // 找到有效地块且未放置建筑，显示预览并定位到地块中心
+        if (tileInfo && this.canPlaceBuildingAt(tileInfo.row, tileInfo.col)) {
+            // 找到有效地块且可以放置建筑，显示预览并定位到地块中心
             this.previewNode.active = true;
             
             // 将预览节点放置在地块上
@@ -399,9 +409,9 @@ export class BuildingPlacer extends Component {
             return;
         }
         
-        // 检查该地块是否已经放置了建筑
-        if (this.isBuildingPlaced(tileInfo.row, tileInfo.col)) {
-            console.log(`地块 (${tileInfo.row}, ${tileInfo.col}) 已经放置了建筑`);
+        // 检查是否可以放置建筑（包括多地块检查）
+        if (!this.canPlaceBuildingAt(tileInfo.row, tileInfo.col)) {
+            console.log(`无法在地块 (${tileInfo.row}, ${tileInfo.col}) 放置建筑，区域被占用或超出边界`);
             return;
         }
         
@@ -417,13 +427,19 @@ export class BuildingPlacer extends Component {
             return;
         }
         
+        // 生成唯一的建筑ID
+        const buildingId = `Building_${row}_${col}_${buildInfo.getBuildingType()}_${Date.now()}`;
+        
         // 实例化建筑预制体
         const buildingInstance = instantiate(buildInfo.getBuildingPrefab());
-        buildingInstance.name = `Building_${row}_${col}_${buildInfo.getBuildingType()}`;
+        buildingInstance.name = buildingId;
         
         // 将建筑放置在地块上
         buildingInstance.parent = tile;
         buildingInstance.setPosition(0, 0, 1); // 稍微抬高一点
+        
+        // 标记所有占用的地块
+        this.markTilesAsOccupied(row, col, buildInfo, buildingId);
         
         console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getBuildingType()}`);
         
@@ -444,79 +460,157 @@ export class BuildingPlacer extends Component {
      * 移除指定地块上的建筑
      */
     public removeBuilding(row: number, col: number): boolean {
-        if (!this.isBuildingPlaced(row, col)) {
+        const tileKey = `${row}_${col}`;
+        const occupancyInfo = this.tileOccupancyMap.get(tileKey);
+        
+        if (!occupancyInfo) {
             console.log(`地块 (${row}, ${col}) 没有建筑可移除`);
             return false;
         }
         
-        // 获取地块节点
-        const tile = this.mapGenerator.getTileAt(row, col);
-        if (!tile) {
-            console.warn(`未找到地块 (${row}, ${col})`);
+        // 获取建筑的锚点地块
+        const anchorTile = this.mapGenerator.getTileAt(occupancyInfo.anchorRow, occupancyInfo.anchorCol);
+        if (!anchorTile) {
+            console.warn(`未找到锚点地块 (${occupancyInfo.anchorRow}, ${occupancyInfo.anchorCol})`);
             return false;
         }
         
         // 查找并移除建筑节点
-        const buildingName = `Building_${row}_${col}`;
-        const building = tile.getChildByName(buildingName);
+        const building = anchorTile.getChildByName(occupancyInfo.buildingId);
         
         if (building) {
             building.destroy();
-            console.log(`成功移除地块 (${row}, ${col}) 上的建筑`);
+            
+            // 清除所有相关的占用标记
+            this.clearTileOccupancyByBuildingId(occupancyInfo.buildingId);
+            
+            console.log(`成功移除建筑: ${occupancyInfo.buildingType} (${occupancyInfo.width}x${occupancyInfo.height})`);
             return true;
         }
         
+        // 如果找不到建筑节点，但有占用记录，清除占用记录
+        this.clearTileOccupancyByBuildingId(occupancyInfo.buildingId);
+        console.warn(`建筑节点不存在，但已清除占用记录`);
         return false;
+    }
+    
+    /**
+     * 检查是否可以在指定位置放置建筑（考虑建筑尺寸）
+     */
+    private canPlaceBuildingAt(row: number, col: number): boolean {
+        if (this.currentBuildingIndex < 0 || !this.activeBuildingNode) {
+            return false;
+        }
+        
+        const buildInfo = this.activeBuildingNode.getComponent(BuildInfo);
+        if (!buildInfo) {
+            return false;
+        }
+        
+        const width = buildInfo.getBuildingWidth();
+        const height = buildInfo.getBuildingHeight();
+        
+        // 检查所有需要占用的地块（从锚点左下角开始向左上方向）
+        for (let r = row - height + 1; r <= row; r++) {
+            for (let c = col - width + 1; c <= col; c++) {
+                // 检查是否超出边界（索引小于0表示超出边界）
+                if (r < 0 || c < 0) {
+                    return false;
+                }
+                
+                // 检查地块是否已被占用
+                const tileKey = `${r}_${c}`;
+                if (this.tileOccupancyMap.has(tileKey)) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 标记地块为已占用
+     */
+    private markTilesAsOccupied(anchorRow: number, anchorCol: number, buildInfo: BuildInfo, buildingId: string) {
+        const width = buildInfo.getBuildingWidth();
+        const height = buildInfo.getBuildingHeight();
+        
+        const occupancyInfo = {
+            buildingId: buildingId,
+            buildingType: buildInfo.getBuildingType(),
+            anchorRow: anchorRow,
+            anchorCol: anchorCol,
+            width: width,
+            height: height
+        };
+        
+        // 标记所有占用的地块（从锚点左下角开始向左上方向）
+        for (let r = anchorRow - height + 1; r <= anchorRow; r++) {
+            for (let c = anchorCol - width + 1; c <= anchorCol; c++) {
+                const tileKey = `${r}_${c}`;
+                this.tileOccupancyMap.set(tileKey, occupancyInfo);
+            }
+        }
+    }
+    
+    /**
+     * 清除地块占用标记
+     */
+    private clearTileOccupancy(anchorRow: number, anchorCol: number, width: number, height: number) {
+        // 清除从锚点左下角开始向左上方向的占用地块
+        for (let r = anchorRow - height + 1; r <= anchorRow; r++) {
+            for (let c = anchorCol - width + 1; c <= anchorCol; c++) {
+                const tileKey = `${r}_${c}`;
+                this.tileOccupancyMap.delete(tileKey);
+            }
+        }
+    }
+    
+    /**
+     * 根据建筑ID清除占用标记
+     */
+    private clearTileOccupancyByBuildingId(buildingId: string) {
+        const keysToDelete: string[] = [];
+        
+        for (const [tileKey, occupancyInfo] of this.tileOccupancyMap) {
+            if (occupancyInfo.buildingId === buildingId) {
+                keysToDelete.push(tileKey);
+            }
+        }
+        
+        keysToDelete.forEach(key => {
+            this.tileOccupancyMap.delete(key);
+        });
     }
     
     /**
      * 检查指定地块是否已放置建筑
-     * 通过检查tile节点下是否有Building_开头的子节点来判断
+     * 使用新的占用管理系统
      */
     public isBuildingPlaced(row: number, col: number): boolean {
-        if (!this.mapGenerator) {
-            return false;
-        }
-        
-        const tile = this.mapGenerator.getTileAt(row, col);
-        if (!tile) {
-            return false;
-        }
-        
-        // 检查tile下是否有Building_开头的子节点
-        for (let i = 0; i < tile.children.length; i++) {
-            const child = tile.children[i];
-            if (child.name.startsWith('Building_')) {
-                return true;
-            }
-        }
-        
-        return false;
+        const tileKey = `${row}_${col}`;
+        return this.tileOccupancyMap.has(tileKey);
     }
     
     /**
-     * 获取所有已放置建筑的地块坐标
+     * 获取所有已放置建筑的锚点坐标
      */
-    public getPlacedBuildingPositions(): Array<{row: number, col: number}> {
-        const positions: Array<{row: number, col: number}> = [];
+    public getPlacedBuildingPositions(): Array<{row: number, col: number, buildingType: string, width: number, height: number}> {
+        const positions: Array<{row: number, col: number, buildingType: string, width: number, height: number}> = [];
+        const processedBuildings = new Set<string>();
         
-        if (!this.mapGenerator) {
-            return positions;
-        }
-        
-        const allTiles = this.mapGenerator.getAllTiles();
-        for (const tile of allTiles) {
-            // 解析地块名称获取坐标
-            const tileName = tile.name;
-            const match = tileName.match(/Tile_(\d+)_(\d+)/);
-            if (match) {
-                const row = parseInt(match[1]);
-                const col = parseInt(match[2]);
-                
-                // 检查该地块是否有建筑
-                if (this.isBuildingPlaced(row, col)) {
-                    positions.push({ row, col });
-                }
+        // 遍历占用映射，只收集锚点位置
+        for (const [tileKey, occupancyInfo] of this.tileOccupancyMap) {
+            if (!processedBuildings.has(occupancyInfo.buildingId)) {
+                positions.push({
+                    row: occupancyInfo.anchorRow,
+                    col: occupancyInfo.anchorCol,
+                    buildingType: occupancyInfo.buildingType,
+                    width: occupancyInfo.width,
+                    height: occupancyInfo.height
+                });
+                processedBuildings.add(occupancyInfo.buildingId);
             }
         }
         
@@ -533,7 +627,92 @@ export class BuildingPlacer extends Component {
             this.removeBuilding(pos.row, pos.col);
         });
         
+        // 确保清空占用映射
+        this.tileOccupancyMap.clear();
+        
         console.log('已清除所有建筑');
+    }
+    
+    /**
+     * 获取指定地块的建筑信息
+     */
+    public getBuildingInfoAt(row: number, col: number): {
+        buildingId: string,
+        buildingType: string,
+        anchorRow: number,
+        anchorCol: number,
+        width: number,
+        height: number
+    } | null {
+        const tileKey = `${row}_${col}`;
+        return this.tileOccupancyMap.get(tileKey) || null;
+    }
+    
+    /**
+     * 检查指定区域是否完全空闲
+     */
+    public isAreaFree(startRow: number, startCol: number, width: number, height: number): boolean {
+        // 从锚点（左下角）开始，向左上方向检查区域
+        for (let r = startRow - height + 1; r <= startRow; r++) {
+            for (let c = startCol - width + 1; c <= startCol; c++) {
+                // 检查是否超出边界（索引小于0表示超出边界）
+                if (r < 0 || c < 0) {
+                    return false;
+                }
+                
+                // 检查地块是否已被占用
+                if (this.isBuildingPlaced(r, c)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * 获取所有占用的地块坐标（包括非锚点）
+     */
+    public getAllOccupiedTiles(): Array<{row: number, col: number, buildingType: string}> {
+        const tiles: Array<{row: number, col: number, buildingType: string}> = [];
+        
+        for (const [tileKey, occupancyInfo] of this.tileOccupancyMap) {
+            const [row, col] = tileKey.split('_').map(Number);
+            tiles.push({
+                row: row,
+                col: col,
+                buildingType: occupancyInfo.buildingType
+            });
+        }
+        
+        return tiles;
+    }
+    
+    /**
+     * 获取占用统计信息
+     */
+    public getOccupancyStats(): {
+        totalOccupiedTiles: number,
+        totalBuildings: number,
+        buildingTypeCount: Map<string, number>
+    } {
+        const buildingTypeCount = new Map<string, number>();
+        const processedBuildings = new Set<string>();
+        let totalBuildings = 0;
+        
+        for (const [tileKey, occupancyInfo] of this.tileOccupancyMap) {
+            if (!processedBuildings.has(occupancyInfo.buildingId)) {
+                totalBuildings++;
+                const count = buildingTypeCount.get(occupancyInfo.buildingType) || 0;
+                buildingTypeCount.set(occupancyInfo.buildingType, count + 1);
+                processedBuildings.add(occupancyInfo.buildingId);
+            }
+        }
+        
+        return {
+            totalOccupiedTiles: this.tileOccupancyMap.size,
+            totalBuildings: totalBuildings,
+            buildingTypeCount: buildingTypeCount
+        };
     }
     
     /**
@@ -701,9 +880,18 @@ export class BuildingPlacer extends Component {
     }
     
     onDestroy() {
-        // 清理事件监听
+        // 移除事件监听
         input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
         input.off(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
         input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
+        
+        // 清理占用映射
+        this.tileOccupancyMap.clear();
+        
+        // 清理预览节点
+        if (this.previewNode) {
+            this.previewNode.destroy();
+            this.previewNode = null;
+        }
     }
 }

@@ -45904,6 +45904,8 @@
     "buildingType": "建筑1",
     "description": "",
     "buildingEnabled": true,
+    "buildingWidth": 1,
+    "buildingHeight": 1,
     "_id": "6eVbRmRjpJzrp8RsBxAtbF"
   },
   {
@@ -46039,6 +46041,8 @@
     "buildingType": "建筑3",
     "description": "",
     "buildingEnabled": true,
+    "buildingWidth": 2,
+    "buildingHeight": 2,
     "_id": "adLqDgRG1L4qa0B0YNgp27"
   },
   {
@@ -46246,6 +46250,8 @@
     "buildingType": "建筑2",
     "description": "",
     "buildingEnabled": true,
+    "buildingWidth": 2,
+    "buildingHeight": 1,
     "_id": "9bxbDdXDJJMJVML1QTjt9A"
   },
   {
