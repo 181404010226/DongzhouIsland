@@ -31,6 +31,7 @@ export class InteractionManager extends Component {
     private longPressTimer: number = 0;
     private longPressStartPos: Vec2 = new Vec2();
     private longPressTriggered: boolean = false;
+    private cameraDragEnabled: boolean = true; // 相机拖动功能启用状态
     private readonly LONG_PRESS_THRESHOLD: number = 10; // 长按期间允许的最大移动距离（像素）
     
     start() {
@@ -114,7 +115,7 @@ export class InteractionManager extends Component {
         }
         
         // 处理相机拖动
-        if (this.isDragging && this.camera) {
+        if (this.isDragging && this.camera && this.cameraDragEnabled) {
             const deltaX = mousePos.x - this.lastMousePos.x;
             const deltaY = mousePos.y - this.lastMousePos.y;
             
@@ -220,6 +221,17 @@ export class InteractionManager extends Component {
      */
     setLongPressTime(time: number) {
         this.longPressTime = Math.max(0.1, time);
+    }
+    
+    /**
+     * 设置相机拖动功能启用状态
+     */
+    setCameraDragEnabled(enabled: boolean) {
+        this.cameraDragEnabled = enabled;
+        // 如果禁用相机拖动，立即停止当前的拖动
+        if (!enabled && this.isDragging) {
+            this.isDragging = false;
+        }
     }
     
     /**
