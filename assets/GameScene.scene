@@ -45865,7 +45865,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7d8f9b89-4fd1-4c9f-a3ab-38ec7cded7ca@f9941",
+      "__uuid__": "1ef08fe1-e026-4380-861a-e92876de981b@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -45894,7 +45894,7 @@
     "_enabled": true,
     "__prefab": null,
     "previewImage": {
-      "__uuid__": "1090a985-c2c1-4b1b-8306-6c54605a2a88@f9941",
+      "__uuid__": "1ef08fe1-e026-4380-861a-e92876de981b@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "buildingPrefab": {
@@ -46002,7 +46002,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7d8f9b89-4fd1-4c9f-a3ab-38ec7cded7ca@f9941",
+      "__uuid__": "6769876b-2f72-44ba-a013-2c424f5f6bbb@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -46031,7 +46031,7 @@
     "_enabled": true,
     "__prefab": null,
     "previewImage": {
-      "__uuid__": "1090a985-c2c1-4b1b-8306-6c54605a2a88@f9941",
+      "__uuid__": "6769876b-2f72-44ba-a013-2c424f5f6bbb@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "buildingPrefab": {
@@ -46211,7 +46211,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7d8f9b89-4fd1-4c9f-a3ab-38ec7cded7ca@f9941",
+      "__uuid__": "e12b15f7-2160-4103-9483-42e28c386957@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -46240,7 +46240,7 @@
     "_enabled": true,
     "__prefab": null,
     "previewImage": {
-      "__uuid__": "1090a985-c2c1-4b1b-8306-6c54605a2a88@f9941",
+      "__uuid__": "e12b15f7-2160-4103-9483-42e28c386957@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "buildingPrefab": {

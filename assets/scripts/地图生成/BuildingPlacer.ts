@@ -80,6 +80,15 @@ export class BuildingPlacer extends Component {
         this.previewNode = instantiate(buildInfo.getBuildingPrefab());
         this.previewNode.name = 'BuildingPreview';
         
+        // 查找Sprite子节点并设置预览图片
+        const spriteNode = this.previewNode.getChildByName('Sprite');
+        if (spriteNode && buildInfo.getPreviewImage()) {
+            const sprite = spriteNode.getComponent(Sprite);
+            if (sprite) {
+                sprite.spriteFrame = buildInfo.getPreviewImage();
+            }
+        }
+        
         // 初始时隐藏预览节点，不设置父节点
         this.previewNode.active = false;
         
@@ -433,6 +442,15 @@ export class BuildingPlacer extends Component {
         // 实例化建筑预制体
         const buildingInstance = instantiate(buildInfo.getBuildingPrefab());
         buildingInstance.name = buildingId;
+        
+        // 查找Sprite子节点并设置预览图片
+        const spriteNode = buildingInstance.getChildByName('Sprite');
+        if (spriteNode && buildInfo.getPreviewImage()) {
+            const sprite = spriteNode.getComponent(Sprite);
+            if (sprite) {
+                sprite.spriteFrame = buildInfo.getPreviewImage();
+            }
+        }
         
         // 将建筑放置在地块上
         buildingInstance.parent = tile;

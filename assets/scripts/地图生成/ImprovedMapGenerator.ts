@@ -150,7 +150,7 @@ export class ImprovedMapGenerator extends Component {
         const sideLength = this.tileSize / Math.sqrt(2);
         transform.setContentSize(sideLength, sideLength);
         
-        // 旋转45度形成菱形效果
+        // 旋转-45度形成菱形效果
         tileNode.setRotationFromEuler(0, 0, 45);
     }
     
