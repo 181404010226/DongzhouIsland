@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, input, Input, EventMouse, Camera, Vec2, Vec3, Canvas } from 'cc';
+import { _decorator, Component, Node, input, Input, EventTouch, EventMouse, Camera, Vec2, Vec3, Canvas } from 'cc';
 import { TileSelectionManager } from '../地图生成/TileSelectionManager';
 
 const { ccclass, property } = _decorator;
@@ -72,18 +72,18 @@ export class InteractionManager extends Component {
      * 设置输入事件监听
      */
     private setupInput() {
-        input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
-        input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
-        input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
+        input.on(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
+        input.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
     }
     
     /**
-     * 鼠标按下事件
+     * 触摸开始事件
      */
-    private onMouseDown(event: EventMouse) {
-        const mousePos = event.getLocation();
-        this.lastMousePos.set(mousePos);
-        this.longPressStartPos.set(mousePos);
+    private onTouchStart(event: EventTouch) {
+        const touchPos = event.getLocation();
+        this.lastMousePos.set(touchPos);
+        this.longPressStartPos.set(touchPos);
         
         // 开始长按检测
         this.isLongPressing = true;
@@ -99,14 +99,14 @@ export class InteractionManager extends Component {
     }
     
     /**
-     * 鼠标移动事件
+     * 触摸移动事件
      */
-    private onMouseMove(event: EventMouse) {
-        const mousePos = event.getLocation();
+    private onTouchMove(event: EventTouch) {
+        const touchPos = event.getLocation();
         
         // 检查是否在长按期间移动过多
         if (this.isLongPressing && !this.longPressTriggered) {
-            const distance = Vec2.distance(mousePos, this.longPressStartPos);
+            const distance = Vec2.distance(touchPos, this.longPressStartPos);
             if (distance > this.LONG_PRESS_THRESHOLD) {
                 // 移动距离过大，取消长按，开始拖动相机
                 this.cancelLongPress();
@@ -116,8 +116,8 @@ export class InteractionManager extends Component {
         
         // 处理相机拖动
         if (this.isDragging && this.camera && this.cameraDragEnabled) {
-            const deltaX = mousePos.x - this.lastMousePos.x;
-            const deltaY = mousePos.y - this.lastMousePos.y;
+            const deltaX = touchPos.x - this.lastMousePos.x;
+            const deltaY = touchPos.y - this.lastMousePos.y;
             
             // 移动相机（注意方向相反，因为是拖动视图）
             const currentPos = this.cameraNode.position;
@@ -129,19 +129,19 @@ export class InteractionManager extends Component {
             this.cameraNode.setPosition(newPos);
         }
         
-        this.lastMousePos.set(mousePos);
+        this.lastMousePos.set(touchPos);
     }
     
     /**
-     * 鼠标抬起事件
+     * 触摸结束事件
      */
-    private onMouseUp(event: EventMouse) {
+    private onTouchEnd(event: EventTouch) {
         // 停止相机拖动
         this.isDragging = false;
         
-        // 如果长按已触发且地块选择管理器存在，传递鼠标抬起事件
+        // 如果长按已触发且地块选择管理器存在，传递触摸结束事件
         if (this.longPressTriggered && this.tileSelectionManager) {
-            // 这里可以直接调用地块选择管理器的鼠标抬起方法
+            // 这里可以直接调用地块选择管理器的触摸结束方法
             // 但由于TileSelectionManager的方法是私有的，我们通过启用它来让它处理后续事件
         }
         
@@ -149,7 +149,7 @@ export class InteractionManager extends Component {
         this.isLongPressing = false;
         this.longPressTriggered = false;
         
-        console.log('鼠标抬起，重置状态');
+        console.log('触摸结束，重置状态');
     }
     
     /**
@@ -256,8 +256,8 @@ export class InteractionManager extends Component {
     }
     
     onDestroy() {
-        input.off(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
-        input.off(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
-        input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
+        input.off(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
+        input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
     }
 }
