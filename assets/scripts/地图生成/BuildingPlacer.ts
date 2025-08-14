@@ -1,7 +1,7 @@
 import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, EventTouch, input, Input, Color, Camera } from 'cc';
-import { InteractionManager } from '../交互管理/InteractionManager';
 import { BuildInfo } from './BuildInfo';
 import { TileOccupancyManager } from './TileOccupancyManager';
+import { PlayerOperationState, PlayerOperationType } from '../交互管理/PlayerOperationState';
 const { ccclass, property } = _decorator;
 
 /**
@@ -13,8 +13,7 @@ export class BuildingPlacer extends Component {
     @property({ type: [Node], tooltip: '包含BuildInfo组件的建筑节点数组' })
     buildingNodes: Node[] = [];
     
-    @property({ type: InteractionManager, tooltip: '交互管理器' })
-    interactionManager: InteractionManager = null;
+
     
     @property({ type: Camera, tooltip: '主相机' })
     mainCamera: Camera = null;
@@ -82,6 +81,11 @@ export class BuildingPlacer extends Component {
             return;
         }
         
+        // 检查是否允许建筑放置操作
+        if (!PlayerOperationState.isBuildingPlacementAllowed()) {
+            return;
+        }
+        
         // 检查触摸点是否在任何建筑节点范围内
         const touchPos = event.getUILocation();
         const touchedNodeIndex = this.getTouchedBuildingNodeIndex(new Vec3(touchPos.x, touchPos.y, 0));
@@ -123,7 +127,8 @@ export class BuildingPlacer extends Component {
         return this.enableDragPlacement && 
                this.buildingNodes.length > 0 && 
                this.tileOccupancyManager != null &&
-               this.mainCamera != null;
+               this.mainCamera != null &&
+               PlayerOperationState.isBuildingPlacementAllowed();
     }
     
     /**
@@ -190,10 +195,10 @@ export class BuildingPlacer extends Component {
         this.isDragging = true;
         this.dragStartPos = touchPos.clone();
         
-        // 禁用交互管理器的相机拖动功能
-        if (this.interactionManager) {
-            this.interactionManager.setCameraDragEnabled(false);
-        }
+        // 设置操作状态为建筑放置
+        PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
+            buildingType: this.activeBuildingNode?.getComponent(BuildInfo)?.getBuildingType()
+        });
         
         // 开始拖拽时更新预览位置
         if (this.previewNode) {
@@ -226,10 +231,8 @@ export class BuildingPlacer extends Component {
     private endDrag(touchPos: Vec3) {
         this.isDragging = false;
         
-        // 重新启用交互管理器的相机拖动功能
-        if (this.interactionManager) {
-            this.interactionManager.setCameraDragEnabled(true);
-        }
+        // 重置操作状态为空闲
+        PlayerOperationState.resetToIdle();
         
         // 隐藏预览节点
         if (this.previewNode) {
@@ -367,12 +370,7 @@ export class BuildingPlacer extends Component {
         return this.activeBuildingNode;
     }
     
-    /**
-     * 设置交互管理器
-     */
-    public setInteractionManager(interactionMgr: InteractionManager) {
-        this.interactionManager = interactionMgr;
-    }
+
     
     /**
      * 设置主相机
@@ -401,9 +399,8 @@ export class BuildingPlacer extends Component {
                 this.previewNode.active = false;
                 this.previewNode.parent = null;
             }
-            if (this.interactionManager) {
-                this.interactionManager.setCameraDragEnabled(true);
-            }
+            // 重置操作状态
+            PlayerOperationState.resetToIdle();
         }
     }
     

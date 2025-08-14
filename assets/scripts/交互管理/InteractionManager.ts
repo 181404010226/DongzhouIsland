@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, input, Input, EventTouch, EventMouse, Camera, Vec2, Vec3, Canvas } from 'cc';
 import { TileSelectionManager } from '../地图生成/TileSelectionManager';
+import { PlayerOperationState, PlayerOperationType } from './PlayerOperationState';
 
 const { ccclass, property } = _decorator;
 
@@ -31,12 +32,12 @@ export class InteractionManager extends Component {
     private longPressTimer: number = 0;
     private longPressStartPos: Vec2 = new Vec2();
     private longPressTriggered: boolean = false;
-    private cameraDragEnabled: boolean = true; // 相机拖动功能启用状态
     private readonly LONG_PRESS_THRESHOLD: number = 10; // 长按期间允许的最大移动距离（像素）
     
     start() {
         this.initializeCamera();
         this.setupInput();
+        this.setupOperationStateListener();
         console.log('InteractionManager 初始化完成');
     }
     
@@ -78,6 +79,15 @@ export class InteractionManager extends Component {
     }
     
     /**
+     * 设置操作状态监听器
+     */
+    private setupOperationStateListener() {
+        PlayerOperationState.addListener('InteractionManager', (operation: PlayerOperationType) => {
+            console.log(`InteractionManager 收到操作状态变更: ${operation}`);
+        });
+    }
+    
+    /**
      * 触摸开始事件
      */
     private onTouchStart(event: EventTouch) {
@@ -89,6 +99,9 @@ export class InteractionManager extends Component {
         this.isLongPressing = true;
         this.longPressTimer = 0;
         this.longPressTriggered = false;
+        
+        // 设置操作状态为长按中
+        PlayerOperationState.setCurrentOperation(PlayerOperationType.LONG_PRESSING);
         
         // 如果地块选择管理器存在且已启用，暂时禁用它
         if (this.tileSelectionManager) {
@@ -114,8 +127,8 @@ export class InteractionManager extends Component {
             }
         }
         
-        // 处理相机拖动
-        if (this.isDragging && this.camera && this.cameraDragEnabled) {
+        // 处理相机拖动 - 检查是否允许相机拖拽
+        if (this.isDragging && this.camera && PlayerOperationState.isCameraDragAllowed()) {
             const deltaX = touchPos.x - this.lastMousePos.x;
             const deltaY = touchPos.y - this.lastMousePos.y;
             
@@ -137,7 +150,13 @@ export class InteractionManager extends Component {
      */
     private onTouchEnd(event: EventTouch) {
         // 停止相机拖动
-        this.isDragging = false;
+        if (this.isDragging) {
+            this.isDragging = false;
+            // 如果当前是相机拖拽状态，重置为空闲
+            if (PlayerOperationState.isOperation(PlayerOperationType.CAMERA_DRAG)) {
+                PlayerOperationState.resetToIdle();
+            }
+        }
         
         // 如果长按已触发且地块选择管理器存在，传递触摸结束事件
         if (this.longPressTriggered && this.tileSelectionManager) {
@@ -158,6 +177,12 @@ export class InteractionManager extends Component {
     private cancelLongPress() {
         this.isLongPressing = false;
         this.longPressTriggered = false;
+        
+        // 如果当前是长按中状态，重置为空闲
+        if (PlayerOperationState.isOperation(PlayerOperationType.LONG_PRESSING)) {
+            PlayerOperationState.resetToIdle();
+        }
+        
         console.log('长按被取消');
     }
     
@@ -165,7 +190,13 @@ export class InteractionManager extends Component {
      * 开始相机拖动
      */
     private startCameraDrag() {
+        if (!PlayerOperationState.isCameraDragAllowed()) {
+            console.log('当前操作状态不允许相机拖拽');
+            return;
+        }
+        
         this.isDragging = true;
+        PlayerOperationState.setCurrentOperation(PlayerOperationType.CAMERA_DRAG);
         console.log('开始相机拖动');
     }
     
@@ -173,8 +204,16 @@ export class InteractionManager extends Component {
      * 触发长按选择
      */
     private triggerLongPressSelection() {
+        if (!PlayerOperationState.isTileSelectionAllowed()) {
+            console.log('当前操作状态不允许地块选择');
+            return;
+        }
+        
         this.longPressTriggered = true;
         this.isLongPressing = false;
+        
+        // 设置操作状态为地块选择
+        PlayerOperationState.setCurrentOperation(PlayerOperationType.TILE_SELECTION);
         
         // 启用地块选择管理器
         if (this.tileSelectionManager) {
@@ -223,16 +262,7 @@ export class InteractionManager extends Component {
         this.longPressTime = Math.max(0.1, time);
     }
     
-    /**
-     * 设置相机拖动功能启用状态
-     */
-    setCameraDragEnabled(enabled: boolean) {
-        this.cameraDragEnabled = enabled;
-        // 如果禁用相机拖动，立即停止当前的拖动
-        if (!enabled && this.isDragging) {
-            this.isDragging = false;
-        }
-    }
+
     
     /**
      * 获取当前是否正在拖动相机
@@ -259,5 +289,8 @@ export class InteractionManager extends Component {
         input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
         input.off(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
         input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
+        
+        // 移除操作状态监听器
+        PlayerOperationState.removeListener('InteractionManager');
     }
 }
