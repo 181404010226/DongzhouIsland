@@ -179835,9 +179835,6 @@
         "__id__": 4829
       }
     ],
-    "mapGenerator": {
-      "__id__": 4809
-    },
     "interactionManager": {
       "__id__": 4814
     },
@@ -180675,6 +180672,9 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "mapGenerator": {
+      "__id__": 4809
+    },
     "_id": "0aFM30j5tHdK5B/mzzLuK6"
   },
   {
