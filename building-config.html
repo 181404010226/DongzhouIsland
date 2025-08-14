@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏建筑配置工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .buildings-list {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .buildings-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            display: grid;
+            grid-template-columns: 50px 150px 100px 100px 80px 1fr 100px;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .building-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: grid;
+            grid-template-columns: 50px 150px 100px 100px 80px 1fr 100px;
+            gap: 15px;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .building-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .building-item:last-child {
+            border-bottom: none;
+        }
+
+        .building-order {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .building-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .type-decoration {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .type-consumption {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .building-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .png-files {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        .png-files h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .png-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .png-item {
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .png-item:hover {
+            background: #f0f8ff;
+            border-color: #667eea;
+        }
+
+        .png-item.selected {
+            background: #e3f2fd;
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .image-preview {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .image-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid #ddd;
+        }
+
+        .image-preview-label {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .chain-buildings-container {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .chain-building-item {
+            display: grid;
+            grid-template-columns: 1fr 120px 80px;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .chain-building-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .chain-building-item select,
+        .chain-building-item input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .chain-building-item .btn-small {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .empty-chain-state {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        @media (max-width: 768px) {
+            .buildings-header, .building-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .buildings-header, .building-item {
+                grid-template-columns: 40px 120px 80px 80px 60px 1fr 80px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ 游戏建筑配置工具</h1>
+            <p>配置建筑解锁顺序、属性和连锁关系</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 控制按钮 -->
+            <div class="controls">
+                <button class="btn btn-primary" onclick="addBuilding()">➕ 添加建筑</button>
+                <button class="btn btn-success" onclick="exportConfig()">📤 导出配置</button>
+                <label for="importFile" class="file-label">📥 导入配置</label>
+                <input type="file" id="importFile" class="file-input" accept=".json" onchange="importConfig(event)">
+                <label for="pngFolder" class="file-label">📁 选择PNG文件夹</label>
+                <input type="file" id="pngFolder" class="file-input" webkitdirectory onchange="loadPngFiles(event)">
+            </div>
+
+            <!-- 添加建筑表单 -->
+            <div class="form-section" id="buildingForm" style="display: none;">
+                <h3>🏢 添加新建筑</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="buildingName">建筑名称</label>
+                        <input type="text" id="buildingName" placeholder="输入建筑名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="buildingType">建筑类型</label>
+                        <select id="buildingType" onchange="toggleTypeFields()">
+                            <option value="decoration">装饰物</option>
+                            <option value="consumption">消费建筑</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="unlockPopularity">解锁人气值</label>
+                        <input type="number" id="unlockPopularity" placeholder="输入解锁所需人气值" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="buildingWidth">建筑宽度</label>
+                        <input type="number" id="buildingWidth" placeholder="占据宽度（格数）" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="buildingHeight">建筑长度</label>
+                        <input type="number" id="buildingHeight" placeholder="占据长度（格数）" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="buildingImage">建筑图片</label>
+                        <select id="buildingImage" onchange="previewSelectedImage()">
+                            <option value="">选择PNG文件</option>
+                        </select>
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <div class="image-preview-label">图片预览</div>
+                            <img id="previewImg" src="" alt="图片预览">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 装饰物特有字段 -->
+                <div id="decorationFields" class="form-grid" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label for="decorationValue">装饰值</label>
+                        <input type="number" id="decorationValue" placeholder="提供的装饰值" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="decorationRange">影响范围</label>
+                        <input type="number" id="decorationRange" placeholder="影响范围（格数）" min="1">
+                    </div>
+                </div>
+
+                <!-- 消费建筑特有字段 -->
+                <div id="consumptionFields" style="margin-top: 15px; display: none;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="charmValue">基础魅力值</label>
+                            <input type="number" id="charmValue" placeholder="基础魅力值" min="0">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="color: #333; margin: 0;">🔗 连锁建筑配置</h4>
+                            <button type="button" class="btn btn-small btn-success" onclick="addChainBuilding()">➕ 添加连锁</button>
+                        </div>
+                        <div id="chainBuildingsList" class="chain-buildings-container">
+                            <div class="empty-chain-state" style="text-align: center; padding: 20px; color: #666; font-style: italic;">
+                                暂无连锁建筑，点击"添加连锁"开始配置
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="btn btn-success" onclick="saveBuilding()">💾 保存建筑</button>
+                    <button class="btn btn-warning" onclick="cancelEdit()">❌ 取消</button>
+                </div>
+            </div>
+
+            <!-- 建筑列表 -->
+            <div class="buildings-list">
+                <div class="buildings-header">
+                    <div>顺序</div>
+                    <div>建筑名称</div>
+                    <div>类型</div>
+                    <div>解锁人气</div>
+                    <div>尺寸</div>
+                    <div>属性详情</div>
+                    <div>操作</div>
+                </div>
+                <div id="buildingsList">
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+                            <path d="M2 17L12 22L22 17"/>
+                            <path d="M2 12L12 17L22 12"/>
+                        </svg>
+                        <h3>暂无建筑配置</h3>
+                        <p>点击"添加建筑"开始配置您的游戏建筑</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PNG文件列表 -->
+            <div class="png-files" id="pngFiles" style="display: none;">
+                <h4>📸 可用的PNG文件</h4>
+                <div class="png-list" id="pngList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let buildings = [];
+        let pngFiles = [];
+        let pngFileUrls = new Map(); // 存储文件名到URL的映射
+        let editingIndex = -1;
+
+        function addBuilding() {
+            editingIndex = -1;
+            document.getElementById('buildingForm').style.display = 'block';
+            clearForm();
+            updateChainBuildingOptions();
+        }
+
+        function clearForm() {
+            document.getElementById('buildingName').value = '';
+            document.getElementById('buildingType').value = 'decoration';
+            document.getElementById('unlockPopularity').value = '';
+            document.getElementById('buildingWidth').value = '1';
+            document.getElementById('buildingHeight').value = '1';
+            document.getElementById('buildingImage').value = '';
+            document.getElementById('decorationValue').value = '';
+            document.getElementById('decorationRange').value = '';
+            document.getElementById('charmValue').value = '';
+            clearChainBuildings();
+            document.getElementById('imagePreview').style.display = 'none';
+            document.querySelectorAll('.png-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            toggleTypeFields();
+        }
+
+        function toggleTypeFields() {
+            const type = document.getElementById('buildingType').value;
+            const decorationFields = document.getElementById('decorationFields');
+            const consumptionFields = document.getElementById('consumptionFields');
+            
+            if (type === 'decoration') {
+                decorationFields.style.display = 'grid';
+                consumptionFields.style.display = 'none';
+            } else {
+                decorationFields.style.display = 'none';
+                consumptionFields.style.display = 'grid';
+            }
+        }
+
+        function saveBuilding() {
+            const name = document.getElementById('buildingName').value.trim();
+            const type = document.getElementById('buildingType').value;
+            const unlockPopularity = parseInt(document.getElementById('unlockPopularity').value);
+            const width = parseInt(document.getElementById('buildingWidth').value) || 1;
+            const height = parseInt(document.getElementById('buildingHeight').value) || 1;
+            const image = document.getElementById('buildingImage').value;
+
+            if (!name || isNaN(unlockPopularity) || width < 1 || height < 1) {
+                alert('请填写完整的建筑信息！宽度和长度必须大于0。');
+                return;
+            }
+
+            const building = {
+                name,
+                type,
+                unlockPopularity,
+                width,
+                height,
+                image,
+                order: editingIndex >= 0 ? buildings[editingIndex].order : buildings.length + 1
+            };
+
+            if (type === 'decoration') {
+                const decorationValue = parseInt(document.getElementById('decorationValue').value);
+                const decorationRange = parseInt(document.getElementById('decorationRange').value);
+                
+                if (isNaN(decorationValue) || isNaN(decorationRange)) {
+                    alert('请填写完整的装饰物属性！');
+                    return;
+                }
+                
+                building.decorationValue = decorationValue;
+                building.decorationRange = decorationRange;
+            } else {
+                const charmValue = parseInt(document.getElementById('charmValue').value);
+                const chainBuildings = getChainBuildingsData();
+                
+                if (isNaN(charmValue)) {
+                    alert('请填写完整的消费建筑属性！');
+                    return;
+                }
+                
+                building.charmValue = charmValue;
+                building.chainBuildings = chainBuildings;
+            }
+
+            if (editingIndex >= 0) {
+                buildings[editingIndex] = building;
+            } else {
+                buildings.push(building);
+            }
+
+            sortBuildingsByOrder();
+            renderBuildings();
+            cancelEdit();
+        }
+
+        function editBuilding(index) {
+            editingIndex = index;
+            const building = buildings[index];
+            
+            document.getElementById('buildingName').value = building.name;
+            document.getElementById('buildingType').value = building.type;
+            document.getElementById('unlockPopularity').value = building.unlockPopularity;
+            document.getElementById('buildingWidth').value = building.width || 1;
+            document.getElementById('buildingHeight').value = building.height || 1;
+            document.getElementById('buildingImage').value = building.image || '';
+            
+            if (building.type === 'decoration') {
+                document.getElementById('decorationValue').value = building.decorationValue || '';
+                document.getElementById('decorationRange').value = building.decorationRange || '';
+            } else {
+                document.getElementById('charmValue').value = building.charmValue || '';
+                loadChainBuildings(building.chainBuildings || []);
+            }
+            
+            toggleTypeFields();
+            updateChainBuildingOptions();
+            previewSelectedImage(); // 预览已选择的图片
+            document.getElementById('buildingForm').style.display = 'block';
+        }
+
+        function deleteBuilding(index) {
+            if (confirm('确定要删除这个建筑吗？')) {
+                buildings.splice(index, 1);
+                // 重新排序
+                buildings.forEach((building, i) => {
+                    building.order = i + 1;
+                });
+                renderBuildings();
+            }
+        }
+
+        function moveBuilding(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= buildings.length) return;
+            
+            // 交换位置
+            [buildings[index], buildings[newIndex]] = [buildings[newIndex], buildings[index]];
+            
+            // 更新order
+            buildings.forEach((building, i) => {
+                building.order = i + 1;
+            });
+            
+            renderBuildings();
+        }
+
+        function cancelEdit() {
+            document.getElementById('buildingForm').style.display = 'none';
+            editingIndex = -1;
+        }
+
+        function sortBuildingsByOrder() {
+            buildings.sort((a, b) => a.order - b.order);
+        }
+
+        function updateChainBuildingOptions() {
+            // 更新所有连锁建筑选择器
+            document.querySelectorAll('.chain-building-select').forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">选择连锁建筑</option>';
+                
+                buildings.forEach(building => {
+                    if (building.type === 'consumption' && buildings.indexOf(building) !== editingIndex) {
+                        const option = document.createElement('option');
+                        option.value = building.name;
+                        option.textContent = building.name;
+                        select.appendChild(option);
+                    }
+                });
+                
+                select.value = currentValue;
+            });
+        }
+
+        function addChainBuilding() {
+            const container = document.getElementById('chainBuildingsList');
+            const emptyState = container.querySelector('.empty-chain-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const chainItem = document.createElement('div');
+            chainItem.className = 'chain-building-item';
+            chainItem.innerHTML = `
+                <select class="chain-building-select">
+                    <option value="">选择连锁建筑</option>
+                </select>
+                <input type="number" placeholder="魅力值加成" min="0" class="chain-bonus-input">
+                <button type="button" class="btn btn-small btn-danger" onclick="removeChainBuilding(this)">🗑️</button>
+            `;
+            
+            container.appendChild(chainItem);
+            updateChainBuildingOptions();
+        }
+
+        function removeChainBuilding(button) {
+            const container = document.getElementById('chainBuildingsList');
+            button.parentElement.remove();
+            
+            if (container.children.length === 0) {
+                container.innerHTML = '<div class="empty-chain-state" style="text-align: center; padding: 20px; color: #666; font-style: italic;">暂无连锁建筑，点击"添加连锁"开始配置</div>';
+            }
+        }
+
+        function clearChainBuildings() {
+            const container = document.getElementById('chainBuildingsList');
+            container.innerHTML = '<div class="empty-chain-state" style="text-align: center; padding: 20px; color: #666; font-style: italic;">暂无连锁建筑，点击"添加连锁"开始配置</div>';
+        }
+
+        function getChainBuildingsData() {
+            const chainItems = document.querySelectorAll('.chain-building-item');
+            const chainBuildings = [];
+            
+            chainItems.forEach(item => {
+                const building = item.querySelector('.chain-building-select').value;
+                const bonus = parseInt(item.querySelector('.chain-bonus-input').value) || 0;
+                
+                if (building && bonus > 0) {
+                    chainBuildings.push({ building, bonus });
+                }
+            });
+            
+            return chainBuildings;
+        }
+
+        function loadChainBuildings(chainBuildings) {
+            clearChainBuildings();
+            
+            if (chainBuildings && chainBuildings.length > 0) {
+                chainBuildings.forEach(chain => {
+                    addChainBuilding();
+                    const lastItem = document.querySelector('.chain-building-item:last-child');
+                    lastItem.querySelector('.chain-building-select').value = chain.building || '';
+                    lastItem.querySelector('.chain-bonus-input').value = chain.bonus || 0;
+                });
+            }
+        }
+
+        function renderBuildings() {
+            const container = document.getElementById('buildingsList');
+            
+            if (buildings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+                            <path d="M2 17L12 22L22 17"/>
+                            <path d="M2 12L12 17L22 12"/>
+                        </svg>
+                        <h3>暂无建筑配置</h3>
+                        <p>点击"添加建筑"开始配置您的游戏建筑</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = buildings.map((building, index) => {
+                const typeClass = building.type === 'decoration' ? 'type-decoration' : 'type-consumption';
+                const typeText = building.type === 'decoration' ? '装饰物' : '消费建筑';
+                
+                let details = '';
+                if (building.type === 'decoration') {
+                    details = `装饰值: ${building.decorationValue}, 范围: ${building.decorationRange}`;
+                } else {
+                    details = `魅力值: ${building.charmValue}`;
+                    if (building.chainBuildings && building.chainBuildings.length > 0) {
+                        const chainText = building.chainBuildings.map(chain => `${chain.building}(+${chain.bonus})`).join(', ');
+                        details += `, 连锁: ${chainText}`;
+                    }
+                }
+                
+                return `
+                    <div class="building-item">
+                        <div class="building-order">#${building.order}</div>
+                        <div><strong>${building.name}</strong></div>
+                        <div><span class="building-type ${typeClass}">${typeText}</span></div>
+                        <div>${building.unlockPopularity}</div>
+                        <div><strong>${building.width || 1}×${building.height || 1}</strong></div>
+                        <div>${details}</div>
+                        <div class="building-actions">
+                            <button class="btn btn-small btn-info" onclick="editBuilding(${index})" title="编辑">✏️</button>
+                            <button class="btn btn-small btn-info" onclick="moveBuilding(${index}, -1)" title="上移" ${index === 0 ? 'disabled' : ''}>⬆️</button>
+                            <button class="btn btn-small btn-info" onclick="moveBuilding(${index}, 1)" title="下移" ${index === buildings.length - 1 ? 'disabled' : ''}>⬇️</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteBuilding(${index})" title="删除">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function exportConfig() {
+            if (buildings.length === 0) {
+                alert('没有建筑配置可以导出！');
+                return;
+            }
+            
+            const config = {
+                buildings: buildings,
+                exportTime: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'building-config.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    if (config.buildings && Array.isArray(config.buildings)) {
+                        buildings = config.buildings;
+                        renderBuildings();
+                        alert('配置导入成功！');
+                    } else {
+                        alert('配置文件格式不正确！');
+                    }
+                } catch (error) {
+                    alert('配置文件解析失败：' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadPngFiles(event) {
+            const files = Array.from(event.target.files);
+            pngFiles = files.filter(file => file.name.toLowerCase().endsWith('.png'));
+            
+            // 清理之前的URL
+            pngFileUrls.forEach(url => URL.revokeObjectURL(url));
+            pngFileUrls.clear();
+            
+            // 为每个PNG文件创建URL
+            pngFiles.forEach(file => {
+                const url = URL.createObjectURL(file);
+                pngFileUrls.set(file.name, url);
+            });
+            
+            // 更新建筑图片选择器
+            const imageSelect = document.getElementById('buildingImage');
+            imageSelect.innerHTML = '<option value="">选择PNG文件</option>';
+            
+            pngFiles.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file.name;
+                option.textContent = file.name;
+                imageSelect.appendChild(option);
+            });
+            
+            // 显示PNG文件列表
+            const pngContainer = document.getElementById('pngFiles');
+            const pngList = document.getElementById('pngList');
+            
+            if (pngFiles.length > 0) {
+                pngContainer.style.display = 'block';
+                pngList.innerHTML = pngFiles.map(file => 
+                    `<div class="png-item" onclick="selectPngFile('${file.name}')">${file.name}</div>`
+                ).join('');
+            } else {
+                pngContainer.style.display = 'none';
+            }
+        }
+
+        function selectPngFile(fileName) {
+            // 更新选择器
+            document.getElementById('buildingImage').value = fileName;
+            
+            // 更新PNG列表的选中状态
+            document.querySelectorAll('.png-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.textContent === fileName) {
+                    item.classList.add('selected');
+                }
+            });
+            
+            // 预览图片
+            previewSelectedImage();
+        }
+
+        function previewSelectedImage() {
+            const selectedFile = document.getElementById('buildingImage').value;
+            const previewContainer = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (selectedFile && pngFileUrls.has(selectedFile)) {
+                previewImg.src = pngFileUrls.get(selectedFile);
+                previewContainer.style.display = 'block';
+                
+                // 更新PNG列表的选中状态
+                document.querySelectorAll('.png-item').forEach(item => {
+                    item.classList.remove('selected');
+                    if (item.textContent === selectedFile) {
+                        item.classList.add('selected');
+                    }
+                });
+            } else {
+                previewContainer.style.display = 'none';
+                
+                // 清除所有选中状态
+                document.querySelectorAll('.png-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderBuildings();
+        });
+    </script>
+</body>
+</html>
