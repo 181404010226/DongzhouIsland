@@ -79,6 +79,10 @@ export class BuildingPlacer extends Component {
                     this.previewNode.parent = this.layerRootNode;
                     this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1); // 设置为最上层
                 }
+                
+                // 设置初始颜色为正常透明度并旋转45度
+                this.setPreviewNodeColor(new Color(255, 255, 255, 150));
+                this.previewNode.setRotationFromEuler(0, 0, 45);
             }
             
             // 创建影响范围预览节点
@@ -279,15 +283,87 @@ export class BuildingPlacer extends Component {
             return;
         }
         
-        // 委托给TileOccupancyManager处理预览位置更新
         const screenPos = new Vec2(touchPos.x, touchPos.y);
         const buildInfo = this.activeBuildingNode?.getComponent(BuildInfo);
         
-        if (buildInfo) {
-            this.tileOccupancyManager.updatePreviewPosition(this.previewNode, screenPos, this.mainCamera, buildInfo);
+        if (!buildInfo) {
+            return;
+        }
+        
+        // 确保预览节点在layerRootNode中
+        if (this.layerRootNode && this.previewNode.parent !== this.layerRootNode) {
+            this.previewNode.parent = this.layerRootNode;
+            this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1);
+        }
+        
+        // 使用TileOccupancyManager的边界检查逻辑
+        const tileInfo = this.tileOccupancyManager['getTileAtScreenPos'](screenPos, this.mainCamera);
+        
+        if (tileInfo) {
+            // 显示预览节点
+            this.previewNode.active = true;
+            
+            // 检查是否可以放置建筑
+            const canPlace = this.tileOccupancyManager.canPlaceBuildingAt(
+                tileInfo.row, tileInfo.col, 
+                buildInfo.getBuildingWidth(), buildInfo.getBuildingHeight()
+            );
+            
+            // 获取地块节点并设置预览位置
+            const tileKey = `${tileInfo.row}_${tileInfo.col}`;
+            const tile = this.tileOccupancyManager['getTileByKey'](tileKey);
+            if (tile) {
+                // 将预览节点定位到地块中心
+                this.previewNode.setWorldPosition(tile.getWorldPosition());
+                this.previewNode.setPosition(this.previewNode.position.x, this.previewNode.position.y, 1);
+            }
+            
+            // 根据是否可以放置设置颜色
+            if (canPlace) {
+                // 可以放置：正常透明度
+                this.setPreviewNodeColor(new Color(255, 255, 255, 150));
+            } else {
+                // 不能放置：半透明红色
+                this.setPreviewNodeColor(new Color(255, 100, 100, 150));
+            }
             
             // 同时更新影响范围预览位置
             this.updateInfluenceRangePreviewPosition(screenPos, buildInfo);
+        } else {
+            // 没有找到有效地块，隐藏预览
+            this.previewNode.active = false;
+        }
+    }
+    
+
+    
+
+    
+
+    
+    /**
+     * 设置预览节点颜色（递归设置所有Sprite组件）
+     */
+    private setPreviewNodeColor(color: Color) {
+        if (!this.previewNode) {
+            return;
+        }
+        
+        this.setNodeColor(this.previewNode, color);
+    }
+    
+    /**
+     * 递归设置节点及其子节点的颜色
+     */
+    private setNodeColor(node: Node, color: Color) {
+        const sprite = node.getComponent(Sprite);
+        if (sprite) {
+            sprite.color = color;
+        }
+        
+        // 递归设置子节点
+        for (const child of node.children) {
+            this.setNodeColor(child, color);
         }
     }
     
