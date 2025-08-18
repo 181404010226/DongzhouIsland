@@ -24,6 +24,8 @@ export class TileOccupancyManager extends Component {
     @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
     mapGenerator: ImprovedMapGenerator = null;
     
+
+    
     // 地块占用映射表，使用"row_col"作为key
     private tileOccupancyMap: Map<string, TileOccupancyInfo> = new Map();
     

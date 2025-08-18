@@ -28,6 +28,9 @@ export class BuildInfo extends Component {
     @property({ tooltip: '建筑高度（占用地块数）' })
     buildingHeight: number = 1;
     
+    // 建筑影响范围相关属性
+    private influenceRange: Array<{row: number, col: number}> = [];
+    
     /**
      * 获取建筑预览图片
      */
@@ -113,6 +116,16 @@ export class BuildInfo extends Component {
     }
     
     /**
+     * 获取建筑尺寸
+     */
+    public getSize(): {width: number, height: number} {
+        return {
+            width: this.buildingWidth,
+            height: this.buildingHeight
+        };
+    }
+    
+    /**
      * 设置建筑尺寸
      */
     public setBuildingSize(width: number, height: number) {
@@ -135,5 +148,78 @@ export class BuildInfo extends Component {
         }
         
         return tiles;
+    }
+    
+    /**
+     * 获取建筑影响范围（扩展两圈的网格范围）
+     * 基于建筑占用区域向外扩展2格
+     */
+    public getInfluenceRange(): Array<{row: number, col: number}> {
+        const range: Array<{row: number, col: number}> = [];
+        
+        // 计算影响范围边界（在占用区域基础上向外扩展2格）
+        const minRow = -this.buildingHeight + 1 - 2; // 向下扩展2格
+        const maxRow = 0 + 2; // 向上扩展2格
+        const minCol = -this.buildingWidth + 1 - 2; // 向左扩展2格
+        const maxCol = 0 + 2; // 向右扩展2格
+        
+        // 生成影响范围内的所有地块坐标
+        for (let r = minRow; r <= maxRow; r++) {
+            for (let c = minCol; c <= maxCol; c++) {
+                range.push({ row: r, col: c });
+            }
+        }
+        
+        return range;
+    }
+    
+    /**
+     * 获取建筑影响范围边界（空心矩形的四条边）
+     * 返回构成空心矩形的地块坐标
+     */
+    public getInfluenceRangeBorder(): Array<{row: number, col: number}> {
+        const border: Array<{row: number, col: number}> = [];
+        
+        // 计算影响范围边界
+        const minRow = -this.buildingHeight + 1 - 2;
+        const maxRow = 0 + 2;
+        const minCol = -this.buildingWidth + 1 - 2;
+        const maxCol = 0 + 2;
+        
+        // 添加上下边界
+        for (let c = minCol; c <= maxCol; c++) {
+            border.push({ row: minRow, col: c }); // 下边界
+            border.push({ row: maxRow, col: c }); // 上边界
+        }
+        
+        // 添加左右边界（排除角落重复点）
+        for (let r = minRow + 1; r <= maxRow - 1; r++) {
+            border.push({ row: r, col: minCol }); // 左边界
+            border.push({ row: r, col: maxCol }); // 右边界
+        }
+        
+        return border;
+    }
+    
+    /**
+     * 设置建筑影响范围
+     * 通常在建筑放置完成后调用
+     */
+    public setInfluenceRange(range: Array<{row: number, col: number}>) {
+        this.influenceRange = range.slice(); // 创建副本
+    }
+    
+    /**
+     * 获取存储的建筑影响范围
+     */
+    public getStoredInfluenceRange(): Array<{row: number, col: number}> {
+        return this.influenceRange.slice(); // 返回副本
+    }
+    
+    /**
+     * 清除存储的影响范围
+     */
+    public clearInfluenceRange() {
+        this.influenceRange = [];
     }
 }

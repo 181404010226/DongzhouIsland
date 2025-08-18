@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, EventTouch, input, Input, Color, Camera } from 'cc';
+import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, EventTouch, input, Input, Color, Camera, Graphics } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { TileOccupancyManager } from './TileOccupancyManager';
 import { PlayerOperationState, PlayerOperationType } from '../交互管理/PlayerOperationState';
@@ -24,8 +24,12 @@ export class BuildingPlacer extends Component {
     @property({ tooltip: '启用拖拽放置' })
     enableDragPlacement: boolean = true;
     
+    @property({ type: Node, tooltip: '图层根节点，用于管理预览和建筑图层' })
+    layerRootNode: Node = null;
+    
     // 私有变量
     private previewNode: Node = null; // 预览节点
+    private influenceRangePreviewNode: Node = null; // 影响范围预览节点
     private isDragging: boolean = false; // 是否正在拖拽
     private dragStartPos: Vec3 = new Vec3(); // 拖拽开始位置
     private currentBuildingIndex: number = -1; // 当前选中的建筑索引
@@ -69,8 +73,56 @@ export class BuildingPlacer extends Component {
             this.previewNode = this.tileOccupancyManager.createPreviewNode(buildInfo);
             if (this.previewNode) {
                 this.previewNode.active = false;
+                
+                // 将预览节点绑定到图层根节点的最上层
+                if (this.layerRootNode) {
+                    this.previewNode.parent = this.layerRootNode;
+                    this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1); // 设置为最上层
+                }
             }
+            
+            // 创建影响范围预览节点
+            this.createInfluenceRangePreviewNode(buildInfo);
         }
+    }
+    
+    /**
+     * 创建影响范围预览节点
+     */
+    private createInfluenceRangePreviewNode(buildInfo: BuildInfo) {
+        if (!this.tileOccupancyManager) {
+            return;
+        }
+        
+        // 销毁旧的影响范围预览节点
+        if (this.influenceRangePreviewNode) {
+            this.influenceRangePreviewNode.destroy();
+            this.influenceRangePreviewNode = null;
+        }
+        
+        // 创建新的影响范围预览节点
+        this.influenceRangePreviewNode = new Node('InfluenceRangePreview');
+        
+        // 添加Graphics组件用于绘制矩形边框
+        const graphics = this.influenceRangePreviewNode.addComponent(Graphics);
+        
+        // 获取影响范围
+        const influenceRange = buildInfo.getInfluenceRange();
+        if (influenceRange.length > 0) {
+            // 设置绘制样式
+            graphics.lineWidth = 3;
+            graphics.strokeColor = new Color(255, 0, 0, 200); // 红色边框，半透明
+            graphics.fillColor = new Color(255, 0, 0, 30); // 红色填充，很透明
+        }
+        
+        // 将影响范围预览节点绑定到图层根节点
+        if (this.layerRootNode) {
+            this.influenceRangePreviewNode.parent = this.layerRootNode;
+            this.influenceRangePreviewNode.setSiblingIndex(this.layerRootNode.children.length - 1); // 设置为最上层
+        }
+        
+        // 初始时隐藏影响范围预览
+        this.influenceRangePreviewNode.active = false;
     }
     
     /**
@@ -170,6 +222,12 @@ export class BuildingPlacer extends Component {
             this.previewNode = null;
         }
         
+        // 销毁旧的影响范围预览节点
+        if (this.influenceRangePreviewNode) {
+            this.influenceRangePreviewNode.destroy();
+            this.influenceRangePreviewNode = null;
+        }
+        
         this.createPreviewNode();
         
         console.log(`选中建筑: ${this.activeBuildingNode.name}`);
@@ -200,6 +258,11 @@ export class BuildingPlacer extends Component {
             buildingType: this.activeBuildingNode?.getComponent(BuildInfo)?.getBuildingType()
         });
         
+        // 显示影响范围预览
+        if (this.influenceRangePreviewNode) {
+            this.influenceRangePreviewNode.active = true;
+        }
+        
         // 开始拖拽时更新预览位置
         if (this.previewNode) {
             this.updatePreviewPosition(touchPos);
@@ -222,6 +285,52 @@ export class BuildingPlacer extends Component {
         
         if (buildInfo) {
             this.tileOccupancyManager.updatePreviewPosition(this.previewNode, screenPos, this.mainCamera, buildInfo);
+            
+            // 同时更新影响范围预览位置
+            this.updateInfluenceRangePreviewPosition(screenPos, buildInfo);
+        }
+    }
+    
+    /**
+     * 更新影响范围预览位置
+     */
+    private updateInfluenceRangePreviewPosition(screenPos: Vec2, buildInfo: BuildInfo) {
+        if (!this.influenceRangePreviewNode || !this.mainCamera || !this.tileOccupancyManager || !this.previewNode) {
+            return;
+        }
+        
+        // 直接将影响范围预览节点的位置设置为预览节点的位置
+        this.influenceRangePreviewNode.setWorldPosition(this.previewNode.getWorldPosition());
+        
+        // 基于BuildInfo的建筑尺寸重新绘制边框
+        const graphics = this.influenceRangePreviewNode.getComponent(Graphics);
+        
+        if (graphics) {
+            graphics.clear();
+            
+            // 计算影响范围的尺寸（建筑占用地块数 + 影响范围扩展）
+            const tileSize = this.tileOccupancyManager.mapGenerator.tileSize / Math.sqrt(2); // 地块边长
+            const influenceRadius = 2.5; // 影响范围半径（考虑中心地块0.5占用）
+            
+            const totalWidth = (buildInfo.buildingWidth + influenceRadius * 2-1) * tileSize;
+            const totalHeight = (buildInfo.buildingHeight + influenceRadius * 2-1) * tileSize;
+            
+            // 设置绘制样式
+            graphics.lineWidth = 3;
+            graphics.strokeColor = new Color(0, 100, 255, 200); // 蓝色边框
+            graphics.fillColor = new Color(0, 0, 0, 0); // 完全透明填充
+            
+            // 旋转45度
+            this.influenceRangePreviewNode.angle = 45;
+            
+            // 绘制矩形边框（以左下角为基准点）
+            // 左下角向外延伸2.5格，右上角延伸到建筑尺寸+2.5格
+            const leftOffset = -influenceRadius * tileSize;
+            const bottomOffset = influenceRadius * tileSize; // 修正为正值，确保是左下角
+            
+            graphics.rect(leftOffset, -bottomOffset,  totalHeight,totalWidth);
+            graphics.fill();
+            graphics.stroke();
         }
     }
     
@@ -238,6 +347,12 @@ export class BuildingPlacer extends Component {
         if (this.previewNode) {
             this.previewNode.active = false;
             this.previewNode.parent = null;
+        }
+        
+        // 隐藏影响范围预览节点
+        if (this.influenceRangePreviewNode) {
+            this.influenceRangePreviewNode.active = false;
+            this.influenceRangePreviewNode.parent = null;
         }
         
         // 尝试在地图上放置建筑
@@ -274,7 +389,11 @@ export class BuildingPlacer extends Component {
      * 建筑放置完成回调
      */
     private onBuildingPlaced(buildInfo: BuildInfo) {
-        console.log(`建筑放置完成: ${buildInfo.getBuildingType()}`);
+        // 获取建筑的影响范围并存储到buildInfo中
+        const influenceRange = buildInfo.getInfluenceRange();
+        buildInfo.setInfluenceRange(influenceRange);
+        
+        console.log(`建筑放置完成: ${buildInfo.getBuildingType()}，影响范围已存储（${influenceRange.length}个地块）`);
     }
     
     /**
@@ -387,6 +506,13 @@ export class BuildingPlacer extends Component {
     }
     
     /**
+     * 设置图层根节点
+     */
+    public setLayerRootNode(layerRoot: Node) {
+        this.layerRootNode = layerRoot;
+    }
+    
+    /**
      * 设置拖拽放置功能开关
      */
     public setDragPlacementEnabled(enabled: boolean) {
@@ -414,6 +540,12 @@ export class BuildingPlacer extends Component {
         if (this.previewNode) {
             this.previewNode.destroy();
             this.previewNode = null;
+        }
+        
+        // 清理影响范围预览节点
+        if (this.influenceRangePreviewNode) {
+            this.influenceRangePreviewNode.destroy();
+            this.influenceRangePreviewNode = null;
         }
     }
 }
