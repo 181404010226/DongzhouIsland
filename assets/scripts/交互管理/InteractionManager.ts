@@ -272,8 +272,8 @@ export class InteractionManager extends Component {
             if (buildingNode) {
                 console.log('建筑取出成功，准备重新放置');
                 
-                // 启动建筑重新放置，传递原建筑节点
-                this.startBuildingReplacement(buildingInfo.buildingType, buildingNode);
+                // 启动建筑重新放置，传递原建筑节点和原始行列坐标
+                this.startBuildingReplacement(buildingInfo.buildingType, buildingNode, tileInfo);
             } else {
                 console.log('建筑取出失败');
             }
@@ -283,7 +283,7 @@ export class InteractionManager extends Component {
     /**
      * 开始建筑重新放置
      */
-    private startBuildingReplacement(buildingType: string, buildingNode?: Node) {
+    private startBuildingReplacement(buildingType: string, buildingNode?: Node, originalTileInfo?: {row: number, col: number}) {
         if (!this.buildingPlacer) {
             console.warn('BuildingPlacer未设置，无法启动建筑重放置');
             return;
@@ -301,10 +301,19 @@ export class InteractionManager extends Component {
             return;
         }
         
-        // 传递BuildInfo给BuildingPlacer，并提供重新放置的节点
+        // 记录原始行列坐标和位置信息（用于失败时恢复）
+        const originalPosition = buildingNode.getPosition().clone();
+        const originalWorldPosition = buildingNode.getWorldPosition().clone();
+        
+        // 传递BuildInfo给BuildingPlacer，并提供重新放置的节点和失败回调
         this.buildingPlacer.setBuildingInfo(buildInfo, () => {
             console.log(`建筑重新放置完成: ${buildingType}`);
-        }, buildingNode);
+        }, buildingNode, {
+            originalTileInfo: originalTileInfo,
+            originalPosition: originalPosition,
+            originalWorldPosition: originalWorldPosition,
+            buildInfo: buildInfo
+        });
         
         // 设置操作状态为建筑放置
         PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {

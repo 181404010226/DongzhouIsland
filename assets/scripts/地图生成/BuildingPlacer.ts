@@ -25,7 +25,20 @@ export class BuildingPlacer extends Component {
     private isDragging: boolean = false; // 是否正在拖拽
     private currentBuildInfo: BuildInfo = null; // 当前建筑信息
     private replacementNode: Node = null; // 重新放置的建筑节点
-    private replacementOriginalPosition: Vec3 = null; // 重新放置节点的原始位置
+    
+    // 编辑器只读字段：重新放置相关信息
+    @property({ type: Vec3, readonly: true, serializable: false, tooltip: '重新放置节点的原始世界位置（编辑器查看）' })
+    private replacementOriginalPosition: Vec3 = new Vec3(); // 重新放置节点的原始位置
+    
+    @property({ readonly: true, serializable: false, tooltip: '重新放置节点的原始地块信息（编辑器查看）' })
+    private  replacementOriginalTileInfo: {row: number, col: number} = null; // 重新放置节点的原始地块信息
+    
+    @property({ type: Vec3, readonly: true, serializable: false, tooltip: '重新放置节点的原始本地位置（编辑器查看）' })
+    private  replacementOriginalLocalPosition: Vec3 = new Vec3(); // 重新放置节点的原始本地位置
+    
+    @property({ type: BuildInfo, readonly: true, serializable: false, tooltip: '重新放置节点的BuildInfo（编辑器查看）' })
+    private  replacementBuildInfo: BuildInfo = null; // 重新放置节点的BuildInfo（用于恢复占用记录）
+    
     private onBuildingPlacedCallback: Function = null; // 建筑放置完成回调
     
     // 事件目标，用于发射事件
@@ -66,7 +79,6 @@ export class BuildingPlacer extends Component {
         // 如果有重新放置的节点，直接使用它作为预览节点
         if (this.replacementNode) {
             this.previewNode = this.replacementNode;
-            this.previewNode.active = false;
             
             // 将预览节点绑定到图层根节点的最上层
             if (this.layerRootNode) {
@@ -77,6 +89,17 @@ export class BuildingPlacer extends Component {
             // 设置初始颜色为正常透明度并旋转45度
             this.setPreviewNodeColor(new Color(255, 255, 255, 150));
             this.previewNode.setRotationFromEuler(0, 0, 45);
+            // 立即以replacementNode原来所在tile位置更新预览节点位置
+            if (this.replacementOriginalTileInfo && this.tileOccupancyManager) {
+                const tileKey = `${this.replacementOriginalTileInfo.row}_${this.replacementOriginalTileInfo.col}`;
+                const originalTile = this.tileOccupancyManager['getTileByKey'](tileKey);
+                if (originalTile) {
+                    this.previewNode.setWorldPosition(originalTile.getWorldPosition());
+                    this.previewNode.setPosition(this.previewNode.position.x, this.previewNode.position.y, 1);
+                }
+            }
+        
+    
         } else {
             // 委托给TileOccupancyManager创建预览节点
             if (this.tileOccupancyManager) {
@@ -176,7 +199,7 @@ export class BuildingPlacer extends Component {
     /**
      * 设置建筑信息
      */
-    public setBuildingInfo(buildInfo: BuildInfo, onPlacedCallback?: Function, replacementNode?: Node) {
+    public setBuildingInfo(buildInfo: BuildInfo, onPlacedCallback?: Function, replacementNode?: Node, originalInfo?: any) {
         if (!buildInfo) {
             console.warn('BuildInfo不能为空');
             return;
@@ -186,10 +209,18 @@ export class BuildingPlacer extends Component {
         this.replacementNode = replacementNode || null;
         this.onBuildingPlacedCallback = onPlacedCallback || null;
         
-        // 如果是重新放置节点，记录其原始位置
-        if (this.replacementNode) {
-            this.replacementOriginalPosition = this.replacementNode.getWorldPosition().clone();
-        }
+        // 如果是重新放置节点，记录其原始位置信息
+        if (this.replacementNode && originalInfo) {
+            console.log("赋值信息");
+            if (originalInfo.originalWorldPosition) {
+                this.replacementOriginalPosition.set(originalInfo.originalWorldPosition);
+            }
+            this.replacementOriginalTileInfo = originalInfo.originalTileInfo;
+            if (originalInfo.originalPosition) {
+                this.replacementOriginalLocalPosition.set(originalInfo.originalPosition);
+            }
+            this.replacementBuildInfo = originalInfo.buildInfo;
+        } 
         
         // 销毁旧的预览节点并创建新的（但不销毁replacementNode）
         if (this.previewNode && this.previewNode !== this.replacementNode) {
@@ -212,15 +243,25 @@ export class BuildingPlacer extends Component {
      * 清除建筑信息
      */
     public clearBuildingInfo() {
+        // 清理预览节点（但不删除重新放置的节点）
+        if (this.previewNode && this.previewNode !== this.replacementNode) {
+            console.log('清除预览节点');
+            this.previewNode.destroy();
+        } else if (this.previewNode && this.previewNode === this.replacementNode) {
+            // 如果预览节点就是重新放置的节点，恢复其旋转和透明度
+            console.log('恢复重新放置节点的旋转和透明度');
+            this.previewNode.setRotationFromEuler(0, 0, 0);
+            this.setNodeColor(this.previewNode, new Color(255, 255, 255, 255));
+        }
+        
         this.currentBuildInfo = null;
         this.replacementNode = null;
+        this.replacementOriginalPosition.set(Vec3.ZERO);
+        this.replacementOriginalTileInfo = null;
+        this.replacementOriginalLocalPosition.set(Vec3.ZERO);
+        this.replacementBuildInfo = null;
         this.onBuildingPlacedCallback = null;
-        
-        // 清理预览节点
-        if (this.previewNode) {
-            this.previewNode.destroy();
-            this.previewNode = null;
-        }
+        this.previewNode = null;
         
         // 清理影响范围预览节点
         if (this.influenceRangePreviewNode) {
@@ -412,8 +453,8 @@ export class BuildingPlacer extends Component {
         // 重置操作状态为空闲
         PlayerOperationState.resetToIdle();
         
-        // 隐藏预览节点
-        if (this.previewNode) {
+        // 隐藏预览节点（但不隐藏重新放置的节点）
+        if (this.previewNode && this.previewNode !== this.replacementNode) {
             this.previewNode.active = false;
             this.previewNode.parent = null;
         }
@@ -456,7 +497,10 @@ export class BuildingPlacer extends Component {
             this.onBuildingPlaced(this.currentBuildInfo);
             // 清理重新放置的节点引用
             this.replacementNode = null;
-            this.replacementOriginalPosition = null;
+            this.replacementOriginalPosition.set(Vec3.ZERO);
+            this.replacementOriginalTileInfo = null;
+            this.replacementOriginalLocalPosition.set(Vec3.ZERO);
+            this.replacementBuildInfo = null;
         } else {
             this.handlePlacementFailure('无法在此位置放置建筑');
         }
@@ -476,6 +520,9 @@ export class BuildingPlacer extends Component {
         if (this.onBuildingPlacedCallback) {
             this.onBuildingPlacedCallback();
         }
+        
+        // 清除建筑信息，结束放置流程
+        this.clearBuildingInfo();
     }
     
 
@@ -550,11 +597,39 @@ export class BuildingPlacer extends Component {
     private handlePlacementFailure(reason: string) {
         console.warn(`建筑放置失败: ${reason}`);
         
-        // 如果是重新放置的节点，恢复到原始位置
-        if (this.replacementNode && this.replacementOriginalPosition) {
-            this.replacementNode.setWorldPosition(this.replacementOriginalPosition);
-            this.replacementNode.active = true;
-            console.log('已将建筑恢复到原始位置');
+        // 如果是重新放置的节点，恢复到原始位置和父节点
+        if (this.replacementNode && this.replacementOriginalTileInfo && !this.replacementOriginalLocalPosition.equals(Vec3.ZERO)) {
+            // 通过原始地块信息获取地块节点
+            const tileKey = `${this.replacementOriginalTileInfo.row}_${this.replacementOriginalTileInfo.col}`;
+            const originalTile = this.tileOccupancyManager['getTileByKey'](tileKey);
+            
+            if (originalTile) {
+                // 恢复到原始父节点
+                this.replacementNode.parent = originalTile;
+                // 恢复到原始本地位置
+                this.replacementNode.setPosition(this.replacementOriginalLocalPosition);
+                this.replacementNode.active = true;
+                
+                // 通过TileOccupancyManager重新注册该建筑在原始位置的占用信息
+                if (this.tileOccupancyManager && this.replacementBuildInfo) {
+                    // 重新注册建筑占用信息
+                    const success = this.tileOccupancyManager.reregisterBuildingAtPosition(
+                        this.replacementOriginalTileInfo.row, 
+                        this.replacementOriginalTileInfo.col, 
+                        this.replacementBuildInfo, 
+                        this.replacementNode
+                    );
+                    if (success) {
+                        console.log(`建筑已恢复到原始位置 (${this.replacementOriginalTileInfo.row}, ${this.replacementOriginalTileInfo.col})`);
+                    } else {
+                        console.warn('恢复建筑占用信息失败');
+                    }
+                }
+                
+                console.log('已将建筑恢复到原始位置和父节点');
+            } else {
+                console.warn('无法找到原始地块节点');
+            }
         }
         
         // 发射放置失败事件
