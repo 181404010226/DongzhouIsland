@@ -31,6 +31,13 @@ export class BuildInfo extends Component {
     // 建筑影响范围相关属性
     private influenceRange: Array<{row: number, col: number}> = [];
     
+    // 建筑当前及上一次位置信息（锚点位置）
+    private currentAnchorRow: number = -1;
+    private currentAnchorCol: number = -1;
+    private previousAnchorRow: number = -1;
+    private previousAnchorCol: number = -1;
+    private isPlaced: boolean = false;
+    
     /**
      * 获取建筑预览图片
      */
@@ -224,6 +231,58 @@ export class BuildInfo extends Component {
     }
     
     /**
+     * 设置建筑当前位置
+     */
+    public setCurrentPosition(anchorRow: number, anchorCol: number) {
+        // 保存上一次位置
+        this.previousAnchorRow = this.currentAnchorRow;
+        this.previousAnchorCol = this.currentAnchorCol;
+        
+        // 设置新的当前位置
+        this.currentAnchorRow = anchorRow;
+        this.currentAnchorCol = anchorCol;
+        
+        // 当传入-1,-1时表示重置位置，设置isPlaced为false
+        if (anchorRow === -1 && anchorCol === -1) {
+            this.isPlaced = false;
+        } else {
+            this.isPlaced = true;
+        }
+    }
+    
+    /**
+     * 获取建筑当前锚点位置
+     */
+    public getCurrentPosition(): {row: number, col: number} | null {
+        if (!this.isPlaced) {
+            return null;
+        }
+        return {
+            row: this.currentAnchorRow,
+            col: this.currentAnchorCol
+        };
+    }
+    
+    /**
+     * 获取建筑上一次位置
+     */
+    public getPreviousPosition(): {row: number, col: number} | null {
+        if (this.previousAnchorRow >= 0 && this.previousAnchorCol >= 0) {
+            return {row: this.previousAnchorRow, col: this.previousAnchorCol};
+        }
+        return null;
+    }
+    
+    /**
+     * 检查建筑是否已放置
+     */
+    public getIsPlaced(): boolean {
+        return this.isPlaced;
+    }
+    
+
+    
+    /**
      * 从另一个BuildInfo复制所有数据
      */
     public copyFrom(other: BuildInfo) {
@@ -235,5 +294,12 @@ export class BuildInfo extends Component {
         this.buildingWidth = other.buildingWidth;
         this.buildingHeight = other.buildingHeight;
         this.influenceRange = other.influenceRange.slice(); // 创建副本
+        
+        // 复制位置信息
+        this.currentAnchorRow = other.currentAnchorRow;
+        this.currentAnchorCol = other.currentAnchorCol;
+        this.previousAnchorRow = other.previousAnchorRow;
+        this.previousAnchorCol = other.previousAnchorCol;
+        this.isPlaced = other.isPlaced;
     }
 }

@@ -27,14 +27,11 @@ export class BuildingPlacer extends Component {
     private replacementNode: Node = null; // 重新放置的建筑节点
     
     // 编辑器只读字段：重新放置相关信息
-    @property({ type: Vec3, readonly: true, serializable: false, tooltip: '重新放置节点的原始世界位置（编辑器查看）' })
-    private replacementOriginalPosition: Vec3 = new Vec3(); // 重新放置节点的原始位置
+    @property({ readonly: true, serializable: false, tooltip: '重新放置节点的原始地块行坐标（编辑器查看）' })
+    private replacementOriginalRow: number = -1; // 重新放置节点的原始行坐标
     
-    @property({ readonly: true, serializable: false, tooltip: '重新放置节点的原始地块信息（编辑器查看）' })
-    private  replacementOriginalTileInfo: {row: number, col: number} = null; // 重新放置节点的原始地块信息
-    
-    @property({ type: Vec3, readonly: true, serializable: false, tooltip: '重新放置节点的原始本地位置（编辑器查看）' })
-    private  replacementOriginalLocalPosition: Vec3 = new Vec3(); // 重新放置节点的原始本地位置
+    @property({ readonly: true, serializable: false, tooltip: '重新放置节点的原始地块列坐标（编辑器查看）' })
+    private replacementOriginalCol: number = -1; // 重新放置节点的原始列坐标
     
     @property({ type: BuildInfo, readonly: true, serializable: false, tooltip: '重新放置节点的BuildInfo（编辑器查看）' })
     private  replacementBuildInfo: BuildInfo = null; // 重新放置节点的BuildInfo（用于恢复占用记录）
@@ -90,8 +87,8 @@ export class BuildingPlacer extends Component {
             this.setPreviewNodeColor(new Color(255, 255, 255, 150));
             this.previewNode.setRotationFromEuler(0, 0, 45);
             // 立即以replacementNode原来所在tile位置更新预览节点位置
-            if (this.replacementOriginalTileInfo && this.tileOccupancyManager) {
-                const tileKey = `${this.replacementOriginalTileInfo.row}_${this.replacementOriginalTileInfo.col}`;
+            if (this.replacementOriginalRow >= 0 && this.replacementOriginalCol >= 0 && this.tileOccupancyManager) {
+                const tileKey = `${this.replacementOriginalRow}_${this.replacementOriginalCol}`;
                 const originalTile = this.tileOccupancyManager['getTileByKey'](tileKey);
                 if (originalTile) {
                     this.previewNode.setWorldPosition(originalTile.getWorldPosition());
@@ -212,12 +209,9 @@ export class BuildingPlacer extends Component {
         // 如果是重新放置节点，记录其原始位置信息
         if (this.replacementNode && originalInfo) {
             console.log("赋值信息");
-            if (originalInfo.originalWorldPosition) {
-                this.replacementOriginalPosition.set(originalInfo.originalWorldPosition);
-            }
-            this.replacementOriginalTileInfo = originalInfo.originalTileInfo;
-            if (originalInfo.originalPosition) {
-                this.replacementOriginalLocalPosition.set(originalInfo.originalPosition);
+            if (originalInfo.originalTileInfo) {
+                this.replacementOriginalRow = originalInfo.originalTileInfo.row;
+                this.replacementOriginalCol = originalInfo.originalTileInfo.col;
             }
             this.replacementBuildInfo = originalInfo.buildInfo;
         } 
@@ -256,9 +250,9 @@ export class BuildingPlacer extends Component {
         
         this.currentBuildInfo = null;
         this.replacementNode = null;
-        this.replacementOriginalPosition.set(Vec3.ZERO);
-        this.replacementOriginalTileInfo = null;
-        this.replacementOriginalLocalPosition.set(Vec3.ZERO);
+        // 重置重新放置相关信息
+        this.replacementOriginalRow = -1;
+        this.replacementOriginalCol = -1;
         this.replacementBuildInfo = null;
         this.onBuildingPlacedCallback = null;
         this.previewNode = null;
@@ -497,9 +491,9 @@ export class BuildingPlacer extends Component {
             this.onBuildingPlaced(this.currentBuildInfo);
             // 清理重新放置的节点引用
             this.replacementNode = null;
-            this.replacementOriginalPosition.set(Vec3.ZERO);
-            this.replacementOriginalTileInfo = null;
-            this.replacementOriginalLocalPosition.set(Vec3.ZERO);
+            // 重置重新放置相关信息
+            this.replacementOriginalRow = -1;
+            this.replacementOriginalCol = -1;
             this.replacementBuildInfo = null;
         } else {
             this.handlePlacementFailure('无法在此位置放置建筑');
@@ -598,29 +592,29 @@ export class BuildingPlacer extends Component {
         console.warn(`建筑放置失败: ${reason}`);
         
         // 如果是重新放置的节点，恢复到原始位置和父节点
-        if (this.replacementNode && this.replacementOriginalTileInfo && !this.replacementOriginalLocalPosition.equals(Vec3.ZERO)) {
+        if (this.replacementNode && this.replacementOriginalRow >= 0 && this.replacementOriginalCol >= 0) {
             // 通过原始地块信息获取地块节点
-            const tileKey = `${this.replacementOriginalTileInfo.row}_${this.replacementOriginalTileInfo.col}`;
+            const tileKey = `${this.replacementOriginalRow}_${this.replacementOriginalCol}`;
             const originalTile = this.tileOccupancyManager['getTileByKey'](tileKey);
             
             if (originalTile) {
                 // 恢复到原始父节点
                 this.replacementNode.parent = originalTile;
-                // 恢复到原始本地位置
-                this.replacementNode.setPosition(this.replacementOriginalLocalPosition);
+                // 恢复到原始本地位置（使用默认位置）
+                this.replacementNode.setPosition(Vec3.ZERO);
                 this.replacementNode.active = true;
                 
                 // 通过TileOccupancyManager重新注册该建筑在原始位置的占用信息
                 if (this.tileOccupancyManager && this.replacementBuildInfo) {
                     // 重新注册建筑占用信息
                     const success = this.tileOccupancyManager.reregisterBuildingAtPosition(
-                        this.replacementOriginalTileInfo.row, 
-                        this.replacementOriginalTileInfo.col, 
+                        this.replacementOriginalRow, 
+                        this.replacementOriginalCol, 
                         this.replacementBuildInfo, 
                         this.replacementNode
                     );
                     if (success) {
-                        console.log(`建筑已恢复到原始位置 (${this.replacementOriginalTileInfo.row}, ${this.replacementOriginalTileInfo.col})`);
+                        console.log(`建筑已恢复到原始位置 (${this.replacementOriginalRow}, ${this.replacementOriginalCol})`);
                     } else {
                         console.warn('恢复建筑占用信息失败');
                     }

@@ -272,8 +272,8 @@ export class InteractionManager extends Component {
             if (buildingNode) {
                 console.log('建筑取出成功，准备重新放置');
                 
-                // 启动建筑重新放置，传递原建筑节点和原始行列坐标
-                this.startBuildingReplacement(buildingInfo.buildingType, buildingNode, tileInfo);
+                // 启动建筑重新放置，传递原建筑节点（位置信息从BuildInfo中读取）
+                this.startBuildingReplacement(buildingInfo.buildingType, buildingNode);
             } else {
                 console.log('建筑取出失败');
             }
@@ -283,7 +283,7 @@ export class InteractionManager extends Component {
     /**
      * 开始建筑重新放置
      */
-    private startBuildingReplacement(buildingType: string, buildingNode?: Node, originalTileInfo?: {row: number, col: number}) {
+    private startBuildingReplacement(buildingType: string, buildingNode?: Node) {
         if (!this.buildingPlacer) {
             console.warn('BuildingPlacer未设置，无法启动建筑重放置');
             return;
@@ -301,17 +301,28 @@ export class InteractionManager extends Component {
             return;
         }
         
-        // 记录原始行列坐标和位置信息（用于失败时恢复）
-        const originalPosition = buildingNode.getPosition().clone();
-        const originalWorldPosition = buildingNode.getWorldPosition().clone();
+        // 从BuildInfo中读取上一次位置信息，用于重新放置
+        const previousPosition = buildInfo.getPreviousPosition();
+        let positionToUse;
+        if (!previousPosition) {
+            console.warn('BuildInfo中没有存储上一次位置信息，使用当前位置');
+            const currentPosition = buildInfo.getCurrentPosition();
+            if (!currentPosition) {
+                console.warn('BuildInfo中没有存储位置信息，无法重新放置');
+                return;
+            }
+            positionToUse = currentPosition;
+        } else {
+            positionToUse = previousPosition;
+        }
+        
+        console.log(`从BuildInfo读取到锚点位置: (${positionToUse.row}, ${positionToUse.col})`);
         
         // 传递BuildInfo给BuildingPlacer，并提供重新放置的节点和失败回调
         this.buildingPlacer.setBuildingInfo(buildInfo, () => {
             console.log(`建筑重新放置完成: ${buildingType}`);
         }, buildingNode, {
-            originalTileInfo: originalTileInfo,
-            originalPosition: originalPosition,
-            originalWorldPosition: originalWorldPosition,
+            originalTileInfo: positionToUse, // 使用从BuildInfo读取的位置
             buildInfo: buildInfo
         });
         
