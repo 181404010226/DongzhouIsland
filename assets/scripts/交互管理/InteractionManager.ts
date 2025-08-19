@@ -1,6 +1,9 @@
-import { _decorator, Component, Node, input, Input, EventTouch, EventMouse, Camera, Vec2, Vec3, Canvas } from 'cc';
+import { _decorator, Component, Node, Vec2, Vec3, EventTouch, input, Input, EventMouse, Camera } from 'cc';
 import { TileSelectionManager } from '../地图生成/TileSelectionManager';
 import { PlayerOperationState, PlayerOperationType } from './PlayerOperationState';
+import { BuildingPlacer } from '../地图生成/BuildingPlacer';
+import { TileOccupancyManager } from '../地图生成/TileOccupancyManager';
+import { BuildInfo } from '../地图生成/BuildInfo';
 
 const { ccclass, property } = _decorator;
 
@@ -8,7 +11,7 @@ const { ccclass, property } = _decorator;
  * 交互管理器
  * 负责处理玩家的输入交互，包括：
  * 1. 相机拖动移动
- * 2. 长按0.5秒后进入框选模式
+ * 2. 长按0.5秒后进入框选模式或建筑移除重放置模式
  */
 @ccclass('InteractionManager')
 export class InteractionManager extends Component {
@@ -17,6 +20,12 @@ export class InteractionManager extends Component {
     
     @property({ type: TileSelectionManager, tooltip: '地块选择管理器' })
     tileSelectionManager: TileSelectionManager = null;
+    
+    @property({ type: BuildingPlacer, tooltip: '建筑放置器' })
+    buildingPlacer: BuildingPlacer = null;
+    
+    @property({ type: TileOccupancyManager, tooltip: '地块占用管理器' })
+    tileOccupancyManager: TileOccupancyManager = null;
     
     @property({ tooltip: '相机移动速度' })
     cameraMoveSpeed: number = 1.0;
@@ -49,16 +58,10 @@ export class InteractionManager extends Component {
             this.camera = this.cameraNode.getComponent(Camera);
         } else {
             // 自动查找相机
-            const canvas = this.node.scene.getComponentInChildren(Canvas);
-            if (canvas && canvas.cameraComponent) {
-                this.camera = canvas.cameraComponent;
+            const cameraComponent = this.node.scene.getComponentInChildren(Camera);
+            if (cameraComponent) {
+                this.camera = cameraComponent;
                 this.cameraNode = this.camera.node;
-            } else {
-                const cameraComponent = this.node.scene.getComponentInChildren(Camera);
-                if (cameraComponent) {
-                    this.camera = cameraComponent;
-                    this.cameraNode = this.camera.node;
-                }
             }
         }
         
@@ -204,13 +207,37 @@ export class InteractionManager extends Component {
      * 触发长按选择
      */
     private triggerLongPressSelection() {
+        this.longPressTriggered = true;
+        this.isLongPressing = false;
+        
+        // 检测长按位置是地块还是建筑
+        const screenPos = this.longPressStartPos;
+        const tileInfo = this.getTileAtScreenPos(screenPos);
+        
+        if (tileInfo) {
+            // 检查该地块是否有建筑
+            const buildingInfo = this.tileOccupancyManager?.getBuildingInfoAt(tileInfo.row, tileInfo.col);
+            
+            if (buildingInfo) {
+                // 长按位置有建筑，进入建筑移除重放置模式
+                this.triggerBuildingRemoveAndReplace(tileInfo, buildingInfo);
+            } else {
+                // 长按位置是空地块，进入框选模式
+                this.triggerTileSelection();
+            }
+        } else {
+            console.log('长按位置无效，无法执行操作');
+        }
+    }
+    
+    /**
+     * 触发地块框选模式
+     */
+    private triggerTileSelection() {
         if (!PlayerOperationState.isTileSelectionAllowed()) {
             console.log('当前操作状态不允许地块选择');
             return;
         }
-        
-        this.longPressTriggered = true;
-        this.isLongPressing = false;
         
         // 设置操作状态为地块选择
         PlayerOperationState.setCurrentOperation(PlayerOperationType.TILE_SELECTION);
@@ -226,6 +253,82 @@ export class InteractionManager extends Component {
         }
         
         console.log('长按触发，进入框选模式');
+    }
+    
+    /**
+     * 触发建筑移除重放置模式
+     */
+    private triggerBuildingRemoveAndReplace(tileInfo: {row: number, col: number}, buildingInfo: any) {
+        if (!PlayerOperationState.isBuildingPlacementAllowed()) {
+            console.log('当前操作状态不允许建筑操作');
+            return;
+        }
+        
+        console.log(`长按触发，移除建筑: ${buildingInfo.buildingType} 位置(${tileInfo.row}, ${tileInfo.col})`);
+        
+        // 移除建筑但不销毁节点
+        if (this.tileOccupancyManager) {
+            const buildingNode = this.tileOccupancyManager.removeBuilding(tileInfo.row, tileInfo.col, false);
+            if (buildingNode) {
+                console.log('建筑取出成功，准备重新放置');
+                
+                // 启动建筑重新放置，传递原建筑节点
+                this.startBuildingReplacement(buildingInfo.buildingType, buildingNode);
+            } else {
+                console.log('建筑取出失败');
+            }
+        }
+    }
+    
+    /**
+     * 开始建筑重新放置
+     */
+    private startBuildingReplacement(buildingType: string, buildingNode?: Node) {
+        if (!this.buildingPlacer) {
+            console.warn('BuildingPlacer未设置，无法启动建筑重放置');
+            return;
+        }
+        
+        if (!buildingNode) {
+            console.warn('缺少建筑节点，无法启动重新放置');
+            return;
+        }
+        
+        // 获取建筑节点的BuildInfo组件
+        const buildInfo = buildingNode.getComponent(BuildInfo);
+        if (!buildInfo) {
+            console.warn('建筑节点缺少BuildInfo组件，无法重新放置');
+            return;
+        }
+        
+        // 传递BuildInfo给BuildingPlacer，并提供重新放置的节点
+        this.buildingPlacer.setBuildingInfo(buildInfo, () => {
+            console.log(`建筑重新放置完成: ${buildingType}`);
+        }, buildingNode);
+        
+        // 设置操作状态为建筑放置
+        PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
+            buildingType: buildingType
+        });
+        
+        console.log(`开始重新放置建筑: ${buildingType}`);
+    }
+    
+    /**
+     * 获取屏幕位置对应的地块信息
+     */
+    private getTileAtScreenPos(screenPos: Vec2): { row: number, col: number } | null {
+        if (!this.camera || !this.tileOccupancyManager) {
+            return null;
+        }
+        
+        // 使用TileOccupancyManager的私有方法（通过反射访问）
+        try {
+            return (this.tileOccupancyManager as any).getTileAtScreenPos(screenPos, this.camera);
+        } catch (error) {
+            console.warn('无法获取地块信息:', error);
+            return null;
+        }
     }
     
     /**
@@ -246,6 +349,20 @@ export class InteractionManager extends Component {
      */
     setTileSelectionManager(manager: TileSelectionManager) {
         this.tileSelectionManager = manager;
+    }
+    
+    /**
+     * 设置建筑放置器
+     */
+    setBuildingPlacer(placer: BuildingPlacer) {
+        this.buildingPlacer = placer;
+    }
+    
+    /**
+     * 设置地块占用管理器
+     */
+    setTileOccupancyManager(manager: TileOccupancyManager) {
+        this.tileOccupancyManager = manager;
     }
     
     /**

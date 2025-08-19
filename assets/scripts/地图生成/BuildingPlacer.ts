@@ -10,19 +10,11 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('BuildingPlacer')
 export class BuildingPlacer extends Component {
-    @property({ type: [Node], tooltip: '包含BuildInfo组件的建筑节点数组' })
-    buildingNodes: Node[] = [];
-    
-
-    
     @property({ type: Camera, tooltip: '主相机' })
     mainCamera: Camera = null;
     
     @property({ type: TileOccupancyManager, tooltip: '地块占用管理器' })
     tileOccupancyManager: TileOccupancyManager = null;
-    
-    @property({ tooltip: '启用拖拽放置' })
-    enableDragPlacement: boolean = true;
     
     @property({ type: Node, tooltip: '图层根节点，用于管理预览和建筑图层' })
     layerRootNode: Node = null;
@@ -31,9 +23,9 @@ export class BuildingPlacer extends Component {
     private previewNode: Node = null; // 预览节点
     private influenceRangePreviewNode: Node = null; // 影响范围预览节点
     private isDragging: boolean = false; // 是否正在拖拽
-    private dragStartPos: Vec3 = new Vec3(); // 拖拽开始位置
-    private currentBuildingIndex: number = -1; // 当前选中的建筑索引
-    private activeBuildingNode: Node = null; // 当前激活的建筑节点
+    private currentBuildInfo: BuildInfo = null; // 当前建筑信息
+    private replacementNode: Node = null; // 重新放置的建筑节点
+    private onBuildingPlacedCallback: Function = null; // 建筑放置完成回调
     
     start() {
         this.setupInputEvents();
@@ -43,51 +35,66 @@ export class BuildingPlacer extends Component {
      * 设置输入事件
      */
     private setupInputEvents() {
-        if (!this.enableDragPlacement) {
-            return;
-        }
-        
-        // 监听触摸事件
-        input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
         input.on(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
         input.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
+    }
+    
+    /**
+     * 移除输入事件
+     */
+    private removeInputEvents() {
+        input.off(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
+        input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
     }
     
     /**
      * 创建预览节点
      */
     private createPreviewNode() {
-        if (this.currentBuildingIndex < 0 || this.currentBuildingIndex >= this.buildingNodes.length) {
+        if (!this.currentBuildInfo) {
             return;
         }
         
-        const buildingNode = this.buildingNodes[this.currentBuildingIndex];
-        const buildInfo = buildingNode.getComponent(BuildInfo);
-        
-        if (!buildInfo || !buildInfo.getBuildingPrefab()) {
+        if (!this.currentBuildInfo.getBuildingPrefab()) {
             return;
         }
         
-        // 委托给TileOccupancyManager创建预览节点
-        if (this.tileOccupancyManager) {
-            this.previewNode = this.tileOccupancyManager.createPreviewNode(buildInfo);
-            if (this.previewNode) {
-                this.previewNode.active = false;
-                
-                // 将预览节点绑定到图层根节点的最上层
-                if (this.layerRootNode) {
-                    this.previewNode.parent = this.layerRootNode;
-                    this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1); // 设置为最上层
-                }
-                
-                // 设置初始颜色为正常透明度并旋转45度
-                this.setPreviewNodeColor(new Color(255, 255, 255, 150));
-                this.previewNode.setRotationFromEuler(0, 0, 45);
+        // 如果有重新放置的节点，直接使用它作为预览节点
+        if (this.replacementNode) {
+            this.previewNode = this.replacementNode;
+            this.previewNode.active = false;
+            
+            // 将预览节点绑定到图层根节点的最上层
+            if (this.layerRootNode) {
+                this.previewNode.parent = this.layerRootNode;
+                this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1); // 设置为最上层
             }
             
-            // 创建影响范围预览节点
-            this.createInfluenceRangePreviewNode(buildInfo);
+            // 设置初始颜色为正常透明度并旋转45度
+            this.setPreviewNodeColor(new Color(255, 255, 255, 150));
+            this.previewNode.setRotationFromEuler(0, 0, 45);
+        } else {
+            // 委托给TileOccupancyManager创建预览节点
+            if (this.tileOccupancyManager) {
+                this.previewNode = this.tileOccupancyManager.createPreviewNode(this.currentBuildInfo);
+                if (this.previewNode) {
+                    this.previewNode.active = false;
+                    
+                    // 将预览节点绑定到图层根节点的最上层
+                    if (this.layerRootNode) {
+                        this.previewNode.parent = this.layerRootNode;
+                        this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1); // 设置为最上层
+                    }
+                    
+                    // 设置初始颜色为正常透明度并旋转45度
+                    this.setPreviewNodeColor(new Color(255, 255, 255, 150));
+                    this.previewNode.setRotationFromEuler(0, 0, 45);
+                }
+            }
         }
+        
+        // 创建影响范围预览节点
+        this.createInfluenceRangePreviewNode(this.currentBuildInfo);
     }
     
     /**
@@ -129,35 +136,19 @@ export class BuildingPlacer extends Component {
         this.influenceRangePreviewNode.active = false;
     }
     
-    /**
-     * 触摸开始事件
-     */
-    private onTouchStart(event: EventTouch) {
-        if (!this.canStartDrag()) {
-            return;
-        }
-        
-        // 检查是否允许建筑放置操作
-        if (!PlayerOperationState.isBuildingPlacementAllowed()) {
-            return;
-        }
-        
-        // 检查触摸点是否在任何建筑节点范围内
-        const touchPos = event.getUILocation();
-        const touchedNodeIndex = this.getTouchedBuildingNodeIndex(new Vec3(touchPos.x, touchPos.y, 0));
-        
-        if (touchedNodeIndex >= 0) {
-            this.setCurrentBuilding(touchedNodeIndex);
-            this.startDrag(new Vec3(touchPos.x, touchPos.y, 0));
-        }
-    }
+
     
     /**
      * 触摸移动事件
      */
     private onTouchMove(event: EventTouch) {
-        if (!this.isDragging || !this.previewNode) {
+        if (!this.currentBuildInfo || !this.previewNode) {
             return;
+        }
+        
+        // 如果还没有开始拖拽，则开始拖拽
+        if (!this.isDragging) {
+            this.startDrag();
         }
         
         const touchPos = event.getLocation();
@@ -168,7 +159,7 @@ export class BuildingPlacer extends Component {
      * 触摸结束事件
      */
     private onTouchEnd(event: EventTouch) {
-        if (!this.isDragging) {
+        if (!this.isDragging || !this.currentBuildInfo) {
             return;
         }
         
@@ -176,55 +167,26 @@ export class BuildingPlacer extends Component {
         this.endDrag(new Vec3(touchPos.x, touchPos.y, 0));
     }
     
-    /**
-     * 检查是否可以开始拖拽
-     */
-    private canStartDrag(): boolean {
-        return this.enableDragPlacement && 
-               this.buildingNodes.length > 0 && 
-               this.tileOccupancyManager != null &&
-               this.mainCamera != null &&
-               PlayerOperationState.isBuildingPlacementAllowed();
-    }
+
     
     /**
-     * 获取触摸点对应的建筑节点索引
+     * 设置建筑信息
      */
-    private getTouchedBuildingNodeIndex(touchPos: Vec3): number {
-        for (let i = 0; i < this.buildingNodes.length; i++) {
-            const node = this.buildingNodes[i];
-            const buildInfo = node.getComponent(BuildInfo);
-            
-            if (!buildInfo || !buildInfo.isEnabled()) {
-                continue;
-            }
-            
-            const nodeTransform = node.getComponent(UITransform);
-            if (nodeTransform && this.isPointInNode(touchPos, nodeTransform, node)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-    
-    /**
-     * 设置当前选中的建筑
-     */
-    public setCurrentBuilding(index: number) {
-        if (index < 0 || index >= this.buildingNodes.length) {
-            this.currentBuildingIndex = -1;
-            this.activeBuildingNode = null;
+    public setBuildingInfo(buildInfo: BuildInfo, onPlacedCallback?: Function, replacementNode?: Node) {
+        if (!buildInfo) {
+            console.warn('BuildInfo不能为空');
             return;
         }
         
-        this.currentBuildingIndex = index;
-        this.activeBuildingNode = this.buildingNodes[index];
+        this.currentBuildInfo = buildInfo;
+        this.replacementNode = replacementNode || null;
+        this.onBuildingPlacedCallback = onPlacedCallback || null;
         
-        // 销毁旧的预览节点并创建新的
-        if (this.previewNode) {
+        // 销毁旧的预览节点并创建新的（但不销毁replacementNode）
+        if (this.previewNode && this.previewNode !== this.replacementNode) {
             this.previewNode.destroy();
-            this.previewNode = null;
         }
+        this.previewNode = null;
         
         // 销毁旧的影响范围预览节点
         if (this.influenceRangePreviewNode) {
@@ -233,8 +195,37 @@ export class BuildingPlacer extends Component {
         }
         
         this.createPreviewNode();
+        this.startDrag();
+        console.log(`设置建筑信息: ${buildInfo.getBuildingType()}`);
+    }
+    
+    /**
+     * 清除建筑信息
+     */
+    public clearBuildingInfo() {
+        this.currentBuildInfo = null;
+        this.replacementNode = null;
+        this.onBuildingPlacedCallback = null;
         
-        console.log(`选中建筑: ${this.activeBuildingNode.name}`);
+        // 清理预览节点
+        if (this.previewNode) {
+            this.previewNode.destroy();
+            this.previewNode = null;
+        }
+        
+        // 清理影响范围预览节点
+        if (this.influenceRangePreviewNode) {
+            this.influenceRangePreviewNode.destroy();
+            this.influenceRangePreviewNode = null;
+        }
+        
+        // 如果正在拖拽，结束拖拽
+        if (this.isDragging) {
+            this.isDragging = false;
+            PlayerOperationState.resetToIdle();
+        }
+        
+        console.log('清除建筑信息');
     }
     
     /**
@@ -253,23 +244,17 @@ export class BuildingPlacer extends Component {
     /**
      * 开始拖拽
      */
-    private startDrag(touchPos: Vec3) {
+    public startDrag() {
         this.isDragging = true;
-        this.dragStartPos = touchPos.clone();
         
         // 设置操作状态为建筑放置
         PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
-            buildingType: this.activeBuildingNode?.getComponent(BuildInfo)?.getBuildingType()
+            buildingType: this.currentBuildInfo?.getBuildingType()
         });
         
         // 显示影响范围预览
         if (this.influenceRangePreviewNode) {
             this.influenceRangePreviewNode.active = true;
-        }
-        
-        // 开始拖拽时更新预览位置
-        if (this.previewNode) {
-            this.updatePreviewPosition(touchPos);
         }
         
         console.log('开始拖拽建筑');
@@ -284,9 +269,8 @@ export class BuildingPlacer extends Component {
         }
         
         const screenPos = new Vec2(touchPos.x, touchPos.y);
-        const buildInfo = this.activeBuildingNode?.getComponent(BuildInfo);
         
-        if (!buildInfo) {
+        if (!this.currentBuildInfo) {
             return;
         }
         
@@ -306,7 +290,7 @@ export class BuildingPlacer extends Component {
             // 检查是否可以放置建筑
             const canPlace = this.tileOccupancyManager.canPlaceBuildingAt(
                 tileInfo.row, tileInfo.col, 
-                buildInfo.getBuildingWidth(), buildInfo.getBuildingHeight()
+                this.currentBuildInfo.getBuildingWidth(), this.currentBuildInfo.getBuildingHeight()
             );
             
             // 获取地块节点并设置预览位置
@@ -328,7 +312,7 @@ export class BuildingPlacer extends Component {
             }
             
             // 同时更新影响范围预览位置
-            this.updateInfluenceRangePreviewPosition(screenPos, buildInfo);
+            this.updateInfluenceRangePreviewPosition(screenPos, this.currentBuildInfo);
         } else {
             // 没有找到有效地块，隐藏预览
             this.previewNode.active = false;
@@ -434,6 +418,9 @@ export class BuildingPlacer extends Component {
         // 尝试在地图上放置建筑
         this.tryPlaceBuilding(touchPos);
         
+        // 清理重新放置的节点引用
+        this.replacementNode = null;
+        
         console.log('结束拖拽建筑');
     }
     
@@ -441,23 +428,22 @@ export class BuildingPlacer extends Component {
      * 尝试在地图上放置建筑
      */
     private tryPlaceBuilding(touchPos: Vec3) {
-        if (!this.tileOccupancyManager || this.currentBuildingIndex < 0) {
-            console.warn('缺少必要组件或未选中建筑，无法放置建筑');
+        if (!this.tileOccupancyManager || !this.currentBuildInfo) {
+            console.warn('缺少必要组件或未设置建筑信息，无法放置建筑');
             return;
         }
         
-        const buildInfo = this.activeBuildingNode?.getComponent(BuildInfo);
-        if (!buildInfo || !buildInfo.getBuildingPrefab()) {
-            console.warn('当前建筑节点缺少BuildInfo组件或建筑预制体');
+        if (!this.currentBuildInfo.getBuildingPrefab() && !this.replacementNode) {
+            console.warn('当前建筑信息缺少建筑预制体');
             return;
         }
         
         // 委托给TileOccupancyManager处理建筑放置
         const screenPos = new Vec2(touchPos.x, touchPos.y);
-        const success = this.tileOccupancyManager.tryPlaceBuildingAtScreenPos(screenPos, this.mainCamera, buildInfo);
+        const success = this.tileOccupancyManager.tryPlaceBuildingAtScreenPos(screenPos, this.mainCamera, this.currentBuildInfo, this.replacementNode);
         
         if (success) {
-            this.onBuildingPlaced(buildInfo);
+            this.onBuildingPlaced(this.currentBuildInfo);
         }
     }
     
@@ -470,7 +456,14 @@ export class BuildingPlacer extends Component {
         buildInfo.setInfluenceRange(influenceRange);
         
         console.log(`建筑放置完成: ${buildInfo.getBuildingType()}，影响范围已存储（${influenceRange.length}个地块）`);
+        
+        // 调用外部回调函数
+        if (this.onBuildingPlacedCallback) {
+            this.onBuildingPlacedCallback();
+        }
     }
+    
+
     
     /**
      * 移除指定地块上的建筑
@@ -481,7 +474,8 @@ export class BuildingPlacer extends Component {
             return false;
         }
         
-        return this.tileOccupancyManager.removeBuilding(row, col);
+        const result = this.tileOccupancyManager.removeBuilding(row, col);
+        return result !== null;
     }
     
     /**
@@ -497,72 +491,10 @@ export class BuildingPlacer extends Component {
     }
     
     /**
-     * 添加建筑节点
+     * 获取当前建筑信息
      */
-    public addBuildingNode(node: Node): boolean {
-        if (!node || !node.getComponent(BuildInfo)) {
-            console.warn('节点必须包含BuildInfo组件');
-            return false;
-        }
-        
-        if (this.buildingNodes.indexOf(node) >= 0) {
-            console.warn('节点已存在于数组中');
-            return false;
-        }
-        
-        this.buildingNodes.push(node);
-        console.log(`添加建筑节点: ${node.name}`);
-        return true;
-    }
-    
-    /**
-     * 移除建筑节点
-     */
-    public removeBuildingNode(node: Node): boolean {
-        const index = this.buildingNodes.indexOf(node);
-        if (index < 0) {
-            console.warn('节点不存在于数组中');
-            return false;
-        }
-        
-        this.buildingNodes.splice(index, 1);
-        
-        // 如果移除的是当前选中的节点，重置选择
-        if (this.currentBuildingIndex === index) {
-            this.currentBuildingIndex = -1;
-            this.activeBuildingNode = null;
-            
-            if (this.previewNode) {
-                this.previewNode.destroy();
-                this.previewNode = null;
-            }
-        } else if (this.currentBuildingIndex > index) {
-            this.currentBuildingIndex--;
-        }
-        
-        console.log(`移除建筑节点: ${node.name}`);
-        return true;
-    }
-    
-    /**
-     * 获取建筑节点数组
-     */
-    public getBuildingNodes(): Node[] {
-        return this.buildingNodes.slice();
-    }
-    
-    /**
-     * 获取当前选中的建筑索引
-     */
-    public getCurrentBuildingIndex(): number {
-        return this.currentBuildingIndex;
-    }
-    
-    /**
-     * 获取当前激活的建筑节点
-     */
-    public getActiveBuildingNode(): Node | null {
-        return this.activeBuildingNode;
+    public getCurrentBuildInfo(): BuildInfo | null {
+        return this.currentBuildInfo;
     }
     
 
@@ -589,39 +521,17 @@ export class BuildingPlacer extends Component {
     }
     
     /**
-     * 设置拖拽放置功能开关
+     * 设置重新放置的建筑节点
      */
-    public setDragPlacementEnabled(enabled: boolean) {
-        this.enableDragPlacement = enabled;
-        
-        if (!enabled && this.isDragging) {
-            // 如果正在拖拽时禁用功能，结束当前拖拽
-            this.isDragging = false;
-            if (this.previewNode) {
-                this.previewNode.active = false;
-                this.previewNode.parent = null;
-            }
-            // 重置操作状态
-            PlayerOperationState.resetToIdle();
-        }
+    public setReplacementNode(node: Node) {
+        this.replacementNode = node;
     }
     
+
+    
     onDestroy() {
-        // 清理输入事件监听
-        input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
-        input.off(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
-        input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
-        
-        // 清理预览节点
-        if (this.previewNode) {
-            this.previewNode.destroy();
-            this.previewNode = null;
-        }
-        
-        // 清理影响范围预览节点
-        if (this.influenceRangePreviewNode) {
-            this.influenceRangePreviewNode.destroy();
-            this.influenceRangePreviewNode = null;
-        }
+        // 清理资源
+        this.removeInputEvents();
+        this.clearBuildingInfo();
     }
 }

@@ -320,35 +320,16 @@ export class ImprovedMapGenerator extends Component {
      * @returns 地块节点或null
      */
     getTileAt(row: number, col: number): Node | null {
-        if (!this.mapContainer) {
+        if (row < 0 || col < 0 || row >= this.rows || col >= this.columns) {
             return null;
         }
         
-        const totalRows = this.rows + this.columns - 1;
-        const minDimension = Math.min(this.rows, this.columns);
-        const maxDimension = Math.max(this.rows, this.columns);
-        
-        // 检查行索引是否有效
-        if (row < 0 || row >= totalRows) {
-            return null;
+        const index = row * this.columns + col;
+        if (index >= 0 && index < this.allTiles.length) {
+            return this.allTiles[index];
         }
         
-        // 计算当前行的地块数量并检查列索引
-        let tilesInRow: number;
-        if (row < minDimension) {
-            tilesInRow = row + 1;
-        } else if (row < maxDimension) {
-            tilesInRow = minDimension;
-        } else {
-            tilesInRow = totalRows - row;
-        }
-        
-        if (col < 0 || col >= tilesInRow) {
-            return null;
-        }
-        
-        const tileName = `Tile_${row}_${col}`;
-        return this.mapContainer.getChildByName(tileName);
+        return null;
     }
     
     /**

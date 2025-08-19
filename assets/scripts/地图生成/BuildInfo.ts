@@ -222,4 +222,18 @@ export class BuildInfo extends Component {
     public clearInfluenceRange() {
         this.influenceRange = [];
     }
+    
+    /**
+     * 从另一个BuildInfo复制所有数据
+     */
+    public copyFrom(other: BuildInfo) {
+        this.previewImage = other.previewImage;
+        this.buildingPrefab = other.buildingPrefab;
+        this.buildingType = other.buildingType;
+        this.description = other.description;
+        this.buildingEnabled = other.buildingEnabled;
+        this.buildingWidth = other.buildingWidth;
+        this.buildingHeight = other.buildingHeight;
+        this.influenceRange = other.influenceRange.slice(); // 创建副本
+    }
 }
