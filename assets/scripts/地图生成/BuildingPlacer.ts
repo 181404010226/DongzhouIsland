@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, EventTouch, input, Input, Color, Camera, Graphics } from 'cc';
+import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, EventTouch, input, Input, Color, Camera, Graphics, EventTarget } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { TileOccupancyManager } from './TileOccupancyManager';
 import { PlayerOperationState, PlayerOperationType } from '../交互管理/PlayerOperationState';
@@ -25,7 +25,11 @@ export class BuildingPlacer extends Component {
     private isDragging: boolean = false; // 是否正在拖拽
     private currentBuildInfo: BuildInfo = null; // 当前建筑信息
     private replacementNode: Node = null; // 重新放置的建筑节点
+    private replacementOriginalPosition: Vec3 = null; // 重新放置节点的原始位置
     private onBuildingPlacedCallback: Function = null; // 建筑放置完成回调
+    
+    // 事件目标，用于发射事件
+    public static eventTarget: EventTarget = new EventTarget();
     
     start() {
         this.setupInputEvents();
@@ -181,6 +185,11 @@ export class BuildingPlacer extends Component {
         this.currentBuildInfo = buildInfo;
         this.replacementNode = replacementNode || null;
         this.onBuildingPlacedCallback = onPlacedCallback || null;
+        
+        // 如果是重新放置节点，记录其原始位置
+        if (this.replacementNode) {
+            this.replacementOriginalPosition = this.replacementNode.getWorldPosition().clone();
+        }
         
         // 销毁旧的预览节点并创建新的（但不销毁replacementNode）
         if (this.previewNode && this.previewNode !== this.replacementNode) {
@@ -418,8 +427,7 @@ export class BuildingPlacer extends Component {
         // 尝试在地图上放置建筑
         this.tryPlaceBuilding(touchPos);
         
-        // 清理重新放置的节点引用
-        this.replacementNode = null;
+
         
         console.log('结束拖拽建筑');
     }
@@ -430,11 +438,13 @@ export class BuildingPlacer extends Component {
     private tryPlaceBuilding(touchPos: Vec3) {
         if (!this.tileOccupancyManager || !this.currentBuildInfo) {
             console.warn('缺少必要组件或未设置建筑信息，无法放置建筑');
+            this.handlePlacementFailure('缺少必要组件或建筑信息');
             return;
         }
         
         if (!this.currentBuildInfo.getBuildingPrefab() && !this.replacementNode) {
             console.warn('当前建筑信息缺少建筑预制体');
+            this.handlePlacementFailure('建筑预制体缺失');
             return;
         }
         
@@ -444,6 +454,11 @@ export class BuildingPlacer extends Component {
         
         if (success) {
             this.onBuildingPlaced(this.currentBuildInfo);
+            // 清理重新放置的节点引用
+            this.replacementNode = null;
+            this.replacementOriginalPosition = null;
+        } else {
+            this.handlePlacementFailure('无法在此位置放置建筑');
         }
     }
     
@@ -528,6 +543,29 @@ export class BuildingPlacer extends Component {
     }
     
 
+    
+    /**
+     * 处理放置失败
+     */
+    private handlePlacementFailure(reason: string) {
+        console.warn(`建筑放置失败: ${reason}`);
+        
+        // 如果是重新放置的节点，恢复到原始位置
+        if (this.replacementNode && this.replacementOriginalPosition) {
+            this.replacementNode.setWorldPosition(this.replacementOriginalPosition);
+            this.replacementNode.active = true;
+            console.log('已将建筑恢复到原始位置');
+        }
+        
+        // 发射放置失败事件
+        BuildingPlacer.eventTarget.emit('building-placement-failed', {
+            reason: reason,
+            buildingType: this.currentBuildInfo?.getBuildingType() || '未知建筑'
+        });
+        
+        // 清空当前建筑信息
+        this.clearBuildingInfo();
+    }
     
     onDestroy() {
         // 清理资源
