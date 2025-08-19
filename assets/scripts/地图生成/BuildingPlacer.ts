@@ -92,7 +92,8 @@ export class BuildingPlacer extends Component {
                 const originalTile = this.tileOccupancyManager['getTileByKey'](tileKey);
                 if (originalTile) {
                     this.previewNode.setWorldPosition(originalTile.getWorldPosition());
-                    this.previewNode.setPosition(this.previewNode.position.x, this.previewNode.position.y, 1);
+                    this.previewNode.setPosition(this.previewNode.position.x, 
+                        this.previewNode.position.y+this.tileOccupancyManager.mapGenerator.tileSize/2, 1);
                 }
             }
         
