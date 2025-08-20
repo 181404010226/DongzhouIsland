@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "3f276c5d-8df6-4e60-bcae-2e41d0bf2a57",
+  "uuid": "05f8820e-80dc-4a17-84c2-dc963fe18e9f",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "3f276c5d-8df6-4e60-bcae-2e41d0bf2a57@6c48a",
-      "displayName": "生成香樟树 UI 图（2）",
+      "uuid": "05f8820e-80dc-4a17-84c2-dc963fe18e9f@6c48a",
+      "displayName": "building-Motel",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "3f276c5d-8df6-4e60-bcae-2e41d0bf2a57",
+        "imageUuidOrDatabaseUri": "05f8820e-80dc-4a17-84c2-dc963fe18e9f",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "3f276c5d-8df6-4e60-bcae-2e41d0bf2a57@f9941",
-      "displayName": "生成香樟树 UI 图（2）",
+      "uuid": "05f8820e-80dc-4a17-84c2-dc963fe18e9f@f9941",
+      "displayName": "building-Motel",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -43,12 +43,12 @@
         "rotated": false,
         "offsetX": 0,
         "offsetY": 0,
-        "trimX": 0,
-        "trimY": 0,
-        "width": 1328,
-        "height": 1328,
-        "rawWidth": 1328,
-        "rawHeight": 1328,
+        "trimX": 8,
+        "trimY": 12,
+        "width": 48,
+        "height": 40,
+        "rawWidth": 64,
+        "rawHeight": 64,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -664,
-            -664,
+            -24,
+            -20,
             0,
-            664,
-            -664,
+            24,
+            -20,
             0,
-            -664,
-            664,
+            -24,
+            20,
             0,
-            664,
-            664,
+            24,
+            20,
             0
           ],
           "indexes": [
@@ -82,38 +82,38 @@
             3
           ],
           "uv": [
-            0,
-            1328,
-            1328,
-            1328,
-            0,
-            0,
-            1328,
-            0
+            8,
+            52,
+            56,
+            52,
+            8,
+            12,
+            56,
+            12
           ],
           "nuv": [
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            1,
-            1
+            0.125,
+            0.1875,
+            0.875,
+            0.1875,
+            0.125,
+            0.8125,
+            0.875,
+            0.8125
           ],
           "minPos": [
-            -664,
-            -664,
+            -24,
+            -20,
             0
           ],
           "maxPos": [
-            664,
-            664,
+            24,
+            20,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "3f276c5d-8df6-4e60-bcae-2e41d0bf2a57@6c48a",
+        "imageUuidOrDatabaseUri": "05f8820e-80dc-4a17-84c2-dc963fe18e9f@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -127,8 +127,8 @@
   },
   "userData": {
     "type": "sprite-frame",
-    "hasAlpha": false,
+    "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "3f276c5d-8df6-4e60-bcae-2e41d0bf2a57@6c48a"
+    "redirect": "05f8820e-80dc-4a17-84c2-dc963fe18e9f@6c48a"
   }
 }

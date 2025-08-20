@@ -231,7 +231,7 @@ export class BuildingPlacer extends Component {
         
         this.createPreviewNode();
         this.startDrag();
-        console.log(`设置建筑信息: ${buildInfo.getBuildingType()}`);
+        console.log(`设置建筑信息: ${buildInfo.getType()}`);
     }
     
     /**
@@ -294,7 +294,7 @@ export class BuildingPlacer extends Component {
         
         // 设置操作状态为建筑放置
         PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
-            buildingType: this.currentBuildInfo?.getBuildingType()
+            buildingType: this.currentBuildInfo?.getType()
         });
         
         // 显示影响范围预览
@@ -335,7 +335,7 @@ export class BuildingPlacer extends Component {
             // 检查是否可以放置建筑
             const canPlace = this.tileOccupancyManager.canPlaceBuildingAt(
                 tileInfo.row, tileInfo.col, 
-                this.currentBuildInfo.getBuildingWidth(), this.currentBuildInfo.getBuildingHeight()
+                this.currentBuildInfo.getWidth(), this.currentBuildInfo.getHeight()
             );
             
             // 获取地块节点并设置预览位置
@@ -417,8 +417,8 @@ export class BuildingPlacer extends Component {
             const tileSize = this.tileOccupancyManager.mapGenerator.tileSize / Math.sqrt(2); // 地块边长
             const influenceRadius = 2.5; // 影响范围半径（考虑中心地块0.5占用）
             
-            const totalWidth = (buildInfo.buildingWidth + influenceRadius * 2-1) * tileSize;
-            const totalHeight = (buildInfo.buildingHeight + influenceRadius * 2-1) * tileSize;
+            const totalWidth = (buildInfo.getWidth() + influenceRadius * 2-1) * tileSize;
+            const totalHeight = (buildInfo.getHeight() + influenceRadius * 2-1) * tileSize;
             
             // 设置绘制样式
             graphics.lineWidth = 3;
@@ -509,7 +509,7 @@ export class BuildingPlacer extends Component {
         const influenceRange = buildInfo.getInfluenceRange();
         buildInfo.setInfluenceRange(influenceRange);
         
-        console.log(`建筑放置完成: ${buildInfo.getBuildingType()}，影响范围已存储（${influenceRange.length}个地块）`);
+        console.log(`建筑放置完成: ${buildInfo.getType()}，影响范围已存储（${influenceRange.length}个地块）`);
         
         // 调用外部回调函数
         if (this.onBuildingPlacedCallback) {
@@ -630,7 +630,7 @@ export class BuildingPlacer extends Component {
         // 发射放置失败事件
         BuildingPlacer.eventTarget.emit('building-placement-failed', {
             reason: reason,
-            buildingType: this.currentBuildInfo?.getBuildingType() || '未知建筑'
+            buildingType: this.currentBuildInfo?.getType() || '未知建筑'
         });
         
         // 清空当前建筑信息

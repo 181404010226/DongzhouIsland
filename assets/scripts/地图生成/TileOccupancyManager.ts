@@ -65,7 +65,7 @@ export class TileOccupancyManager extends Component {
      */
     private placeBuildingAtPosition(row: number, col: number, buildInfo: BuildInfo, buildingNode: Node): boolean {
         // 检查是否可以放置建筑
-        if (!this.canPlaceBuildingAt(row, col, buildInfo.getBuildingWidth(), buildInfo.getBuildingHeight())) {
+        if (!this.canPlaceBuildingAt(row, col, buildInfo.getWidth(), buildInfo.getHeight())) {
             console.log(`无法在地块 (${row}, ${col}) 放置建筑，区域被占用或超出边界`);
             return false;
         }
@@ -79,7 +79,7 @@ export class TileOccupancyManager extends Component {
         }
         
         // 生成唯一的建筑ID
-        const buildingId = `Building_${row}_${col}_${buildInfo.getBuildingType()}_${Date.now()}`;
+        const buildingId = `Building_${row}_${col}_${buildInfo.getType()}_${Date.now()}`;
         buildingNode.name = buildingId;
         
         // 确保节点有BuildInfo组件
@@ -100,7 +100,7 @@ export class TileOccupancyManager extends Component {
         // 标记所有占用的地块
         this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
         
-        console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getBuildingType()}`);
+        console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getType()}`);
         return true;
     }
     
@@ -108,12 +108,12 @@ export class TileOccupancyManager extends Component {
      * 标记地块为已占用
      */
     public markTilesAsOccupied(anchorRow: number, anchorCol: number, buildInfo: BuildInfo, buildingId: string, buildingNode: Node): void {
-        const width = buildInfo.getBuildingWidth();
-        const height = buildInfo.getBuildingHeight();
+        const width = buildInfo.getWidth();
+        const height = buildInfo.getHeight();
         
         const occupancyInfo: TileOccupancyInfo = {
             buildingId: buildingId,
-            buildingType: buildInfo.getBuildingType(),
+            buildingType: buildInfo.getType(),
             anchorRow: anchorRow,
             anchorCol: anchorCol,
             width: width,
@@ -296,14 +296,9 @@ export class TileOccupancyManager extends Component {
         const previewNode = instantiate(buildInfo.getBuildingPrefab());
         previewNode.name = 'BuildingPreview';
         
-        // 查找Sprite子节点并设置预览图片
+        // 查找Sprite子节点（预览图片功能已移除）
         const spriteNode = previewNode.getChildByName('Sprite');
-        if (spriteNode && buildInfo.getPreviewImage()) {
-            const sprite = spriteNode.getComponent(Sprite);
-            if (sprite) {
-                sprite.spriteFrame = buildInfo.getPreviewImage();
-            }
-        }
+        // 注意：getPreviewImage方法已被删除，使用默认预制体显示
         
         // 设置预览节点的透明度（递归设置所有Sprite组件）
         this.setNodeOpacity(previewNode, 150);
@@ -357,14 +352,9 @@ export class TileOccupancyManager extends Component {
             
             const buildingInstance = instantiate(buildInfo.getBuildingPrefab());
             
-            // 查找Sprite子节点并设置预览图片
+            // 查找Sprite子节点（预览图片功能已移除）
             const spriteNode = buildingInstance.getChildByName('Sprite');
-            if (spriteNode && buildInfo.getPreviewImage()) {
-                const sprite = spriteNode.getComponent(Sprite);
-                if (sprite) {
-                    sprite.spriteFrame = buildInfo.getPreviewImage();
-                }
-            }
+            // 注意：getPreviewImage方法已被删除，使用默认预制体显示
             
             return this.placeBuildingAtPosition(tileInfo.row, tileInfo.col, buildInfo, buildingInstance);
         }

@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "f4902a94-265c-4eae-a5af-d68d1696cc6d",
+  "uuid": "e655044a-b6c6-44bf-9ec5-715aa927c986",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "f4902a94-265c-4eae-a5af-d68d1696cc6d@6c48a",
-      "displayName": "生成香樟树 UI 图 (6)",
+      "uuid": "e655044a-b6c6-44bf-9ec5-715aa927c986@6c48a",
+      "displayName": "香樟树",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "f4902a94-265c-4eae-a5af-d68d1696cc6d",
+        "imageUuidOrDatabaseUri": "e655044a-b6c6-44bf-9ec5-715aa927c986",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "f4902a94-265c-4eae-a5af-d68d1696cc6d@f9941",
-      "displayName": "生成香樟树 UI 图 (6)",
+      "uuid": "e655044a-b6c6-44bf-9ec5-715aa927c986@f9941",
+      "displayName": "香樟树",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "f4902a94-265c-4eae-a5af-d68d1696cc6d@6c48a",
+        "imageUuidOrDatabaseUri": "e655044a-b6c6-44bf-9ec5-715aa927c986@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": false,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "f4902a94-265c-4eae-a5af-d68d1696cc6d@6c48a"
+    "redirect": "e655044a-b6c6-44bf-9ec5-715aa927c986@6c48a"
   }
 }

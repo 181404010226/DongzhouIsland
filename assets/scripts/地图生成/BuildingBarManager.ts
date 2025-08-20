@@ -102,7 +102,7 @@ export class BuildingBarManager extends Component {
             });
         }
         
-        console.log(`选中建筑: ${buildInfo.getBuildingType()}`);
+        console.log(`选中建筑: ${buildInfo.getType()}`);
     }
     
     /**
@@ -121,7 +121,7 @@ export class BuildingBarManager extends Component {
         // 设置操作状态
         const buildInfo = this.buildingNodes[index].getComponent(BuildInfo);
         PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
-            buildingType: buildInfo?.getBuildingType()
+            buildingType: buildInfo?.getType()
         });
     }
     

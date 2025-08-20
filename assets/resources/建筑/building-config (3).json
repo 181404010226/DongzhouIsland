@@ -6,8 +6,7 @@
       "unlockPopularity": 10,
       "width": 1,
       "height": 1,
-      "image": "",
-      "order": 1,
+      "image": "香樟树",
       "decorationValue": 1,
       "decorationRange": 1
     },
@@ -17,8 +16,7 @@
       "unlockPopularity": 200,
       "width": 1,
       "height": 1,
-      "image": "",
-      "order": 2,
+      "image": "牡丹",
       "decorationValue": 1,
       "decorationRange": 1
     },
@@ -28,8 +26,7 @@
       "unlockPopularity": 400,
       "width": 1,
       "height": 1,
-      "image": "",
-      "order": 3,
+      "image": "杜鹃",
       "decorationValue": 1,
       "decorationRange": 1
     },
@@ -37,10 +34,9 @@
       "name": "旅店",
       "type": "consumption",
       "unlockPopularity": 100,
-      "width": 4,
+      "width": 2,
       "height": 2,
-      "image": "",
-      "order": 4,
+      "image": "building-Inn",
       "charmValue": 3,
       "chainBuildings": [
         {
@@ -53,10 +49,9 @@
       "name": "酒店",
       "type": "consumption",
       "unlockPopularity": 400,
-      "width": 4,
+      "width": 2,
       "height": 2,
-      "image": "",
-      "order": 5,
+      "image": "building-hotel",
       "charmValue": 5,
       "chainBuildings": [
         {
@@ -71,8 +66,7 @@
       "unlockPopularity": 10,
       "width": 2,
       "height": 2,
-      "image": "",
-      "order": 6,
+      "image": "building-Store",
       "charmValue": 2,
       "chainBuildings": []
     },
@@ -80,10 +74,9 @@
       "name": "汽车旅馆",
       "type": "consumption",
       "unlockPopularity": 10,
-      "width": 4,
+      "width": 2,
       "height": 2,
-      "image": "",
-      "order": 7,
+      "image": "building-Motel",
       "charmValue": 2,
       "chainBuildings": [
         {

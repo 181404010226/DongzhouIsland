@@ -1,4 +1,4 @@
-import { _decorator, Component, Prefab, SpriteFrame } from 'cc';
+import { _decorator, Component, Prefab, SpriteFrame, resources, Sprite, Node, Layers } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -7,14 +7,14 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('BuildInfo')
 export class BuildInfo extends Component {
-    @property({ type: SpriteFrame, tooltip: '建筑预览图片' })
-    previewImage: SpriteFrame = null;
-    
     @property({ type: Prefab, tooltip: '建筑预制体' })
     buildingPrefab: Prefab = null;
     
-    @property({ tooltip: '建筑类型名称' })
-    buildingType: string = '';
+    @property({ tooltip: '建筑类型' })
+    type: string = '';
+    
+    @property({ tooltip: '建筑名称' })
+    buildingName: string = '';
     
     @property({ tooltip: '建筑描述' })
     description: string = '';
@@ -23,10 +23,31 @@ export class BuildInfo extends Component {
     buildingEnabled: boolean = true;
     
     @property({ tooltip: '建筑宽度（占用地块数）' })
-    buildingWidth: number = 1;
+    width: number = 1;
     
     @property({ tooltip: '建筑高度（占用地块数）' })
-    buildingHeight: number = 1;
+    height: number = 1;
+    
+    @property({ tooltip: '解锁所需人气值' })
+    unlockPopularity: number = 0;
+    
+    @property({ tooltip: '建筑图片路径' })
+    image: string = '';
+    
+    @property({ tooltip: '装饰价值' })
+    decorationValue: number = 0;
+    
+    @property({ tooltip: '装饰影响范围' })
+    decorationRange: number = 0;
+    
+    @property({ tooltip: '魅力值' })
+    charmValue: number = 0;
+    
+    @property({ tooltip: '连锁建筑配置' })
+    chainBuildings: Array<{building: string, bonus: number}> = [];
+    
+    @property({ type: Sprite, tooltip: '建筑图片Sprite组件' })
+    buildingSprite: Sprite = null;
     
     // 建筑影响范围相关属性
     private influenceRange: Array<{row: number, col: number}> = [];
@@ -39,13 +60,6 @@ export class BuildInfo extends Component {
     private isPlaced: boolean = false;
     
     /**
-     * 获取建筑预览图片
-     */
-    public getPreviewImage(): SpriteFrame {
-        return this.previewImage;
-    }
-    
-    /**
      * 获取建筑预制体
      */
     public getBuildingPrefab(): Prefab {
@@ -55,8 +69,15 @@ export class BuildInfo extends Component {
     /**
      * 获取建筑类型
      */
-    public getBuildingType(): string {
-        return this.buildingType;
+    public getType(): string {
+        return this.type;
+    }
+    
+    /**
+     * 获取建筑名称
+     */
+    public getBuildingName(): string {
+        return this.buildingName;
     }
     
     /**
@@ -74,13 +95,6 @@ export class BuildInfo extends Component {
     }
     
     /**
-     * 设置建筑预览图片
-     */
-    public setPreviewImage(spriteFrame: SpriteFrame) {
-        this.previewImage = spriteFrame;
-    }
-    
-    /**
      * 设置建筑预制体
      */
     public setBuildingPrefab(prefab: Prefab) {
@@ -90,8 +104,15 @@ export class BuildInfo extends Component {
     /**
      * 设置建筑类型
      */
-    public setBuildingType(type: string) {
-        this.buildingType = type;
+    public setType(type: string) {
+        this.type = type;
+    }
+    
+    /**
+     * 设置建筑名称
+     */
+    public setBuildingName(name: string) {
+        this.buildingName = name;
     }
     
     /**
@@ -109,17 +130,101 @@ export class BuildInfo extends Component {
     }
     
     /**
+     * 获取解锁所需人气值
+     */
+    public getUnlockPopularity(): number {
+        return this.unlockPopularity;
+    }
+    
+    /**
+     * 设置解锁所需人气值
+     */
+    public setUnlockPopularity(popularity: number) {
+        this.unlockPopularity = popularity;
+    }
+    
+    /**
+     * 获取建筑图片路径
+     */
+    public getImage(): string {
+        return this.image;
+    }
+    
+    /**
+     * 设置建筑图片路径
+     */
+    public setImage(imagePath: string) {
+        this.image = imagePath;
+    }
+    
+    /**
+     * 获取装饰价值
+     */
+    public getDecorationValue(): number {
+        return this.decorationValue;
+    }
+    
+    /**
+     * 设置装饰价值
+     */
+    public setDecorationValue(value: number) {
+        this.decorationValue = value;
+    }
+    
+    /**
+     * 获取装饰影响范围
+     */
+    public getDecorationRange(): number {
+        return this.decorationRange;
+    }
+    
+    /**
+     * 设置装饰影响范围
+     */
+    public setDecorationRange(range: number) {
+        this.decorationRange = range;
+    }
+    
+    /**
+     * 获取魅力值
+     */
+    public getCharmValue(): number {
+        return this.charmValue;
+    }
+    
+    /**
+     * 设置魅力值
+     */
+    public setCharmValue(value: number) {
+        this.charmValue = value;
+    }
+    
+    /**
+     * 获取连锁建筑配置
+     */
+    public getChainBuildings(): Array<{building: string, bonus: number}> {
+        return this.chainBuildings.slice(); // 返回副本
+    }
+    
+    /**
+     * 设置连锁建筑配置
+     */
+    public setChainBuildings(buildings: Array<{building: string, bonus: number}>) {
+        this.chainBuildings = buildings.slice(); // 创建副本
+    }
+    
+    /**
      * 获取建筑宽度
      */
-    public getBuildingWidth(): number {
-        return this.buildingWidth;
+    public getWidth(): number {
+        return this.width;
     }
     
     /**
      * 获取建筑高度
      */
-    public getBuildingHeight(): number {
-        return this.buildingHeight;
+    public getHeight(): number {
+        return this.height;
     }
     
     /**
@@ -127,8 +232,8 @@ export class BuildInfo extends Component {
      */
     public getSize(): {width: number, height: number} {
         return {
-            width: this.buildingWidth,
-            height: this.buildingHeight
+            width: this.width,
+            height: this.height
         };
     }
     
@@ -136,8 +241,8 @@ export class BuildInfo extends Component {
      * 设置建筑尺寸
      */
     public setBuildingSize(width: number, height: number) {
-        this.buildingWidth = Math.max(1, width);
-        this.buildingHeight = Math.max(1, height);
+        this.width = Math.max(1, width);
+        this.height = Math.max(1, height);
     }
     
     /**
@@ -148,8 +253,8 @@ export class BuildInfo extends Component {
         const tiles: Array<{row: number, col: number}> = [];
         
         // 返回相对于锚点的占用地块坐标（锚点为左下角，向左上方向扩展）
-        for (let r = -this.buildingHeight + 1; r <= 0; r++) {
-            for (let c = -this.buildingWidth + 1; c <= 0; c++) {
+        for (let r = -this.height + 1; r <= 0; r++) {
+            for (let c = -this.width + 1; c <= 0; c++) {
                 tiles.push({ row: r, col: c });
             }
         }
@@ -165,9 +270,9 @@ export class BuildInfo extends Component {
         const range: Array<{row: number, col: number}> = [];
         
         // 计算影响范围边界（在占用区域基础上向外扩展2格）
-        const minRow = -this.buildingHeight + 1 - 2; // 向下扩展2格
+        const minRow = -this.height + 1 - 2; // 向下扩展2格
         const maxRow = 0 + 2; // 向上扩展2格
-        const minCol = -this.buildingWidth + 1 - 2; // 向左扩展2格
+        const minCol = -this.width + 1 - 2; // 向左扩展2格
         const maxCol = 0 + 2; // 向右扩展2格
         
         // 生成影响范围内的所有地块坐标
@@ -188,9 +293,9 @@ export class BuildInfo extends Component {
         const border: Array<{row: number, col: number}> = [];
         
         // 计算影响范围边界
-        const minRow = -this.buildingHeight + 1 - 2;
+        const minRow = -this.height + 1 - 2;
         const maxRow = 0 + 2;
-        const minCol = -this.buildingWidth + 1 - 2;
+        const minCol = -this.width + 1 - 2;
         const maxCol = 0 + 2;
         
         // 添加上下边界
@@ -279,20 +384,26 @@ export class BuildInfo extends Component {
     public getIsPlaced(): boolean {
         return this.isPlaced;
     }
-    
-
-    
+ 
     /**
      * 从另一个BuildInfo复制所有数据
+     * @param other 源BuildInfo对象
+     * @param copyLayer 是否复制层级信息，默认为false
      */
-    public copyFrom(other: BuildInfo) {
-        this.previewImage = other.previewImage;
+    public copyFrom(other: BuildInfo, copyLayer: boolean = false) {
         this.buildingPrefab = other.buildingPrefab;
-        this.buildingType = other.buildingType;
+        this.type = other.type;
+        this.buildingName = other.buildingName;
         this.description = other.description;
         this.buildingEnabled = other.buildingEnabled;
-        this.buildingWidth = other.buildingWidth;
-        this.buildingHeight = other.buildingHeight;
+        this.width = other.width;
+        this.height = other.height;
+        this.unlockPopularity = other.unlockPopularity;
+        this.image = other.image;
+        this.decorationValue = other.decorationValue;
+        this.decorationRange = other.decorationRange;
+        this.charmValue = other.charmValue;
+        this.chainBuildings = other.chainBuildings.slice(); // 创建副本
         this.influenceRange = other.influenceRange.slice(); // 创建副本
         
         // 复制位置信息
@@ -301,5 +412,146 @@ export class BuildInfo extends Component {
         this.previousAnchorRow = other.previousAnchorRow;
         this.previousAnchorCol = other.previousAnchorCol;
         this.isPlaced = other.isPlaced;
+        
+        // 可选择性复制层级信息
+        if (copyLayer && other.node && this.node) {
+            this.node.layer = other.node.layer;
+            console.log(`复制层级信息: ${other.node.layer} -> ${this.buildingName}`);
+        }
     }
+    
+    /**
+     * 加载并设置建筑图片
+     * @param targetNode 目标节点（可选，主要用于兼容性）
+     * @returns Promise<boolean> 是否加载成功
+     */
+    public async loadAndSetImage(targetNode?: Node): Promise<boolean> {
+        if (!this.image) {
+            return false;
+        }
+        
+        if (!this.buildingSprite) {
+            console.warn(`BuildInfo组件缺少buildingSprite引用: ${this.buildingName}`);
+            return false;
+        }
+        
+        return new Promise((resolve) => {
+            // 从resources/建筑目录加载图片，需要指定到spriteFrame子资源
+            const resourcePath = `建筑/${this.image}/spriteFrame`;
+            
+            resources.load(resourcePath, SpriteFrame, (err, spriteFrame) => {
+                if (err) {
+                    console.warn(`加载建筑图片失败: ${resourcePath}`, err);
+                    resolve(false);
+                    return;
+                }
+                
+                // 直接使用装饰器引用的Sprite组件设置图片
+                if (this.buildingSprite && spriteFrame) {
+                    this.buildingSprite.spriteFrame = spriteFrame;
+                    console.log(`设置建筑图片: ${this.image} -> ${this.buildingName}`);
+                    resolve(true);
+                } else {
+                    console.warn(`buildingSprite为空或SpriteFrame为空: ${this.buildingName}`);
+                    resolve(false);
+                }
+            });
+        });
+    }
+    
+    /**
+     * 设置建筑选中状态的视觉反馈
+     * @param selected 是否选中
+     */
+    public setSelected(selected: boolean) {
+        if (!this.buildingSprite) {
+            return;
+        }
+        
+        // 通过改变透明度来显示选中状态
+        const color = this.buildingSprite.color.clone();
+        color.a = selected ? 200 : 255; // 选中时稍微透明
+        this.buildingSprite.color = color;
+        
+        console.log(`建筑 ${this.buildingName} ${selected ? '选中' : '取消选中'}`);
+    }
+    
+    /**
+     * 设置节点层级
+     * @param layer 目标层级
+     */
+    public setNodeLayer(layer: number) {
+        if (this.node) {
+            this.node.layer = layer;
+            console.log(`建筑 ${this.buildingName} 层级设置为: ${layer}`);
+        }
+    }
+    
+    /**
+     * 将建筑从UI_2D层级转换到DEFAULT层级
+     * 用于从建造栏拖拽到地图时的层级转换
+     */
+    public convertToMapLayer() {
+        this.setNodeLayer(Layers.Enum.DEFAULT);
+        console.log(`建筑 ${this.buildingName} 已转换到地图层级 (DEFAULT)`);
+    }
+    
+    /**
+     * 将建筑设置为UI层级
+     * 用于在建造栏中显示时的层级设置
+     */
+    public convertToUILayer() {
+        this.setNodeLayer(Layers.Enum.UI_2D);
+        console.log(`建筑 ${this.buildingName} 已转换到UI层级 (UI_2D)`);
+    }
+    
+    /**
+     * 获取当前节点层级
+     * @returns 当前层级值
+     */
+    public getCurrentLayer(): number {
+        return this.node ? this.node.layer : -1;
+    }
+    
+    /**
+     * 检查是否在地图层级
+     * @returns 是否在DEFAULT层级
+     */
+    public isOnMapLayer(): boolean {
+        return this.getCurrentLayer() === Layers.Enum.DEFAULT;
+    }
+    
+    /**
+     * 检查是否在UI层级
+     * @returns 是否在UI_2D层级
+     */
+    public isOnUILayer(): boolean {
+        return this.getCurrentLayer() === Layers.Enum.UI_2D;
+    }
+    
+    /**
+     * 处理建筑拖拽时的层级转换
+     * 从建造栏(UI_2D)拖拽到地图(DEFAULT)时调用
+     * @param targetLayer 目标层级，默认为DEFAULT
+     */
+    public handleDragToMap(targetLayer: number = Layers.Enum.DEFAULT) {
+        const currentLayer = this.getCurrentLayer();
+        if (currentLayer !== targetLayer) {
+            this.setNodeLayer(targetLayer);
+            console.log(`拖拽建筑层级转换: ${currentLayer} -> ${targetLayer} (${this.buildingName})`);
+        }
+    }
+    
+    /**
+     * 处理建筑返回建造栏时的层级转换
+     * 从地图(DEFAULT)返回到建造栏(UI_2D)时调用
+     */
+    public handleReturnToUI() {
+        const currentLayer = this.getCurrentLayer();
+        if (currentLayer !== Layers.Enum.UI_2D) {
+            this.setNodeLayer(Layers.Enum.UI_2D);
+            console.log(`建筑返回UI层级转换: ${currentLayer} -> ${Layers.Enum.UI_2D} (${this.buildingName})`);
+        }
+    }
+ 
 }
