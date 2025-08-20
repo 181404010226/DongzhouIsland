@@ -1,0 +1,98 @@
+{
+  "buildings": [
+    {
+      "name": "香樟树",
+      "type": "decoration",
+      "unlockPopularity": 10,
+      "width": 1,
+      "height": 1,
+      "image": "",
+      "order": 1,
+      "decorationValue": 1,
+      "decorationRange": 1
+    },
+    {
+      "name": "牡丹",
+      "type": "decoration",
+      "unlockPopularity": 200,
+      "width": 1,
+      "height": 1,
+      "image": "",
+      "order": 2,
+      "decorationValue": 1,
+      "decorationRange": 1
+    },
+    {
+      "name": "杜鹃",
+      "type": "decoration",
+      "unlockPopularity": 400,
+      "width": 1,
+      "height": 1,
+      "image": "",
+      "order": 3,
+      "decorationValue": 1,
+      "decorationRange": 1
+    },
+    {
+      "name": "旅店",
+      "type": "consumption",
+      "unlockPopularity": 100,
+      "width": 4,
+      "height": 2,
+      "image": "",
+      "order": 4,
+      "charmValue": 3,
+      "chainBuildings": [
+        {
+          "building": "便利店",
+          "bonus": 1
+        }
+      ]
+    },
+    {
+      "name": "酒店",
+      "type": "consumption",
+      "unlockPopularity": 400,
+      "width": 4,
+      "height": 2,
+      "image": "",
+      "order": 5,
+      "charmValue": 5,
+      "chainBuildings": [
+        {
+          "building": "便利店",
+          "bonus": 1
+        }
+      ]
+    },
+    {
+      "name": "便利店",
+      "type": "consumption",
+      "unlockPopularity": 10,
+      "width": 2,
+      "height": 2,
+      "image": "",
+      "order": 6,
+      "charmValue": 2,
+      "chainBuildings": []
+    },
+    {
+      "name": "汽车旅馆",
+      "type": "consumption",
+      "unlockPopularity": 10,
+      "width": 4,
+      "height": 2,
+      "image": "",
+      "order": 7,
+      "charmValue": 2,
+      "chainBuildings": [
+        {
+          "building": "便利店",
+          "bonus": 1
+        }
+      ]
+    }
+  ],
+  "exportTime": "2025-08-18T08:13:28.989Z",
+  "version": "1.0"
+}

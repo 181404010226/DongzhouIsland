@@ -86,8 +86,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 35.355339,
-      "y": 35.355339,
+      "x": 17.6776695,
+      "y": 17.6776695,
       "z": 0
     },
     "_lrot": {
@@ -99,8 +99,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 3,
-      "y": 3,
+      "x": 2,
+      "y": 2,
       "z": 1
     },
     "_mobility": 0,
@@ -212,7 +212,7 @@
     "_isAbsBottom": true,
     "_isAbsHorizontalCenter": true,
     "_isAbsVerticalCenter": true,
-    "_originalWidth": 70.710678,
+    "_originalWidth": 0,
     "_originalHeight": 0,
     "_alignMode": 2,
     "_lockFlags": 0,
@@ -220,7 +220,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "46qAf9Q71Pzaa3xDrFhddj"
+    "fileId": "48xgH+EWRKgbGIAUQFM2XA"
   },
   {
     "__type__": "cc.PrefabInfo",
