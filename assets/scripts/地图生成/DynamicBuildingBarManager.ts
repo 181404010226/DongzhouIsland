@@ -1,9 +1,9 @@
-import { _decorator, Component, Node, EventTouch, input, Input, Vec2, Vec3, UITransform, instantiate, Prefab, Layout, Size } from 'cc';
+import { _decorator, Component, Node, EventTouch, input, Input, Vec2, Vec3, UITransform, instantiate, Prefab, Layout, Size, Sprite, ScrollView } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { BuildingPlacer } from './BuildingPlacer';
 import { PlayerOperationState, PlayerOperationType } from '../交互管理/PlayerOperationState';
 import { BuildingsInterface } from '../InterfaceManager/BuildingsInterface';
-import { BuildingPrefabMapper } from './BuildingPrefabMapper';
+
 
 const { ccclass, property } = _decorator;
 
@@ -16,10 +16,16 @@ export class DynamicBuildingBarManager extends Component {
     @property({ type: Node, tooltip: '建筑栏容器节点' })
     buildingBarContainer: Node = null;
     
+    @property({ type: ScrollView, tooltip: '滚动视图组件（可选，用于横向滚动）' })
+    scrollView: ScrollView = null;
+    
     @property({ type: BuildingPlacer, tooltip: '建筑放置器' })
     buildingPlacer: BuildingPlacer = null;
     
-    @property({ type: [Prefab], tooltip: '建筑预制体数组，按尺寸命名(如Tile_1-1, Tile_2-2等)' })
+    @property({ type: Prefab, tooltip: '建造栏统一使用的建筑预制体(Building.prefab)' })
+    buildingBarPrefab: Prefab = null;
+    
+    @property({ type: [Prefab], tooltip: '地图放置用的建筑预制体数组，按尺寸命名(如Tile_1-1, Tile_2-2等)' })
     buildingPrefabs: Prefab[] = [];
     
     @property({ tooltip: '建筑栏中预览图标的固定宽度' })
@@ -39,30 +45,46 @@ export class DynamicBuildingBarManager extends Component {
         this.initializePrefabMapping();
         this.loadAndCreateBuildingNodes();
         this.setupInputEvents();
+        this.setupScrollView();
     }
+    
+    // 预制体映射表：key为"宽度-高度"，value为预制体
+    private prefabMap: Map<string, Prefab> = new Map();
     
     /**
      * 初始化预制体映射
      */
     private initializePrefabMapping() {
-        // 使用BuildingPrefabMapper来管理预制体映射
-        BuildingPrefabMapper.initializePrefabMap(this.buildingPrefabs);
-        
-        // 打印映射信息（调试用）
-        if (this.buildingPrefabs.length > 0) {
-            BuildingPrefabMapper.printMappingInfo();
+        try {
+            this.prefabMap.clear();
             
-            // 验证映射完整性
-            const validation = BuildingPrefabMapper.validateMapping();
-            if (!validation.isValid) {
-                console.warn('预制体映射验证失败:');
-                if (validation.missingPrefabs.length > 0) {
-                    console.warn('缺失的预制体:', validation.missingPrefabs);
+            for (const prefab of this.buildingPrefabs) {
+                if (!prefab || !prefab.data) {
+                    console.warn('无效的预制体:', prefab);
+                    continue;
                 }
-                if (validation.invalidPrefabs.length > 0) {
-                    console.warn('无效的预制体:', validation.invalidPrefabs);
+                
+                const buildInfo = prefab.data.getComponent(BuildInfo);
+                if (!buildInfo) {
+                    console.warn(`预制体 ${prefab.name} 缺少 BuildInfo 组件`);
+                    continue;
                 }
+                
+                const width = buildInfo.getWidth();
+                const height = buildInfo.getHeight();
+                const key = `${width}-${height}`;
+                
+                if (this.prefabMap.has(key)) {
+                    console.warn(`尺寸 ${key} 的预制体映射已存在，将被覆盖`);
+                }
+                
+                this.prefabMap.set(key, prefab);
+                console.log(`映射预制体: ${prefab.name} -> ${key} (${width}x${height})`);
             }
+            
+            console.log(`预制体映射初始化完成，共 ${this.prefabMap.size} 个映射`);
+        } catch (error) {
+            console.error('初始化预制体映射失败:', error);
         }
     }
     
@@ -105,15 +127,14 @@ export class DynamicBuildingBarManager extends Component {
      */
     private async createBuildingNode(buildInfo: BuildInfo): Promise<Node | null> {
         try {
-            // 根据建筑尺寸获取对应的预制体
-            const prefab = BuildingPrefabMapper.getPrefabBySize(buildInfo.getWidth(), buildInfo.getHeight());
-            if (!prefab) {
-                console.warn(`未找到尺寸为 ${buildInfo.getWidth()}x${buildInfo.getHeight()} 的预制体`);
+            // 建造栏统一使用Building.prefab预制体
+            if (!this.buildingBarPrefab) {
+                console.warn('建造栏预制体(buildingBarPrefab)未设置');
                 return null;
             }
             
-            // 实例化预制体
-            const node = instantiate(prefab);
+            // 实例化Building.prefab预制体
+            const node = instantiate(this.buildingBarPrefab);
             if (!node) {
                 console.error('实例化预制体失败');
                 return null;
@@ -124,8 +145,23 @@ export class DynamicBuildingBarManager extends Component {
             if (nodeBuildInfo) {
                 nodeBuildInfo.copyFrom(buildInfo);
                 
-                // 设置建筑预制体引用（用于放置时实例化）
-                nodeBuildInfo.setBuildingPrefab(prefab);
+                // 查找并设置Sprite组件引用
+                const spriteNode = node.getChildByName('Sprite');
+                if (spriteNode) {
+                    const spriteComponent = spriteNode.getComponent(Sprite);
+                    if (spriteComponent) {
+                        nodeBuildInfo.buildingSprite = spriteComponent;
+                    }
+                }
+                
+                // 设置建筑预制体引用（用于放置时实例化，使用对应尺寸的Tile预制体）
+                const tilePrefab = this.getPrefabBySize(buildInfo.getWidth(), buildInfo.getHeight());
+                if (tilePrefab) {
+                    nodeBuildInfo.setBuildingPrefab(tilePrefab);
+                } else {
+                    console.warn(`未找到尺寸为 ${buildInfo.getWidth()}x${buildInfo.getHeight()} 的Tile预制体，将使用Building.prefab`);
+                    nodeBuildInfo.setBuildingPrefab(this.buildingBarPrefab);
+                }
             } else {
                 console.warn('预制体节点缺少BuildInfo组件');
                 return null;
@@ -193,6 +229,20 @@ export class DynamicBuildingBarManager extends Component {
         }
     }
     
+    /**
+     * 根据尺寸获取对应的预制体
+     */
+    private getPrefabBySize(width: number, height: number): Prefab | null {
+        const key = `${width}-${height}`;
+        const prefab = this.prefabMap.get(key);
+        
+        if (!prefab) {
+            console.warn(`未找到尺寸为 ${width}x${height} 的预制体`);
+            return null;
+        }
+        
+        return prefab;
+    }
 
     
     /**
@@ -216,6 +266,9 @@ export class DynamicBuildingBarManager extends Component {
                 currentX += this.previewIconWidth + this.iconSpacing;
             }
         }
+        
+        // 更新容器内容尺寸以支持滚动
+        this.updateContainerContentSize();
     }
     
     /**
@@ -325,6 +378,9 @@ export class DynamicBuildingBarManager extends Component {
         this.currentSelectedIndex = index;
         this.setBuildingNodeSelected(index, true);
         
+        // 滚动到选中的建筑
+        this.scrollToBuilding(index);
+        
         // 设置操作状态
         const buildInfo = this.buildingNodes[index].getComponent(BuildInfo);
         PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
@@ -407,6 +463,108 @@ export class DynamicBuildingBarManager extends Component {
      */
     public setBuildingPlacer(placer: BuildingPlacer) {
         this.buildingPlacer = placer;
+    }
+    
+    /**
+     * 设置滚动视图
+     */
+    private setupScrollView() {
+        if (!this.scrollView) {
+            // 尝试从父节点或当前节点获取ScrollView组件
+            this.scrollView = this.node.getComponent(ScrollView);
+            if (!this.scrollView && this.node.parent) {
+                this.scrollView = this.node.parent.getComponent(ScrollView);
+            }
+        }
+        
+        if (this.scrollView) {
+            // 设置为横向滚动
+            this.scrollView.horizontal = true;
+            this.scrollView.vertical = false;
+            
+            // 设置滚动内容节点
+            if (this.buildingBarContainer) {
+                this.scrollView.content = this.buildingBarContainer;
+            }
+            
+            console.log('ScrollView设置完成，支持横向滚动');
+        } else {
+            console.log('未找到ScrollView组件，请手动添加ScrollView组件以启用滚动功能');
+        }
+    }
+    
+    /**
+     * 更新容器内容尺寸
+     */
+    private updateContainerContentSize() {
+        if (!this.buildingBarContainer) {
+            return;
+        }
+        
+        const containerTransform = this.buildingBarContainer.getComponent(UITransform);
+        if (!containerTransform) {
+            return;
+        }
+        
+        // 计算总宽度
+        const totalWidth = this.buildingNodes.length * (this.previewIconWidth + this.iconSpacing) - this.iconSpacing;
+        const height = this.previewIconHeight;
+        
+        // 设置容器内容尺寸
+        containerTransform.setContentSize(new Size(Math.max(totalWidth, 0), height));
+        
+        // 如果有ScrollView，更新其内容尺寸
+        if (this.scrollView && this.scrollView.content === this.buildingBarContainer) {
+            // ScrollView会自动处理内容尺寸，但我们可以确保内容正确设置
+            console.log(`更新滚动内容尺寸: ${totalWidth} x ${height}`);
+        }
+    }
+    
+    /**
+     * 滚动到指定建筑
+     */
+    public scrollToBuilding(index: number) {
+        if (!this.scrollView || index < 0 || index >= this.buildingNodes.length) {
+            return;
+        }
+        
+        // 计算目标位置
+        const targetX = index * (this.previewIconWidth + this.iconSpacing);
+        const containerTransform = this.buildingBarContainer?.getComponent(UITransform);
+        const scrollTransform = this.scrollView.node.getComponent(UITransform);
+        
+        if (!containerTransform || !scrollTransform) {
+            return;
+        }
+        
+        // 计算滚动比例
+        const contentWidth = containerTransform.contentSize.width;
+        const viewWidth = scrollTransform.contentSize.width;
+        
+        if (contentWidth <= viewWidth) {
+            return; // 内容不需要滚动
+        }
+        
+        const scrollRatio = targetX / (contentWidth - viewWidth);
+        const clampedRatio = Math.max(0, Math.min(1, scrollRatio));
+        
+        // 执行滚动
+        this.scrollView.scrollToPercentHorizontal(clampedRatio, 0.3);
+    }
+    
+    /**
+     * 获取ScrollView组件引用
+     */
+    public getScrollView(): ScrollView | null {
+        return this.scrollView;
+    }
+    
+    /**
+     * 设置ScrollView组件引用
+     */
+    public setScrollView(scrollView: ScrollView) {
+        this.scrollView = scrollView;
+        this.setupScrollView();
     }
     
     onDestroy() {

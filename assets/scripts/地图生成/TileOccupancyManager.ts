@@ -90,6 +90,23 @@ export class TileOccupancyManager extends Component {
         // 复制原始BuildInfo的数据
         instanceBuildInfo.copyFrom(buildInfo);
         
+        // 查找并设置Sprite组件引用
+        const spriteNode = buildingNode.getChildByName('Sprite');
+        if (spriteNode) {
+            const spriteComponent = spriteNode.getComponent(Sprite);
+            if (spriteComponent) {
+                instanceBuildInfo.buildingSprite = spriteComponent;
+                // 加载并设置建筑图片
+                instanceBuildInfo.loadAndSetImage(buildingNode).then((success) => {
+                    if (success) {
+                        console.log(`成功加载建筑图片: ${buildInfo.getBuildingName()}`);
+                    } else {
+                        console.warn(`建筑图片加载失败: ${buildInfo.getBuildingName()}`);
+                    }
+                });
+            }
+        }
+        
         // 设置建筑当前位置信息
         instanceBuildInfo.setCurrentPosition(row, col);
         
@@ -296,9 +313,29 @@ export class TileOccupancyManager extends Component {
         const previewNode = instantiate(buildInfo.getBuildingPrefab());
         previewNode.name = 'BuildingPreview';
         
-        // 查找Sprite子节点（预览图片功能已移除）
+        // 确保预览节点有BuildInfo组件并设置图片
+        let previewBuildInfo = previewNode.getComponent(BuildInfo);
+        if (!previewBuildInfo) {
+            previewBuildInfo = previewNode.addComponent(BuildInfo);
+        }
+        previewBuildInfo.copyFrom(buildInfo);
+        
+        // 查找并设置Sprite组件引用，然后加载图片
         const spriteNode = previewNode.getChildByName('Sprite');
-        // 注意：getPreviewImage方法已被删除，使用默认预制体显示
+        if (spriteNode) {
+            const spriteComponent = spriteNode.getComponent(Sprite);
+            if (spriteComponent) {
+                previewBuildInfo.buildingSprite = spriteComponent;
+                // 异步加载图片
+                previewBuildInfo.loadAndSetImage(previewNode).then((success) => {
+                    if (success) {
+                        console.log(`预览节点图片加载成功: ${buildInfo.getBuildingName()}`);
+                    } else {
+                        console.warn(`预览节点图片加载失败: ${buildInfo.getBuildingName()}`);
+                    }
+                });
+            }
+        }
         
         // 设置预览节点的透明度（递归设置所有Sprite组件）
         this.setNodeOpacity(previewNode, 150);

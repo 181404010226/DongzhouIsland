@@ -1,4 +1,4 @@
-import { _decorator, Component, Prefab, SpriteFrame, resources, Sprite, Node, Layers } from 'cc';
+import { _decorator, Component, Prefab, SpriteFrame, resources, Sprite, Node } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -387,10 +387,8 @@ export class BuildInfo extends Component {
  
     /**
      * 从另一个BuildInfo复制所有数据
-     * @param other 源BuildInfo对象
-     * @param copyLayer 是否复制层级信息，默认为false
      */
-    public copyFrom(other: BuildInfo, copyLayer: boolean = false) {
+    public copyFrom(other: BuildInfo) {
         this.buildingPrefab = other.buildingPrefab;
         this.type = other.type;
         this.buildingName = other.buildingName;
@@ -412,12 +410,6 @@ export class BuildInfo extends Component {
         this.previousAnchorRow = other.previousAnchorRow;
         this.previousAnchorCol = other.previousAnchorCol;
         this.isPlaced = other.isPlaced;
-        
-        // 可选择性复制层级信息
-        if (copyLayer && other.node && this.node) {
-            this.node.layer = other.node.layer;
-            console.log(`复制层级信息: ${other.node.layer} -> ${this.buildingName}`);
-        }
     }
     
     /**
@@ -474,84 +466,6 @@ export class BuildInfo extends Component {
         this.buildingSprite.color = color;
         
         console.log(`建筑 ${this.buildingName} ${selected ? '选中' : '取消选中'}`);
-    }
-    
-    /**
-     * 设置节点层级
-     * @param layer 目标层级
-     */
-    public setNodeLayer(layer: number) {
-        if (this.node) {
-            this.node.layer = layer;
-            console.log(`建筑 ${this.buildingName} 层级设置为: ${layer}`);
-        }
-    }
-    
-    /**
-     * 将建筑从UI_2D层级转换到DEFAULT层级
-     * 用于从建造栏拖拽到地图时的层级转换
-     */
-    public convertToMapLayer() {
-        this.setNodeLayer(Layers.Enum.DEFAULT);
-        console.log(`建筑 ${this.buildingName} 已转换到地图层级 (DEFAULT)`);
-    }
-    
-    /**
-     * 将建筑设置为UI层级
-     * 用于在建造栏中显示时的层级设置
-     */
-    public convertToUILayer() {
-        this.setNodeLayer(Layers.Enum.UI_2D);
-        console.log(`建筑 ${this.buildingName} 已转换到UI层级 (UI_2D)`);
-    }
-    
-    /**
-     * 获取当前节点层级
-     * @returns 当前层级值
-     */
-    public getCurrentLayer(): number {
-        return this.node ? this.node.layer : -1;
-    }
-    
-    /**
-     * 检查是否在地图层级
-     * @returns 是否在DEFAULT层级
-     */
-    public isOnMapLayer(): boolean {
-        return this.getCurrentLayer() === Layers.Enum.DEFAULT;
-    }
-    
-    /**
-     * 检查是否在UI层级
-     * @returns 是否在UI_2D层级
-     */
-    public isOnUILayer(): boolean {
-        return this.getCurrentLayer() === Layers.Enum.UI_2D;
-    }
-    
-    /**
-     * 处理建筑拖拽时的层级转换
-     * 从建造栏(UI_2D)拖拽到地图(DEFAULT)时调用
-     * @param targetLayer 目标层级，默认为DEFAULT
-     */
-    public handleDragToMap(targetLayer: number = Layers.Enum.DEFAULT) {
-        const currentLayer = this.getCurrentLayer();
-        if (currentLayer !== targetLayer) {
-            this.setNodeLayer(targetLayer);
-            console.log(`拖拽建筑层级转换: ${currentLayer} -> ${targetLayer} (${this.buildingName})`);
-        }
-    }
-    
-    /**
-     * 处理建筑返回建造栏时的层级转换
-     * 从地图(DEFAULT)返回到建造栏(UI_2D)时调用
-     */
-    public handleReturnToUI() {
-        const currentLayer = this.getCurrentLayer();
-        if (currentLayer !== Layers.Enum.UI_2D) {
-            this.setNodeLayer(Layers.Enum.UI_2D);
-            console.log(`建筑返回UI层级转换: ${currentLayer} -> ${Layers.Enum.UI_2D} (${this.buildingName})`);
-        }
     }
  
 }
