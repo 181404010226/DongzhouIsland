@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, Sprite, SpriteFrame, Vec3 } from 'cc';
+import { _decorator, Component, Node, UITransform, Sprite, SpriteFrame, Vec3, Camera } from 'cc';
 import { TileSelectionManager } from './TileSelectionManager';
 const { ccclass, property } = _decorator;
 
@@ -440,7 +440,7 @@ export class ImprovedMapGenerator extends Component {
          
          console.log('地块框选功能已启用');
      }
-     
+
      /**
       * 获取框选管理器
       */

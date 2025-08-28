@@ -4,6 +4,7 @@ import { PlayerOperationState, PlayerOperationType } from './PlayerOperationStat
 import { BuildingPlacer } from '../地图生成/BuildingPlacer';
 import { TileOccupancyManager } from '../地图生成/TileOccupancyManager';
 import { BuildInfo } from '../地图生成/BuildInfo';
+import { BuildingDetailButtonManager } from '../UI面板/BuildingDetailButtonManager';
 
 const { ccclass, property } = _decorator;
 
@@ -27,11 +28,17 @@ export class InteractionManager extends Component {
     @property({ type: TileOccupancyManager, tooltip: '地块占用管理器' })
     tileOccupancyManager: TileOccupancyManager = null;
     
+    @property({ type: BuildingDetailButtonManager, tooltip: '建筑详情按钮管理器' })
+    buildingDetailButtonManager: BuildingDetailButtonManager = null;
+    
     @property({ tooltip: '相机移动速度' })
     cameraMoveSpeed: number = 1.0;
     
     @property({ tooltip: '长按触发时间（秒）' })
     longPressTime: number = 0.5;
+    
+    @property({ tooltip: '点击检测阈值（像素）' })
+    clickThreshold: number = 10;
     
     // 私有变量
     private camera: Camera = null;
@@ -42,6 +49,8 @@ export class InteractionManager extends Component {
     private longPressStartPos: Vec2 = new Vec2();
     private longPressTriggered: boolean = false;
     private readonly LONG_PRESS_THRESHOLD: number = 10; // 长按期间允许的最大移动距离（像素）
+    private touchStartPos: Vec2 = new Vec2(); // 触摸开始位置
+    private totalMoveDistance: number = 0; // 总移动距离
     
     start() {
         this.initializeCamera();
@@ -94,9 +103,13 @@ export class InteractionManager extends Component {
      * 触摸开始事件
      */
     private onTouchStart(event: EventTouch) {
-        const touchPos = event.getLocation();
-        this.lastMousePos.set(touchPos);
-        this.longPressStartPos.set(touchPos);
+        const currentPos = event.getLocation();
+        this.lastMousePos.set(currentPos);
+        this.longPressStartPos.set(currentPos);
+        this.touchStartPos.set(currentPos);
+        
+        // 重置移动距离
+        this.totalMoveDistance = 0;
         
         // 开始长按检测
         this.isLongPressing = true;
@@ -119,14 +132,14 @@ export class InteractionManager extends Component {
      */
     private onTouchMove(event: EventTouch) {
         const touchPos = event.getLocation();
-        
+                
         // 检查是否在长按期间移动过多
         if (this.isLongPressing && !this.longPressTriggered) {
             const distance = Vec2.distance(touchPos, this.longPressStartPos);
             if (distance > this.LONG_PRESS_THRESHOLD) {
-                // 移动距离过大，取消长按，开始拖动相机
+// 移动距离过大，取消长按，开始拖动相机
                 this.cancelLongPress();
-                this.startCameraDrag();
+this.startCameraDrag();
             }
         }
         
@@ -136,11 +149,11 @@ export class InteractionManager extends Component {
             const deltaY = touchPos.y - this.lastMousePos.y;
             
             // 移动相机（注意方向相反，因为是拖动视图）
-            const currentPos = this.cameraNode.position;
-            const newPos = new Vec3(
-                currentPos.x - deltaX * this.cameraMoveSpeed,
-                currentPos.y - deltaY * this.cameraMoveSpeed,
-                currentPos.z
+                const currentPos = this.cameraNode.position;
+                const newPos = new Vec3(
+                    currentPos.x - deltaX * this.cameraMoveSpeed,
+                    currentPos.y - deltaY * this.cameraMoveSpeed,
+                    currentPos.z
             );
             this.cameraNode.setPosition(newPos);
         }
@@ -152,6 +165,18 @@ export class InteractionManager extends Component {
      * 触摸结束事件
      */
     private onTouchEnd(event: EventTouch) {
+        const currentPos = event.getLocation();
+        
+        // 如果正在长按且未触发，取消长按
+        if (this.isLongPressing && !this.longPressTriggered) {
+            this.cancelLongPress();
+            
+            // 检查是否为点击操作（移动距离小于阈值）
+            if (this.totalMoveDistance <= this.clickThreshold) {
+                this.handleBuildingClick(currentPos);
+            }
+        }
+        
         // 停止相机拖动
         if (this.isDragging) {
             this.isDragging = false;
@@ -352,6 +377,34 @@ export class InteractionManager extends Component {
     }
     
     /**
+     * 处理建筑点击事件
+     */
+    private handleBuildingClick(screenPos: Vec2) {
+        if (!this.tileOccupancyManager || !this.buildingDetailButtonManager || !this.camera) {
+            return;
+        }
+        
+        // 获取点击位置的地块坐标
+        const tilePos = this.tileOccupancyManager.getTileInfoAtScreenPos(screenPos, this.camera);
+        if (!tilePos) {
+            console.log('未找到对应的地块');
+            return;
+        }
+        
+        // 获取该地块的建筑信息
+        const buildingInfo = this.tileOccupancyManager.getBuildingInfoAt(tilePos.row, tilePos.col);
+        if (buildingInfo && buildingInfo.buildingNode) {
+            console.log('点击了建筑:', buildingInfo.buildingNode.name);
+            
+            // 显示建筑详情按钮，传递建筑节点和建筑信息
+            this.buildingDetailButtonManager.showDetailButton(buildingInfo.buildingNode, buildingInfo);
+        } else {
+            console.log('点击的地块没有建筑');
+
+        }
+    }
+    
+    /**
      * 更新长按计时器
      */
     update(deltaTime: number) {
@@ -398,8 +451,6 @@ export class InteractionManager extends Component {
     setLongPressTime(time: number) {
         this.longPressTime = Math.max(0.1, time);
     }
-    
-
     
     /**
      * 获取当前是否正在拖动相机

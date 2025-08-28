@@ -1,20 +1,10 @@
 import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransform, Camera, Color, CCString } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
+import { BuildingDetailButtonManager, TileOccupancyInfo } from '../UI面板/BuildingDetailButtonManager';
 const { ccclass, property } = _decorator;
 
-/**
- * 地块占用信息接口
- */
-export interface TileOccupancyInfo {
-    buildingId: string;
-    buildingType: string;
-    anchorRow: number;
-    anchorCol: number;
-    width: number;
-    height: number;
-    buildingNode: Node;
-}
+// TileOccupancyInfo接口现在从BuildingDetailButtonManager导入，避免重复定义
 
 /**
  * 地块占用管理器
@@ -24,6 +14,9 @@ export interface TileOccupancyInfo {
 export class TileOccupancyManager extends Component {
     @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
     mapGenerator: ImprovedMapGenerator = null;
+    
+    @property({ type: BuildingDetailButtonManager, tooltip: '建筑详情按钮管理器' })
+    buildingDetailButtonManager: BuildingDetailButtonManager | null = null;
     
     // 编辑器只读字段：已放置建筑节点索引
     @property({ type: [Node], readonly: true, tooltip: '当前已放置的建筑节点列表（编辑器查看）' })
@@ -99,6 +92,9 @@ export class TileOccupancyManager extends Component {
         
         // 标记所有占用的地块
         this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
+        
+        // 建筑放置完成后不自动显示详情按钮
+        // 详情按钮只有在点击建筑时才会显示
         
         console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getBuildingType()}`);
         return true;
@@ -239,6 +235,11 @@ export class TileOccupancyManager extends Component {
         // 直接使用存储的建筑节点引用
         if (occupancyInfo.buildingNode && occupancyInfo.buildingNode.isValid) {
             const buildingNode = occupancyInfo.buildingNode;
+            
+            // 清理建筑详情按钮
+            if (this.buildingDetailButtonManager) {
+                this.buildingDetailButtonManager.cleanupBuildingButton(buildingNode);
+            }
             
             // 重置BuildInfo中的位置信息
             const buildInfo = buildingNode.getComponent(BuildInfo);
@@ -453,5 +454,59 @@ export class TileOccupancyManager extends Component {
     public reregisterBuildingAtPosition(row: number, col: number, buildInfo: BuildInfo, buildingNode: Node): boolean {
         // 调用统一的放置函数
         return this.placeBuildingAtPosition(row, col, buildInfo, buildingNode);
+    }
+    
+    /**
+     * 获取指定地块的建筑节点
+     * @param row 行索引
+     * @param col 列索引
+     * @returns 建筑节点，如果没有建筑则返回null
+     */
+    public getBuildingNodeAt(row: number, col: number): Node | null {
+        const tileKey = `${row}_${col}`;
+        const occupancyInfo = this.tileOccupancyMap.get(tileKey);
+        return occupancyInfo ? occupancyInfo.buildingNode : null;
+    }
+    
+    /**
+     * 获取屏幕位置对应的地块信息（公共方法）
+     * @param screenPos 屏幕坐标
+     * @param camera 相机组件
+     * @returns 地块信息，如果无效则返回null
+     */
+    public getTileInfoAtScreenPos(screenPos: Vec2, camera: Camera): { row: number, col: number } | null {
+        return this.getTileAtScreenPos(screenPos, camera);
+    }
+    
+    /**
+     * 获取所有已放置建筑的信息
+     * @returns 建筑信息数组
+     */
+    public getAllPlacedBuildings(): Array<{row: number, col: number, buildingInfo: TileOccupancyInfo}> {
+        const buildings: Array<{row: number, col: number, buildingInfo: TileOccupancyInfo}> = [];
+        
+        this.tileOccupancyMap.forEach((occupancyInfo, tileKey) => {
+            // 只返回锚点地块的信息，避免重复
+            if (occupancyInfo.anchorRow.toString() + '_' + occupancyInfo.anchorCol.toString() === tileKey) {
+                buildings.push({
+                    row: occupancyInfo.anchorRow,
+                    col: occupancyInfo.anchorCol,
+                    buildingInfo: occupancyInfo
+                });
+            }
+        });
+        
+        return buildings;
+    }
+    
+    /**
+     * 检查指定地块是否被占用
+     * @param row 行索引
+     * @param col 列索引
+     * @returns 是否被占用
+     */
+    public isTileOccupied(row: number, col: number): boolean {
+        const tileKey = `${row}_${col}`;
+        return this.tileOccupancyMap.has(tileKey);
     }
 }
