@@ -64,8 +64,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
+      "x": 3,
+      "y": 3,
       "z": 1
     },
     "_mobility": 0,
@@ -510,8 +510,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 60,
-      "y": -50,
+      "x": 62.353,
+      "y": -79.218,
       "z": 0
     },
     "_lrot": {
@@ -540,7 +540,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Label",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 20
@@ -637,7 +637,7 @@
       "b": 0,
       "a": 255
     },
-    "_string": "1",
+    "_string": "收纳",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -882,8 +882,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -60,
-      "y": -50,
+      "x": -54.705,
+      "y": -81.964,
       "z": 0
     },
     "_lrot": {
@@ -912,7 +912,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Label",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 34
@@ -1009,7 +1009,7 @@
       "b": 0,
       "a": 255
     },
-    "_string": "2",
+    "_string": "移动",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -1114,12 +1114,12 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 255,
-      "b": 255,
+      "g": 143,
+      "b": 0,
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "c0d277a3-15a1-4ae7-9a12-2dde4cfe5194@f9941",
+      "__uuid__": "7d8f9b89-4fd1-4c9f-a3ab-38ec7cded7ca@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
@@ -1184,22 +1184,10 @@
       "b": 124,
       "a": 255
     },
-    "_normalSprite": {
-      "__uuid__": "c0d277a3-15a1-4ae7-9a12-2dde4cfe5194@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
-    "_hoverSprite": {
-      "__uuid__": "20835ba4-6145-4fbc-a58a-051ce700aa3e@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
-    "_pressedSprite": {
-      "__uuid__": "544e49d6-3f05-4fa8-9a9e-091f98fc2ce8@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
-    "_disabledSprite": {
-      "__uuid__": "951249e0-9f16-456d-8b85-a6ca954da16b@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
+    "_normalSprite": null,
+    "_hoverSprite": null,
+    "_pressedSprite": null,
+    "_disabledSprite": null,
     "_duration": 0.1,
     "_zoomScale": 1.2,
     "_target": {
