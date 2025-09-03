@@ -274,19 +274,6 @@ export class BuildingPlacer extends Component {
     }
     
     /**
-     * 检查点是否在节点范围内
-     */
-    private isPointInNode(point: Vec3, nodeTransform: UITransform, node: Node): boolean {
-        const nodePos = node.getWorldPosition();
-        const size = nodeTransform.contentSize;
-        
-        return point.x >= nodePos.x - size.width / 2 &&
-               point.x <= nodePos.x + size.width / 2 &&
-               point.y >= nodePos.y - size.height / 2 &&
-               point.y <= nodePos.y + size.height / 2;
-    }
-    
-    /**
      * 开始拖拽
      */
     public startDrag() {
