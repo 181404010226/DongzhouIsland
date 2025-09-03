@@ -118,8 +118,8 @@ export class NavigationGenerator extends Component {
         const adjacentPoints = this.findAdjacentPoints(point, allPoints);
         const adjacentPointNames = adjacentPoints.map(p => p.name);
 
-        // 获取位置信息
-        const position = point.getPosition();
+        // 获取位置信息(存json的时候使用worldPosition)
+        const position = point.getWorldPosition();
 
         console.log(`导航点 ${point.name}: 权重=${weight}, 相邻点数量=${adjacentPoints.length}`);
 
