@@ -168,7 +168,7 @@ export class BuildingBarManager extends Component {
     }
     
     /**
-     * 添加建筑节点
+     * 添加建筑节点到建造栏
      */
     public addBuildingNode(node: Node): boolean {
         if (!node || !node.getComponent(BuildInfo)) {
@@ -192,7 +192,7 @@ export class BuildingBarManager extends Component {
         console.log(`添加建筑节点到建造栏: ${node.name}`);
         return true;
     }
-    
+ 
     /**
      * 移除建筑节点
      */
@@ -241,7 +241,7 @@ export class BuildingBarManager extends Component {
     public setBuildingPlacer(placer: BuildingPlacer) {
         this.buildingPlacer = placer;
     }
-    
+
     onDestroy() {
         this.removeInputEvents();
     }
