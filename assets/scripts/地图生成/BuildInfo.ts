@@ -1,4 +1,4 @@
-import { _decorator, Component, Prefab, SpriteFrame } from 'cc';
+import { _decorator, Component, Prefab, SpriteFrame, CCString } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -28,6 +28,8 @@ export class BuildInfo extends Component {
     @property({ tooltip: '建筑高度（占用地块数）' })
     buildingHeight: number = 1;
     
+    // 检测范围现在基于建筑尺寸自动计算：大型建筑(>4格)=3圈，中型建筑(2-4格)=2圈，小型建筑(1格)=1圈
+    
     // 建筑影响范围相关属性
     private influenceRange: Array<{row: number, col: number}> = [];
     
@@ -37,6 +39,8 @@ export class BuildInfo extends Component {
     private previousAnchorRow: number = -1;
     private previousAnchorCol: number = -1;
     private isPlaced: boolean = false;
+    
+    // 相邻关系信息现在由BuildingAdjacencyDisplay组件负责显示，BuildInfo只保留静态数据
     
     /**
      * 获取建筑预览图片
@@ -141,6 +145,33 @@ export class BuildInfo extends Component {
     }
     
     /**
+     * 获取建筑检测圈层数（基于建筑尺寸自动计算）
+     * 大型建筑（占用面积>4格）：3圈
+     * 中型建筑（占用面积2-4格）：2圈
+     * 小型建筑（占用面积1格）：1圈
+     */
+    public getDetectionRadius(): number {
+        return BuildInfo.calculateDetectionRadius(this.buildingWidth, this.buildingHeight);
+    }
+    
+    /**
+     * 静态方法：根据建筑尺寸计算检测范围
+     * @param width 建筑宽度
+     * @param height 建筑高度
+     * @returns 检测圈层数
+     */
+    public static calculateDetectionRadius(width: number, height: number): number {
+        const area = width * height;
+        if (area > 4) {
+            return 3; // 大型建筑
+        } else if (area >= 2) {
+            return 2; // 中型建筑
+        } else {
+            return 1; // 小型建筑
+        }
+    }
+    
+    /**
      * 获取建筑占用的所有地块坐标（相对于锚点）
      * 锚点为左下角，返回所有占用地块的相对坐标
      */
@@ -158,17 +189,18 @@ export class BuildInfo extends Component {
     }
     
     /**
-     * 获取建筑影响范围（扩展两圈的网格范围）
-     * 基于建筑占用区域向外扩展2格
+     * 获取建筑影响范围（基于配置的检测圈层数扩展）
+     * 基于建筑占用区域向外扩展指定圈数
      */
     public getInfluenceRange(): Array<{row: number, col: number}> {
         const range: Array<{row: number, col: number}> = [];
         
-        // 计算影响范围边界（在占用区域基础上向外扩展2格）
-        const minRow = -this.buildingHeight + 1 - 2; // 向下扩展2格
-        const maxRow = 0 + 2; // 向上扩展2格
-        const minCol = -this.buildingWidth + 1 - 2; // 向左扩展2格
-        const maxCol = 0 + 2; // 向右扩展2格
+        // 计算影响范围边界（在占用区域基础上向外扩展指定圈数）
+        const radius = BuildInfo.calculateDetectionRadius(this.buildingWidth, this.buildingHeight);
+        const minRow = -this.buildingHeight + 1 - radius; // 向下扩展
+        const maxRow = 0 + radius; // 向上扩展
+        const minCol = -this.buildingWidth + 1 - radius; // 向左扩展
+        const maxCol = 0 + radius; // 向右扩展
         
         // 生成影响范围内的所有地块坐标
         for (let r = minRow; r <= maxRow; r++) {
@@ -188,10 +220,11 @@ export class BuildInfo extends Component {
         const border: Array<{row: number, col: number}> = [];
         
         // 计算影响范围边界
-        const minRow = -this.buildingHeight + 1 - 2;
-        const maxRow = 0 + 2;
-        const minCol = -this.buildingWidth + 1 - 2;
-        const maxCol = 0 + 2;
+        const radius = BuildInfo.calculateDetectionRadius(this.buildingWidth, this.buildingHeight);
+        const minRow = -this.buildingHeight + 1 - radius;
+        const maxRow = 0 + radius;
+        const minCol = -this.buildingWidth + 1 - radius;
+        const maxCol = 0 + radius;
         
         // 添加上下边界
         for (let c = minCol; c <= maxCol; c++) {
@@ -293,6 +326,7 @@ export class BuildInfo extends Component {
         this.buildingEnabled = other.buildingEnabled;
         this.buildingWidth = other.buildingWidth;
         this.buildingHeight = other.buildingHeight;
+        // 检测圈层数现在基于建筑尺寸自动计算，无需复制
         this.influenceRange = other.influenceRange.slice(); // 创建副本
         
         // 复制位置信息
@@ -302,4 +336,6 @@ export class BuildInfo extends Component {
         this.previousAnchorCol = other.previousAnchorCol;
         this.isPlaced = other.isPlaced;
     }
+    
+    // 相邻关系管理功能已迁移到BuildingManager.ts中的BuildingManager类
 }
