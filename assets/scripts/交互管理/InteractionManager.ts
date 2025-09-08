@@ -396,11 +396,17 @@ this.startCameraDrag();
         if (buildingInfo && buildingInfo.buildingNode) {
             console.log('点击了建筑:', buildingInfo.buildingNode.name);
             
-            // 显示建筑详情按钮，传递建筑节点和建筑信息
-            this.buildingDetailButtonManager.showDetailButton(buildingInfo.buildingNode, buildingInfo);
+            // 将屏幕坐标转换为世界坐标
+            const worldPos = this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+            
+            // 调用新的onBuildingClicked方法
+            this.buildingDetailButtonManager.onBuildingClicked(buildingInfo.buildingNode, worldPos);
         } else {
             console.log('点击的地块没有建筑');
-
+            // 点击空白处，如果有详情按钮正在显示，则删除它
+            if (this.buildingDetailButtonManager.isDetailButtonVisible()) {
+                this.buildingDetailButtonManager.onBuildingClicked(null, new Vec3());
+            }
         }
     }
     

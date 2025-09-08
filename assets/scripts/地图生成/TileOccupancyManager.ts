@@ -1,11 +1,23 @@
 import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransform, Camera, Color, CCString } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
-import { BuildingDetailButtonManager, TileOccupancyInfo } from '../UI面板/BuildingDetailButtonManager';
 import { BuildingManager } from './BuildingManager';
+import { BuildingDetailButtonManager} from '../UI面板/BuildingDetailButtonManager';
 const { ccclass, property } = _decorator;
 
-// TileOccupancyInfo接口现在从BuildingDetailButtonManager导入，避免重复定义
+
+/**
+ * 地块占用信息接口（从TileOccupancyManager复制，避免循环依赖）
+ */
+export interface TileOccupancyInfo {
+    buildingId: string;
+    buildingType: string;
+    anchorRow: number;
+    anchorCol: number;
+    width: number;
+    height: number;
+    buildingNode: Node;
+}
 
 /**
  * 地块占用管理器
@@ -322,8 +334,9 @@ export class TileOccupancyManager extends Component {
             
             // 清理建筑详情按钮
             if (this.buildingDetailButtonManager) {
-                this.buildingDetailButtonManager.cleanupBuildingButton(buildingNode);
-            }
+                this.buildingDetailButtonManager.onBuildingClicked(null, new Vec3());
+             }
+            
             
             // 重置BuildInfo中的位置信息
             const buildInfo = buildingNode.getComponent(BuildInfo);
