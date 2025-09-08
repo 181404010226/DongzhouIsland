@@ -1,4 +1,5 @@
 import { BuildingAdjacencyDisplay } from './BuildingAdjacencyDisplay';
+import { CharmCalculationSystem } from './CharmCalculationSystem';
 
 /**
  * 地块占用信息接口
@@ -374,5 +375,66 @@ export class BuildingManager {
             allPlacedBuildings,
             detectionRadius
         );
+    }
+    
+    /**
+     * 接收并处理建筑魅力值数据
+     * 从TileOccupancyManager接收数据，调用魅力值计算系统
+     * @param buildingNode 建筑节点
+     * @param charmData 魅力值相关数据
+     */
+    public static updateBuildingCharmData(
+        buildingNode: any,
+        charmData: {
+            baseCharmValue: number;
+            buildingType: string;
+            coveredBuildings: Array<TileOccupancyInfo>;
+            buildingId: string;
+            position: { row: number, col: number };
+        }
+    ): void {
+        if (!buildingNode || !buildingNode.isValid) {
+            console.warn('建筑节点无效，无法更新魅力值数据');
+            return;
+        }
+        
+        try {
+            // 调用魅力值计算系统计算单个建筑的魅力值
+            const charmResult = CharmCalculationSystem.calculateBuildingCharm(
+                charmData.baseCharmValue,
+                charmData.buildingType,
+                charmData.coveredBuildings,
+                charmData.buildingId,
+                charmData.position
+            );
+            
+            console.log(`[BuildingManager] 建筑 ${charmData.buildingType} 在位置 (${charmData.position.row}, ${charmData.position.col}) 的魅力值计算结果:`, charmResult);
+            
+            // 让魅力值计算系统负责计算总魅力值并更新UI显示
+            CharmCalculationSystem.updateMapTotalCharmDisplay();
+            
+        } catch (error) {
+            console.error(`[BuildingManager] 处理建筑魅力值数据时发生错误:`, error);
+        }
+    }
+    
+    /**
+     * 清除指定建筑的魅力值记录
+     * 作为TileOccupancyManager和CharmCalculationSystem之间的中介
+     * @param buildingId 建筑ID
+     */
+    public static removeBuildingCharmValue(buildingId: string): void {
+        try {
+            // 调用魅力值计算系统清除记录
+            CharmCalculationSystem.removeBuildingCharmValue(buildingId);
+            
+            // 更新地图总魅力值显示
+            CharmCalculationSystem.updateMapTotalCharmDisplay();
+            
+            console.log(`[BuildingManager] 已清除建筑 ${buildingId} 的魅力值记录并更新显示`);
+            
+        } catch (error) {
+            console.error(`[BuildingManager] 清除建筑魅力值记录时发生错误:`, error);
+        }
     }
 }
