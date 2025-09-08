@@ -402,10 +402,10 @@ export class BuildingPlacer extends Component {
             
             // 计算影响范围的尺寸（建筑占用地块数 + 影响范围扩展）
             const tileSize = this.tileOccupancyManager.mapGenerator.tileSize / Math.sqrt(2); // 地块边长
-            const influenceRadius = 2.5; // 影响范围半径（考虑中心地块0.5占用）
+            const influenceRadius = BuildInfo.calculateDetectionRadius(buildInfo.buildingWidth, buildInfo.buildingHeight); 
             
-            const totalWidth = (buildInfo.buildingWidth + influenceRadius * 2-1) * tileSize;
-            const totalHeight = (buildInfo.buildingHeight + influenceRadius * 2-1) * tileSize;
+            const totalWidth = (buildInfo.buildingWidth + influenceRadius * 2) * tileSize;
+            const totalHeight = (buildInfo.buildingHeight + influenceRadius * 2) * tileSize;
             
             // 设置绘制样式
             graphics.lineWidth = 3;
@@ -417,8 +417,8 @@ export class BuildingPlacer extends Component {
             
             // 绘制矩形边框（以左下角为基准点）
             // 左下角向外延伸2.5格，右上角延伸到建筑尺寸+2.5格
-            const leftOffset = -influenceRadius * tileSize;
-            const bottomOffset = influenceRadius * tileSize; // 修正为正值，确保是左下角
+            const leftOffset = -(influenceRadius+0.5) * tileSize;
+            const bottomOffset = (influenceRadius+0.5) * tileSize; // 修正为正值，确保是左下角
             
             graphics.rect(leftOffset, -bottomOffset,  totalHeight,totalWidth);
             graphics.fill();

@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransform, Camera, Color, CCString } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
+import { BuildingManager } from './BuildingManager';
 import { BuildingDetailButtonManager} from '../UI面板/BuildingDetailButtonManager';
 const { ccclass, property } = _decorator;
 
@@ -38,6 +39,9 @@ export class TileOccupancyManager extends Component {
     @property({ type: [CCString], readonly: true, tooltip: '地块占用情况网格（编辑器查看）' })
     private readonly tileOccupancyGrid: string[] = [];
     
+    // 注意：建筑相邻关系信息现在显示在每个建筑自己的Inspector面板中
+    
+
     // 地块占用映射表，使用"row_col"作为key
     private tileOccupancyMap: Map<string, TileOccupancyInfo> = new Map();
     
@@ -102,7 +106,13 @@ export class TileOccupancyManager extends Component {
         buildingNode.parent = tile;
         buildingNode.setPosition(0, 0, 1); // 稍微抬高一点
         
-        // 标记所有占用的地块
+        // 提前添加BuildingAdjacencyDisplay组件，确保在相邻信息更新时组件已存在
+        // 遵循信息传递顺序：TileOccupancyManager → BuildingManager → BuildingAdjacencyDisplay
+        console.log(`[建筑放置] 为建筑 ${buildInfo.getBuildingType()} 在位置(${row}, ${col}) 添加BuildingAdjacencyDisplay组件`);
+        BuildingManager.addAdjacencyDisplayToMapBuilding(buildingNode);
+        
+        // 标记所有占用的地块（这会触发相邻信息更新）
+        console.log(`[建筑放置] 开始标记地块占用并更新相邻信息`);
         this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
         
         // 建筑放置完成后不自动显示详情按钮
@@ -164,6 +174,80 @@ export class TileOccupancyManager extends Component {
         
         this.tileOccupancyGrid.length = 0;
         this.tileOccupancyGrid.push(...occupancyGrid.sort());
+        
+        // 更新建筑覆盖关系信息
+        this.updateBuildingAdjacencyInfo();
+    }
+    
+    /**
+     * 更新建筑相邻关系信息
+     */
+    private updateBuildingAdjacencyInfo(): void {
+        // 获取所有已放置的建筑
+        const placedBuildings = this.getAllPlacedBuildings();
+        
+        console.log(`[相邻信息更新] 开始更新 ${placedBuildings.length} 个建筑的相邻信息`);
+        
+        // 获取地图尺寸
+        const mapRows = this.mapGenerator.rows;
+        const mapCols = this.mapGenerator.columns;
+        
+        for (const building of placedBuildings) {
+            console.log(`[相邻信息更新] 正在更新建筑: ${building.buildingInfo.buildingType} 位置(${building.row}, ${building.col})`);
+            
+            // 根据建筑尺寸计算检测圈层数
+            const detectionRadius = BuildInfo.calculateDetectionRadius(
+                building.buildingInfo.width,
+                building.buildingInfo.height
+            );
+            
+            const adjacencyResult = BuildingManager.getAdjacentBuildingsByInfo(
+                building.row,
+                building.col,
+                building.buildingInfo.width,
+                building.buildingInfo.height,
+                mapRows,
+                mapCols,
+                this.tileOccupancyMap,
+                placedBuildings,
+                detectionRadius
+            );
+            
+            // 格式化覆盖信息
+            const coveredList: string[] = [];
+            if (adjacencyResult.coveredBuildings.length > 0) {
+                for (const info of adjacencyResult.coveredBuildings) {
+                    coveredList.push(`建筑${info.buildingType}（${info.anchorRow},${info.anchorCol}）`);
+                }
+            } else {
+                coveredList.push('无');
+            }
+            
+            // 格式化被覆盖信息
+            const coveringList: string[] = [];
+            if (adjacencyResult.coveringBuildings.length > 0) {
+                for (const info of adjacencyResult.coveringBuildings) {
+                    coveringList.push(`建筑${info.buildingType}（${info.anchorRow},${info.anchorCol}）`);
+                }
+            } else {
+                coveringList.push('无');
+            }
+            
+            // 通过BuildingManager传递相邻关系信息
+            const currentBuildingNode = building.buildingInfo.buildingNode;
+            if (currentBuildingNode && currentBuildingNode.isValid) {
+                BuildingManager.updateBuildingAdjacencyInfo(
+                    currentBuildingNode,
+                    adjacencyResult,
+                    coveredList,
+                    coveringList,
+                    building.buildingInfo.buildingType,
+                    { row: building.row, col: building.col },
+                    building.buildingInfo.width * building.buildingInfo.height,
+                    adjacencyResult.coveredBuildings.length + adjacencyResult.coveringBuildings.length
+                );
+            }
+        }
     }
     
     /**
@@ -522,4 +606,8 @@ export class TileOccupancyManager extends Component {
         const tileKey = `${row}_${col}`;
         return this.tileOccupancyMap.has(tileKey);
     }
+    
+
+    
+
 }
