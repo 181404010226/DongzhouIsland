@@ -1,0 +1,53 @@
+{
+  "dialogueInfo": {
+    "name": "人气值40000",
+    "fileName": "人气值40000.json",
+    "createdAt": "2025-09-08T07:35:40.145Z",
+    "type": "multi_turn",
+    "segmentCount": 7
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "美食家",
+      "avatar": "resources/NPCUI/美食家",
+      "content": "嗯，风景是真的不错！",
+      "order": 1
+    },
+    {
+      "characterName": "美食家",
+      "avatar": "resources/NPCUI/美食家",
+      "content": "不过，作为一个成熟的旅游区，餐饮业态还可以更丰富。",
+      "order": 2
+    },
+    {
+      "characterName": "美食家",
+      "avatar": "resources/NPCUI/美食家",
+      "content": "比如，缺一家现做现卖的中式糕点店，卖些酥薄月、绿豆糕。",
+      "order": 3
+    },
+    {
+      "characterName": "美食家",
+      "avatar": "resources/NPCUI/美食家",
+      "content": "更缺一家地道的衡阳米粉店！",
+      "order": 4
+    },
+    {
+      "characterName": "美食家",
+      "avatar": "resources/NPCUI/美食家",
+      "content": "鱼粉可是咱们衡阳的招牌啊，没吃到一碗正宗的鱼粉，算来过衡阳吗？",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "您说得对！最地道的风味反而差点忘了。",
+      "order": 6
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "这些必须补上！",
+      "order": 7
+    }
+  ]
+}

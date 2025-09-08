@@ -1,0 +1,53 @@
+{
+  "dialogueInfo": {
+    "name": "人气值100",
+    "fileName": "人气值100.json",
+    "createdAt": "2025-09-08T07:30:44.465Z",
+    "type": "multi_turn",
+    "segmentCount": 7
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "负责人，有个紧急又尴尬的问题……",
+      "order": 1
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "怎么了？",
+      "order": 2
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "好多游客……特别是带小孩和老人的，都在问卫生间在哪。",
+      "order": 3
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "咱们目前只有古寺里那个小小的，完全不够用，而且也不方便。",
+      "order": 4
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "好几个游客都抱怨快憋不住了！",
+      "order": 5
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "我们必须得赶紧建几个独立的公共厕所！",
+      "order": 6
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "这确实是头等大事，疏忽不得。立刻选址修建！",
+      "order": 7
+    }
+  ]
+}

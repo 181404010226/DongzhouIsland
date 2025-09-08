@@ -1,0 +1,71 @@
+{
+  "dialogueInfo": {
+    "name": "人气值55000",
+    "fileName": "人气值55000.json",
+    "createdAt": "2025-09-08T07:35:50.048Z",
+    "type": "multi_turn",
+    "segmentCount": 10
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "商户",
+      "avatar": "resources/NPCUI/商户",
+      "content": "XXX，我看您这儿人气越来越旺了。",
+      "order": 1
+    },
+    {
+      "characterName": "商户",
+      "avatar": "resources/NPCUI/商户",
+      "content": "我呢，希望能和你谈一笔合作。",
+      "order": 2
+    },
+    {
+      "characterName": "商户",
+      "avatar": "resources/NPCUI/商户",
+      "content": "现在我手底下有一批合作商愿意入驻咱们景区。",
+      "order": 3
+    },
+    {
+      "characterName": "商户",
+      "avatar": "resources/NPCUI/商户",
+      "content": "我想这样也可以给我们景点提供更多的收入和设施。",
+      "order": 4
+    },
+    {
+      "characterName": "商户",
+      "avatar": "resources/NPCUI/商户",
+      "content": "目前已知的就有面包店、小吃店、奶茶店这些。",
+      "order": 5
+    },
+    {
+      "characterName": "商户",
+      "avatar": "resources/NPCUI/商户",
+      "content": "这样也能吸引年轻些的游客来到我们景点。",
+      "order": 6
+    },
+    {
+      "characterName": "商户",
+      "avatar": "resources/NPCUI/商户",
+      "content": "就是不知道你意下如何？",
+      "order": 7
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "当然是很好的！",
+      "order": 8
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "丰富的商业业态能让游客的体验更好。",
+      "order": 9
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "我们也想一起把东洲岛打造成吃喝玩乐一站式的多元化目的地。",
+      "order": 10
+    }
+  ]
+}

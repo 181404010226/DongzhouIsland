@@ -1,0 +1,83 @@
+{
+  "dialogueInfo": {
+    "name": "人气值10000",
+    "fileName": "人气值10000.json",
+    "createdAt": "2025-09-08T07:35:01.338Z",
+    "type": "multi_turn",
+    "segmentCount": 12
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "不得不说岛上自然风光很美，但总觉得缺少一些可以沉浸体验的文化项目。",
+      "order": 1
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "哦？您有什么高见？请不吝赐教。",
+      "order": 2
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "你想想，咱们衡阳有这么多有意思的文化。",
+      "order": 3
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "就比如看咱们衡阳的湘绣，如果景区能有个湘绣的体验店岂不美哉。",
+      "order": 4
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "深度文化体验……这想法很棒。",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "看您带着摄影机，您是想拍些什么吗？",
+      "order": 6
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "是的，我看岛上有很多植被。",
+      "order": 7
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "我就喜欢把这些美好的事物拍下来，留个纪念。",
+      "order": 8
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "就是我在寻找一种树叫做密花梭罗树，珍稀树种，花色淡雅。",
+      "order": 9
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "我看和文化场馆的气质很配，我建议岛上引进一些，适合种在体验馆周边提升氛围。",
+      "order": 10
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "嗯嗯，我这就去引进一批树苗。",
+      "order": 11
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "这样就让游客们不仅能看，还能亲手体验非遗的魅力，谢谢您宝贵的建议。",
+      "order": 12
+    }
+  ]
+}

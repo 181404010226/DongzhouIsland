@@ -1,0 +1,325 @@
+{
+  "buildings": [
+    {
+      "id": "building_20250904_170657_650",
+      "name": "罗汉古寺素斋馆",
+      "image": "./images/building-p.png",
+      "size": {
+        "length": 4,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:17:14.587Z",
+      "updatedAt": "2025-09-04T09:34:12.029Z"
+    },
+    {
+      "id": "building_20250904_171834_949",
+      "name": "古樟树",
+      "image": "./images/hd_piece_2_4 (1).png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:21:04.619Z",
+      "updatedAt": "2025-09-04T09:21:04.619Z"
+    },
+    {
+      "id": "building_20250904_172115_628",
+      "name": "桃花树",
+      "image": "./images/hd_piece_3_5 (1).png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:22:11.415Z",
+      "updatedAt": "2025-09-04T09:22:11.415Z"
+    },
+    {
+      "id": "building_20250904_172333_884",
+      "name": "松树",
+      "image": "./images/hd_piece_1_5 (1).png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:24:10.846Z",
+      "updatedAt": "2025-09-04T09:24:10.846Z"
+    },
+    {
+      "id": "building_20250904_172453_177",
+      "name": "垂柳",
+      "image": "./images/hd_piece_3_2.png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:25:08.518Z",
+      "updatedAt": "2025-09-04T09:25:08.518Z"
+    },
+    {
+      "id": "building_20250904_172520_790",
+      "name": "银杏树",
+      "image": "./images/hd_piece_3_4 (1).png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:25:54.416Z",
+      "updatedAt": "2025-09-04T09:25:54.417Z"
+    },
+    {
+      "id": "building_20250904_172558_536",
+      "name": "密花梭罗树",
+      "image": "./images/hd_piece_3_1.png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:26:18.384Z",
+      "updatedAt": "2025-09-04T09:26:18.384Z"
+    },
+    {
+      "id": "building_20250904_172621_095",
+      "name": "苦槠树",
+      "image": "./images/hd_piece_5_2 (1).png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:26:44.998Z",
+      "updatedAt": "2025-09-04T09:26:44.998Z"
+    },
+    {
+      "id": "building_20250904_172705_738",
+      "name": "红豆杉",
+      "image": "./images/hd_piece_2_2 (1).png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:27:19.222Z",
+      "updatedAt": "2025-09-04T09:27:19.222Z"
+    },
+    {
+      "id": "building_20250904_172732_332",
+      "name": "樱花树",
+      "image": "./images/hd_piece_2_3 (1).png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:28:41.717Z",
+      "updatedAt": "2025-09-04T09:28:41.717Z"
+    },
+    {
+      "id": "building_20250904_172855_911",
+      "name": "垃圾桶",
+      "image": "./images/chimney-large.png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:29:49.037Z",
+      "updatedAt": "2025-09-04T09:29:49.037Z"
+    },
+    {
+      "id": "building_20250904_172954_888",
+      "name": "饮水处",
+      "image": "./images/chimney-basic.png",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "createdAt": "2025-09-04T09:30:12.670Z",
+      "updatedAt": "2025-09-04T09:30:12.670Z"
+    },
+    {
+      "id": "building_20250904_173015_566",
+      "name": "便利店",
+      "image": "./images/building-o.png",
+      "size": {
+        "length": 2,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:31:03.893Z",
+      "updatedAt": "2025-09-04T09:34:22.800Z"
+    },
+    {
+      "id": "building_20250904_173541_166",
+      "name": "卫生间",
+      "image": "./images/building-i.png",
+      "size": {
+        "length": 2,
+        "width": 3
+      },
+      "createdAt": "2025-09-04T09:35:57.928Z",
+      "updatedAt": "2025-09-04T09:35:57.928Z"
+    },
+    {
+      "id": "building_20250904_173601_198",
+      "name": "饭馆",
+      "image": "./images/building-g.png",
+      "size": {
+        "length": 3,
+        "width": 3
+      },
+      "createdAt": "2025-09-04T09:37:04.254Z",
+      "updatedAt": "2025-09-04T09:37:04.254Z"
+    },
+    {
+      "id": "building_20250904_173707_912",
+      "name": "湘江渔味小吃铺",
+      "image": "./images/building-d.png",
+      "size": {
+        "length": 2,
+        "width": 3
+      },
+      "createdAt": "2025-09-04T09:37:35.126Z",
+      "updatedAt": "2025-09-04T09:37:35.126Z"
+    },
+    {
+      "id": "building_20250904_173745_575",
+      "name": "渔具店",
+      "image": "./images/building-k.png",
+      "size": {
+        "length": 3,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:39:52.048Z",
+      "updatedAt": "2025-09-04T09:39:52.048Z"
+    },
+    {
+      "id": "building_20250904_174331_252",
+      "name": "租车店",
+      "image": "./images/building-r.png",
+      "size": {
+        "length": 4,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:44:08.485Z",
+      "updatedAt": "2025-09-04T09:44:08.485Z"
+    },
+    {
+      "id": "building_20250904_174418_579",
+      "name": "东洲岛湘绣体验店",
+      "image": "./images/building-j.png",
+      "size": {
+        "length": 2,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:44:44.900Z",
+      "updatedAt": "2025-09-04T09:44:44.900Z"
+    },
+    {
+      "id": "building_20250904_174709_305",
+      "name": "南岳香火文创店",
+      "image": "./images/building-a.png",
+      "size": {
+        "length": 3,
+        "width": 3
+      },
+      "createdAt": "2025-09-04T09:47:23.429Z",
+      "updatedAt": "2025-09-04T09:47:23.429Z"
+    },
+    {
+      "id": "building_20250904_174735_007",
+      "name": "中式糕点店",
+      "image": "./images/building-c.png",
+      "size": {
+        "length": 2,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:47:48.077Z",
+      "updatedAt": "2025-09-04T09:47:48.077Z"
+    },
+    {
+      "id": "building_20250904_174755_457",
+      "name": "衡阳米粉店",
+      "image": "./images/building-e.png",
+      "size": {
+        "length": 2,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:48:03.093Z",
+      "updatedAt": "2025-09-04T09:48:03.093Z"
+    },
+    {
+      "id": "building_20250904_174812_513",
+      "name": "面包店",
+      "image": "./images/building-l.png",
+      "size": {
+        "length": 2,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:50:36.860Z",
+      "updatedAt": "2025-09-04T09:50:36.860Z"
+    },
+    {
+      "id": "building_20250904_175040_622",
+      "name": "小吃店",
+      "image": "./images/building-s.png",
+      "size": {
+        "length": 4,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:51:22.015Z",
+      "updatedAt": "2025-09-04T09:51:22.015Z"
+    },
+    {
+      "id": "building_20250904_175126_856",
+      "name": "奶茶店",
+      "image": "./images/building-n.png",
+      "size": {
+        "length": 2,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:51:37.543Z",
+      "updatedAt": "2025-09-04T09:51:37.543Z"
+    },
+    {
+      "id": "building_20250904_175153_652",
+      "name": "衡阳鲜货烧烤店",
+      "image": "./images/building-t.png",
+      "size": {
+        "length": 3,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:52:04.548Z",
+      "updatedAt": "2025-09-04T09:52:04.548Z"
+    },
+    {
+      "id": "building_20250904_175209_469",
+      "name": "土特产店",
+      "image": "./images/building-f.png",
+      "size": {
+        "length": 2,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:52:24.004Z",
+      "updatedAt": "2025-09-04T09:52:24.004Z"
+    },
+    {
+      "id": "building_20250904_175230_996",
+      "name": "雁峰馆文创店",
+      "image": "./images/building-m.png",
+      "size": {
+        "length": 4,
+        "width": 4
+      },
+      "createdAt": "2025-09-04T09:52:49.757Z",
+      "updatedAt": "2025-09-04T09:52:49.757Z"
+    },
+    {
+      "id": "building_20250904_175259_892",
+      "name": "夫之楼茶社",
+      "image": "./images/building-b.png",
+      "size": {
+        "length": 3,
+        "width": 2
+      },
+      "createdAt": "2025-09-04T09:53:13.500Z",
+      "updatedAt": "2025-09-04T09:53:13.500Z"
+    }
+  ],
+  "exportedAt": "2025-09-04T09:55:02.647Z",
+  "version": "1.0"
+}
