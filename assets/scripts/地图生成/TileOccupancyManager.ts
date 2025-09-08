@@ -1,10 +1,13 @@
 import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransform, Camera, Color, CCString } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
+import { BuildingManager } from './BuildingManager';
+import { BuildingDetailButtonManager} from '../UI面板/BuildingDetailButtonManager';
 const { ccclass, property } = _decorator;
 
+
 /**
- * 地块占用信息接口
+ * 地块占用信息接口（从TileOccupancyManager复制，避免循环依赖）
  */
 export interface TileOccupancyInfo {
     buildingId: string;
@@ -25,6 +28,9 @@ export class TileOccupancyManager extends Component {
     @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
     mapGenerator: ImprovedMapGenerator = null;
     
+    @property({ type: BuildingDetailButtonManager, tooltip: '建筑详情按钮管理器' })
+    buildingDetailButtonManager: BuildingDetailButtonManager | null = null;
+    
     // 编辑器只读字段：已放置建筑节点索引
     @property({ type: [Node], readonly: true, tooltip: '当前已放置的建筑节点列表（编辑器查看）' })
     private readonly placedBuildingNodes: Node[] = [];
@@ -33,6 +39,9 @@ export class TileOccupancyManager extends Component {
     @property({ type: [CCString], readonly: true, tooltip: '地块占用情况网格（编辑器查看）' })
     private readonly tileOccupancyGrid: string[] = [];
     
+    // 注意：建筑相邻关系信息现在显示在每个建筑自己的Inspector面板中
+    
+
     // 地块占用映射表，使用"row_col"作为key
     private tileOccupancyMap: Map<string, TileOccupancyInfo> = new Map();
     
@@ -97,8 +106,17 @@ export class TileOccupancyManager extends Component {
         buildingNode.parent = tile;
         buildingNode.setPosition(0, 0, 1); // 稍微抬高一点
         
-        // 标记所有占用的地块
+        // 提前添加BuildingAdjacencyDisplay组件，确保在相邻信息更新时组件已存在
+        // 遵循信息传递顺序：TileOccupancyManager → BuildingManager → BuildingAdjacencyDisplay
+        console.log(`[建筑放置] 为建筑 ${buildInfo.getBuildingType()} 在位置(${row}, ${col}) 添加BuildingAdjacencyDisplay组件`);
+        BuildingManager.addAdjacencyDisplayToMapBuilding(buildingNode);
+        
+        // 标记所有占用的地块（这会触发相邻信息更新）
+        console.log(`[建筑放置] 开始标记地块占用并更新相邻信息`);
         this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
+        
+        // 建筑放置完成后不自动显示详情按钮
+        // 详情按钮只有在点击建筑时才会显示
         
         console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getBuildingType()}`);
         return true;
@@ -156,6 +174,99 @@ export class TileOccupancyManager extends Component {
         
         this.tileOccupancyGrid.length = 0;
         this.tileOccupancyGrid.push(...occupancyGrid.sort());
+        
+        // 更新建筑覆盖关系信息
+        this.updateBuildingAdjacencyInfo();
+    }
+    
+    /**
+     * 更新建筑相邻关系信息
+     */
+    private updateBuildingAdjacencyInfo(): void {
+        // 获取所有已放置的建筑
+        const placedBuildings = this.getAllPlacedBuildings();
+        
+        console.log(`[相邻信息更新] 开始更新 ${placedBuildings.length} 个建筑的相邻信息`);
+        
+        // 获取地图尺寸
+        const mapRows = this.mapGenerator.rows;
+        const mapCols = this.mapGenerator.columns;
+        
+        for (const building of placedBuildings) {
+            console.log(`[相邻信息更新] 正在更新建筑: ${building.buildingInfo.buildingType} 位置(${building.row}, ${building.col})`);
+            
+            // 根据建筑尺寸计算检测圈层数
+            const detectionRadius = BuildInfo.calculateDetectionRadius(
+                building.buildingInfo.width,
+                building.buildingInfo.height
+            );
+            
+            const adjacencyResult = BuildingManager.getAdjacentBuildingsByInfo(
+                building.row,
+                building.col,
+                building.buildingInfo.width,
+                building.buildingInfo.height,
+                mapRows,
+                mapCols,
+                this.tileOccupancyMap,
+                placedBuildings,
+                detectionRadius
+            );
+            
+            // 格式化覆盖信息
+            const coveredList: string[] = [];
+            if (adjacencyResult.coveredBuildings.length > 0) {
+                for (const info of adjacencyResult.coveredBuildings) {
+                    coveredList.push(`建筑${info.buildingType}（${info.anchorRow},${info.anchorCol}）`);
+                }
+            } else {
+                coveredList.push('无');
+            }
+            
+            // 格式化被覆盖信息
+            const coveringList: string[] = [];
+            if (adjacencyResult.coveringBuildings.length > 0) {
+                for (const info of adjacencyResult.coveringBuildings) {
+                    coveringList.push(`建筑${info.buildingType}（${info.anchorRow},${info.anchorCol}）`);
+                }
+            } else {
+                coveringList.push('无');
+            }
+            
+            // 通过BuildingManager传递相邻关系信息和魅力值数据
+            const currentBuildingNode = building.buildingInfo.buildingNode;
+            if (currentBuildingNode && currentBuildingNode.isValid) {
+                const buildInfo = currentBuildingNode.getComponent(BuildInfo);
+                if (buildInfo) {
+                    const baseCharmValue = buildInfo.getBaseCharmValue();
+                    const buildingType = buildInfo.getBuildingType();
+                    
+                    // 传递相邻关系信息给BuildingManager
+                    BuildingManager.updateBuildingAdjacencyInfo(
+                        currentBuildingNode,
+                        adjacencyResult,
+                        coveredList,
+                        coveringList,
+                        building.buildingInfo.buildingType,
+                        { row: building.row, col: building.col },
+                        building.buildingInfo.width * building.buildingInfo.height,
+                        adjacencyResult.coveredBuildings.length + adjacencyResult.coveringBuildings.length
+                    );
+                    
+                    // 传递魅力值相关数据给BuildingManager，让BuildingManager调用魅力值计算系统
+                    BuildingManager.updateBuildingCharmData(
+                        currentBuildingNode,
+                        {
+                            baseCharmValue: baseCharmValue,
+                            buildingType: buildingType,
+                            coveredBuildings: adjacencyResult.coveredBuildings,
+                            buildingId: building.buildingInfo.buildingId,
+                            position: { row: building.row, col: building.col }
+                        }
+                    );
+                }
+            }
+        }
     }
     
     /**
@@ -240,11 +351,20 @@ export class TileOccupancyManager extends Component {
         if (occupancyInfo.buildingNode && occupancyInfo.buildingNode.isValid) {
             const buildingNode = occupancyInfo.buildingNode;
             
+            // 清理建筑详情按钮
+            if (this.buildingDetailButtonManager) {
+                this.buildingDetailButtonManager.onBuildingClicked(null, new Vec3());
+             }
+            
+            
             // 重置BuildInfo中的位置信息
             const buildInfo = buildingNode.getComponent(BuildInfo);
             if (buildInfo) {
                 buildInfo.setCurrentPosition(-1, -1);
             }         
+            
+            // 通过BuildingManager清除魅力值计算系统中的记录
+            BuildingManager.removeBuildingCharmValue(occupancyInfo.buildingId);
             
             // 清除所有相关的占用标记
             this.clearTileOccupancyByBuildingId(occupancyInfo.buildingId);
@@ -454,4 +574,62 @@ export class TileOccupancyManager extends Component {
         // 调用统一的放置函数
         return this.placeBuildingAtPosition(row, col, buildInfo, buildingNode);
     }
+    
+    /**
+     * 获取指定地块的建筑节点
+     * @param row 行索引
+     * @param col 列索引
+     * @returns 建筑节点，如果没有建筑则返回null
+     */
+    public getBuildingNodeAt(row: number, col: number): Node | null {
+        const tileKey = `${row}_${col}`;
+        const occupancyInfo = this.tileOccupancyMap.get(tileKey);
+        return occupancyInfo ? occupancyInfo.buildingNode : null;
+    }
+    
+    /**
+     * 获取屏幕位置对应的地块信息（公共方法）
+     * @param screenPos 屏幕坐标
+     * @param camera 相机组件
+     * @returns 地块信息，如果无效则返回null
+     */
+    public getTileInfoAtScreenPos(screenPos: Vec2, camera: Camera): { row: number, col: number } | null {
+        return this.getTileAtScreenPos(screenPos, camera);
+    }
+    
+    /**
+     * 获取所有已放置建筑的信息
+     * @returns 建筑信息数组
+     */
+    public getAllPlacedBuildings(): Array<{row: number, col: number, buildingInfo: TileOccupancyInfo}> {
+        const buildings: Array<{row: number, col: number, buildingInfo: TileOccupancyInfo}> = [];
+        
+        this.tileOccupancyMap.forEach((occupancyInfo, tileKey) => {
+            // 只返回锚点地块的信息，避免重复
+            if (occupancyInfo.anchorRow.toString() + '_' + occupancyInfo.anchorCol.toString() === tileKey) {
+                buildings.push({
+                    row: occupancyInfo.anchorRow,
+                    col: occupancyInfo.anchorCol,
+                    buildingInfo: occupancyInfo
+                });
+            }
+        });
+        
+        return buildings;
+    }
+    
+    /**
+     * 检查指定地块是否被占用
+     * @param row 行索引
+     * @param col 列索引
+     * @returns 是否被占用
+     */
+    public isTileOccupied(row: number, col: number): boolean {
+        const tileKey = `${row}_${col}`;
+        return this.tileOccupancyMap.has(tileKey);
+    }
+    
+
+    
+
 }
