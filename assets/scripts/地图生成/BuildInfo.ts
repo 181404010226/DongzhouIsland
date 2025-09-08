@@ -28,6 +28,9 @@ export class BuildInfo extends Component {
     @property({ tooltip: '建筑高度（占用地块数）' })
     buildingHeight: number = 1;
     
+    @property({ tooltip: '建筑基础魅力值' })
+    baseCharmValue: number = 5;
+    
     // 检测范围现在基于建筑尺寸自动计算：大型建筑(>4格)=3圈，中型建筑(2-4格)=2圈，小型建筑(1格)=1圈
     
     // 建筑影响范围相关属性
@@ -142,6 +145,22 @@ export class BuildInfo extends Component {
     public setBuildingSize(width: number, height: number) {
         this.buildingWidth = Math.max(1, width);
         this.buildingHeight = Math.max(1, height);
+    }
+    
+    /**
+     * 获取建筑基础魅力值
+     * @returns 建筑的基础魅力值
+     */
+    public getBaseCharmValue(): number {
+        return this.baseCharmValue;
+    }
+    
+    /**
+     * 设置建筑基础魅力值
+     * @param value 魅力值
+     */
+    public setBaseCharmValue(value: number) {
+        this.baseCharmValue = Math.max(0, value);
     }
     
     /**
@@ -326,6 +345,7 @@ export class BuildInfo extends Component {
         this.buildingEnabled = other.buildingEnabled;
         this.buildingWidth = other.buildingWidth;
         this.buildingHeight = other.buildingHeight;
+        this.baseCharmValue = other.baseCharmValue;
         // 检测圈层数现在基于建筑尺寸自动计算，无需复制
         this.influenceRange = other.influenceRange.slice(); // 创建副本
         

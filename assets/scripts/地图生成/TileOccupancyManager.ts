@@ -233,19 +233,38 @@ export class TileOccupancyManager extends Component {
                 coveringList.push('无');
             }
             
-            // 通过BuildingManager传递相邻关系信息
+            // 通过BuildingManager传递相邻关系信息和魅力值数据
             const currentBuildingNode = building.buildingInfo.buildingNode;
             if (currentBuildingNode && currentBuildingNode.isValid) {
-                BuildingManager.updateBuildingAdjacencyInfo(
-                    currentBuildingNode,
-                    adjacencyResult,
-                    coveredList,
-                    coveringList,
-                    building.buildingInfo.buildingType,
-                    { row: building.row, col: building.col },
-                    building.buildingInfo.width * building.buildingInfo.height,
-                    adjacencyResult.coveredBuildings.length + adjacencyResult.coveringBuildings.length
-                );
+                const buildInfo = currentBuildingNode.getComponent(BuildInfo);
+                if (buildInfo) {
+                    const baseCharmValue = buildInfo.getBaseCharmValue();
+                    const buildingType = buildInfo.getBuildingType();
+                    
+                    // 传递相邻关系信息给BuildingManager
+                    BuildingManager.updateBuildingAdjacencyInfo(
+                        currentBuildingNode,
+                        adjacencyResult,
+                        coveredList,
+                        coveringList,
+                        building.buildingInfo.buildingType,
+                        { row: building.row, col: building.col },
+                        building.buildingInfo.width * building.buildingInfo.height,
+                        adjacencyResult.coveredBuildings.length + adjacencyResult.coveringBuildings.length
+                    );
+                    
+                    // 传递魅力值相关数据给BuildingManager，让BuildingManager调用魅力值计算系统
+                    BuildingManager.updateBuildingCharmData(
+                        currentBuildingNode,
+                        {
+                            baseCharmValue: baseCharmValue,
+                            buildingType: buildingType,
+                            coveredBuildings: adjacencyResult.coveredBuildings,
+                            buildingId: building.buildingInfo.buildingId,
+                            position: { row: building.row, col: building.col }
+                        }
+                    );
+                }
             }
         }
     }
@@ -343,6 +362,9 @@ export class TileOccupancyManager extends Component {
             if (buildInfo) {
                 buildInfo.setCurrentPosition(-1, -1);
             }         
+            
+            // 通过BuildingManager清除魅力值计算系统中的记录
+            BuildingManager.removeBuildingCharmValue(occupancyInfo.buildingId);
             
             // 清除所有相关的占用标记
             this.clearTileOccupancyByBuildingId(occupancyInfo.buildingId);
