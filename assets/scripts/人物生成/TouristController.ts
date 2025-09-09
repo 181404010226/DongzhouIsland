@@ -141,7 +141,7 @@ export class TouristController extends Component {
     setCurrentPoint(pointName: string): void {
         this._currentPoint = pointName;
         this.updateReadonlyFields();
-        console.log(`游客当前点设置为: ${pointName}`);
+
     }
     
     /**
@@ -212,7 +212,7 @@ export class TouristController extends Component {
             })
             .start();
         
-        console.log(`游客开始移动: ${this._currentPoint} -> ${pointName}`);
+
     }
     
     /**
@@ -234,7 +234,7 @@ export class TouristController extends Component {
             return;
         }
         
-        console.log(`游客到达目标点: ${this._targetPoint}`);
+
         
         // 更新当前点
         this._currentPoint = this._targetPoint;
@@ -306,7 +306,7 @@ export class TouristController extends Component {
         this.setCurrentPoint(pointName);
         this._targetPoint = '';
         
-        console.log(`游客传送到: ${pointName}`);
+
     }
     
     /**

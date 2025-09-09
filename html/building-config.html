@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建筑信息配置系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .file-upload {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input label {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .file-input label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .buildings-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .building-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .building-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .building-item:last-child {
+            border-bottom: none;
+        }
+
+        .building-info {
+            flex: 1;
+        }
+
+        .building-name {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .building-details {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .building-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.875em;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .file-upload {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .building-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .building-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ 建筑信息配置系统</h1>
+            <p>导入、配置和管理建筑信息数据</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 状态消息 -->
+            <div id="statusMessage" class="hidden"></div>
+
+            <!-- 统计信息 -->
+            <div class="section">
+                <h2>📊 数据统计</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalBuildings">0</div>
+                        <div class="stat-label">总建筑数量</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="configuredBuildings">0</div>
+                        <div class="stat-label">已配置建筑</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="unconfiguredBuildings">0</div>
+                        <div class="stat-label">未配置建筑</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件导入区域 -->
+            <div class="section">
+                <h2>📁 文件管理</h2>
+                <div class="file-upload">
+                    <div class="file-input">
+                        <input type="file" id="jsonFileInput" accept=".json" />
+                        <label for="jsonFileInput">导入建筑JSON文件</label>
+                    </div>
+                    <button class="btn btn-primary" onclick="buildingConfig.loadSampleData()">加载示例数据</button>
+                    <button class="btn btn-success" onclick="buildingConfig.exportData()">导出配置数据</button>
+                    <button class="btn btn-warning" onclick="buildingConfig.clearAllData()">清空所有数据</button>
+                </div>
+            </div>
+
+            <!-- 建筑配置表单 -->
+            <div class="section">
+                <h2>⚙️ 建筑配置</h2>
+                <form id="buildingForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="buildingId">建筑ID *</label>
+                            <input type="text" id="buildingId" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="buildingName">建筑名称 *</label>
+                            <input type="text" id="buildingName" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="buildingType">建筑类型 *</label>
+                            <select id="buildingType" required>
+                                <option value="">请选择建筑类型</option>
+                                <option value="infrastructure">基础设施</option>
+                                <option value="vegetation">植被</option>
+                                <option value="shop">景点店铺</option>
+                                <option value="cultural">文化建筑</option>
+                                <option value="entertainment">娱乐建筑</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="attractiveness">魅力值 *</label>
+                            <input type="number" id="attractiveness" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usageFee">使用费 *</label>
+                            <input type="number" id="usageFee" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="chainInfluenceRange">连锁影响范围 *</label>
+                            <input type="number" id="chainInfluenceRange" min="0" step="0.1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">描述</label>
+                        <textarea id="description" placeholder="请输入建筑的详细描述..."></textarea>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary">保存配置</button>
+                        <button type="button" class="btn btn-warning" onclick="buildingConfig.resetForm()">重置表单</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 建筑列表 -->
+            <div class="section">
+                <h2>🏢 建筑列表</h2>
+                <div class="buildings-list" id="buildingsList">
+                    <div style="padding: 20px; text-align: center; color: #6c757d;">
+                        暂无建筑数据，请先导入JSON文件
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class BuildingConfigSystem {
+            constructor() {
+                this.buildings = [];
+                this.currentEditingId = null;
+                this.init();
+            }
+
+            init() {
+                this.loadFromLocalStorage();
+                this.bindEvents();
+                this.updateStats();
+                this.renderBuildingsList();
+            }
+
+            bindEvents() {
+                // 文件导入事件
+                document.getElementById('jsonFileInput').addEventListener('change', (e) => {
+                    this.handleFileImport(e.target.files[0]);
+                });
+
+                // 表单提交事件
+                document.getElementById('buildingForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveBuildingConfig();
+                });
+            }
+
+            handleFileImport(file) {
+                if (!file) return;
+
+                if (!file.name.endsWith('.json')) {
+                    this.showMessage('请选择有效的JSON文件！', 'error');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        this.importBuildingData(data);
+                    } catch (error) {
+                        this.showMessage('JSON文件格式错误：' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            importBuildingData(data) {
+                try {
+                    // 支持多种JSON格式
+                    let buildingsData = [];
+                    
+                    if (Array.isArray(data)) {
+                        buildingsData = data;
+                    } else if (data.buildings && Array.isArray(data.buildings)) {
+                        buildingsData = data.buildings;
+                    } else if (typeof data === 'object') {
+                        // 如果是对象格式，尝试提取建筑数据
+                        buildingsData = Object.values(data).filter(item => 
+                            item && typeof item === 'object' && (item.id || item.name)
+                        );
+                    }
+
+                    if (buildingsData.length === 0) {
+                        this.showMessage('未找到有效的建筑数据！', 'error');
+                        return;
+                    }
+
+                    // 处理导入的数据
+                    let importedCount = 0;
+                    let updatedCount = 0;
+
+                    buildingsData.forEach(item => {
+                        const buildingData = this.normalizeBuildingData(item);
+                        if (buildingData) {
+                            const existingIndex = this.buildings.findIndex(b => b.id === buildingData.id);
+                            if (existingIndex >= 0) {
+                                // 更新现有建筑，保留已配置的数据
+                                this.buildings[existingIndex] = {
+                                    ...buildingData,
+                                    ...this.buildings[existingIndex],
+                                    id: buildingData.id,
+                                    name: buildingData.name
+                                };
+                                updatedCount++;
+                            } else {
+                                this.buildings.push(buildingData);
+                                importedCount++;
+                            }
+                        }
+                    });
+
+                    this.saveToLocalStorage();
+                    this.updateStats();
+                    this.renderBuildingsList();
+                    
+                    this.showMessage(`成功导入 ${importedCount} 个新建筑，更新 ${updatedCount} 个现有建筑！`, 'success');
+                } catch (error) {
+                    this.showMessage('导入数据时发生错误：' + error.message, 'error');
+                }
+            }
+
+            normalizeBuildingData(item) {
+                // 标准化建筑数据格式
+                const id = item.id || item.buildingId || item.ID || null;
+                const name = item.name || item.buildingName || item.title || null;
+
+                if (!id && !name) {
+                    return null;
+                }
+
+                return {
+                    id: id || this.generateId(),
+                    name: name || '未命名建筑',
+                    type: item.type || item.buildingType || '',
+                    attractiveness: item.attractiveness || item.charm || item.魅力值 || 0,
+                    usageFee: item.usageFee || item.fee || item.使用费 || 0,
+                    description: item.description || item.desc || item.描述 || '',
+                    chainInfluenceRange: item.chainInfluenceRange || item.range || item.连锁影响范围 || 0,
+                    configured: !!(item.type && item.attractiveness !== undefined)
+                };
+            }
+
+            generateId() {
+                return 'building_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            loadSampleData() {
+                const sampleData = [
+                    {
+                        id: 'building_001',
+                        name: '豪华酒店',
+                        type: 'commercial',
+                        attractiveness: 85,
+                        usageFee: 500,
+                        description: '五星级豪华酒店，提供顶级住宿服务',
+                        chainInfluenceRange: 10.5,
+                        configured: true
+                    },
+                    {
+                        id: 'building_002',
+                        name: '购物中心',
+                        type: 'commercial',
+                        attractiveness: 75,
+                        usageFee: 300,
+                        description: '大型购物中心，汇集各类品牌店铺',
+                        chainInfluenceRange: 8.0,
+                        configured: true
+                    },
+                    {
+                        id: 'building_003',
+                        name: '文化博物馆',
+                        type: 'cultural',
+                        attractiveness: 90,
+                        usageFee: 50,
+                        description: '展示当地历史文化的重要场所',
+                        chainInfluenceRange: 15.0,
+                        configured: true
+                    },
+                    {
+                        id: 'building_004',
+                        name: '未配置建筑A',
+                        configured: false
+                    },
+                    {
+                        id: 'building_005',
+                        name: '未配置建筑B',
+                        configured: false
+                    }
+                ];
+
+                this.buildings = sampleData;
+                this.saveToLocalStorage();
+                this.updateStats();
+                this.renderBuildingsList();
+                this.showMessage('示例数据加载成功！', 'success');
+            }
+
+            editBuilding(id) {
+                const building = this.buildings.find(b => b.id === id);
+                if (!building) return;
+
+                this.currentEditingId = id;
+                
+                // 填充表单
+                document.getElementById('buildingId').value = building.id;
+                document.getElementById('buildingName').value = building.name;
+                document.getElementById('buildingType').value = building.type || '';
+                document.getElementById('attractiveness').value = building.attractiveness || 0;
+                document.getElementById('usageFee').value = building.usageFee || 0;
+                document.getElementById('description').value = building.description || '';
+                document.getElementById('chainInfluenceRange').value = building.chainInfluenceRange || 0;
+
+                // 滚动到表单
+                document.getElementById('buildingForm').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            saveBuildingConfig() {
+                const formData = {
+                    id: document.getElementById('buildingId').value,
+                    name: document.getElementById('buildingName').value,
+                    type: document.getElementById('buildingType').value,
+                    attractiveness: parseFloat(document.getElementById('attractiveness').value) || 0,
+                    usageFee: parseFloat(document.getElementById('usageFee').value) || 0,
+                    description: document.getElementById('description').value,
+                    chainInfluenceRange: parseFloat(document.getElementById('chainInfluenceRange').value) || 0,
+                    configured: true
+                };
+
+                if (!formData.id || !formData.name) {
+                    this.showMessage('建筑ID和名称不能为空！', 'error');
+                    return;
+                }
+
+                const existingIndex = this.buildings.findIndex(b => b.id === formData.id);
+                if (existingIndex >= 0) {
+                    this.buildings[existingIndex] = formData;
+                } else {
+                    this.buildings.push(formData);
+                }
+
+                this.saveToLocalStorage();
+                this.updateStats();
+                this.renderBuildingsList();
+                this.resetForm();
+                
+                this.showMessage('建筑配置保存成功！', 'success');
+            }
+
+            deleteBuilding(id) {
+                if (confirm('确定要删除这个建筑吗？')) {
+                    this.buildings = this.buildings.filter(b => b.id !== id);
+                    this.saveToLocalStorage();
+                    this.updateStats();
+                    this.renderBuildingsList();
+                    this.showMessage('建筑删除成功！', 'success');
+                }
+            }
+
+            resetForm() {
+                document.getElementById('buildingForm').reset();
+                this.currentEditingId = null;
+            }
+
+            updateStats() {
+                const total = this.buildings.length;
+                const configured = this.buildings.filter(b => b.configured).length;
+                const unconfigured = total - configured;
+
+                document.getElementById('totalBuildings').textContent = total;
+                document.getElementById('configuredBuildings').textContent = configured;
+                document.getElementById('unconfiguredBuildings').textContent = unconfigured;
+            }
+
+            renderBuildingsList() {
+                const container = document.getElementById('buildingsList');
+                
+                if (this.buildings.length === 0) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #6c757d;">暂无建筑数据，请先导入JSON文件</div>';
+                    return;
+                }
+
+                const html = this.buildings.map(building => {
+                    const statusClass = building.configured ? 'success' : 'warning';
+                    const statusText = building.configured ? '已配置' : '未配置';
+                    
+                    return `
+                        <div class="building-item">
+                            <div class="building-info">
+                                <div class="building-name">${building.name}</div>
+                                <div class="building-details">
+                                    ID: ${building.id} | 
+                                    类型: ${this.getBuildingTypeText(building.type)} | 
+                                    状态: <span style="color: ${statusClass === 'success' ? '#28a745' : '#ffc107'}">${statusText}</span>
+                                    ${building.configured ? `| 魅力值: ${building.attractiveness} | 使用费: ${building.usageFee}` : ''}
+                                </div>
+                            </div>
+                            <div class="building-actions">
+                                <button class="btn btn-primary btn-sm" onclick="buildingConfig.editBuilding('${building.id}')">
+                                    ${building.configured ? '编辑' : '配置'}
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="buildingConfig.deleteBuilding('${building.id}')">
+                                    删除
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = html;
+            }
+
+            getBuildingTypeText(type) {
+                const typeMap = {
+                    'infrastructure': '基础设施',
+                    'vegetation': '植被',
+                    'shop': '景点店铺',
+                    'cultural': '文化建筑',
+                    'entertainment': '娱乐建筑',
+                    'other': '其他'
+                };
+                return typeMap[type] || '未设置';
+            }
+
+            exportData() {
+                const data = {
+                    exportTime: new Date().toISOString(),
+                    totalBuildings: this.buildings.length,
+                    buildings: this.buildings
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `building_config_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                this.showMessage('配置数据导出成功！', 'success');
+            }
+
+            clearAllData() {
+                if (confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+                    this.buildings = [];
+                    this.saveToLocalStorage();
+                    this.updateStats();
+                    this.renderBuildingsList();
+                    this.resetForm();
+                    this.showMessage('所有数据已清空！', 'info');
+                }
+            }
+
+            saveToLocalStorage() {
+                try {
+                    localStorage.setItem('buildingConfigData', JSON.stringify(this.buildings));
+                } catch (error) {
+                    console.error('保存到本地存储失败:', error);
+                }
+            }
+
+            loadFromLocalStorage() {
+                try {
+                    const data = localStorage.getItem('buildingConfigData');
+                    if (data) {
+                        this.buildings = JSON.parse(data);
+                    }
+                } catch (error) {
+                    console.error('从本地存储加载失败:', error);
+                    this.buildings = [];
+                }
+            }
+
+            showMessage(message, type) {
+                const messageEl = document.getElementById('statusMessage');
+                messageEl.className = `status-message status-${type}`;
+                messageEl.textContent = message;
+                messageEl.classList.remove('hidden');
+
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    messageEl.classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        // 初始化系统
+        const buildingConfig = new BuildingConfigSystem();
+    </script>
+</body>
+</html>

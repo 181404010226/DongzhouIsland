@@ -1,0 +1,53 @@
+{
+  "dialogueInfo": {
+    "name": "人气值72000",
+    "fileName": "人气值72000.json",
+    "createdAt": "2025-09-08T07:36:00.337Z",
+    "type": "multi_turn",
+    "segmentCount": 7
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "天气很热呀，大家还没玩尽兴！",
+      "order": 1
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "岛上晚上有啥活动吗？就比如有没有什么喝酒唱歌的地方？",
+      "order": 2
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "要是能有家烧烤店就好了，喝着啤酒吃着烤串，吹着江风，多惬意！",
+      "order": 3
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "这是自然，发展夜游经济，马上安排。",
+      "order": 4
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "顺便一提，你们这有没有什么特产店？",
+      "order": 5
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "我想买点土特产带回去送亲戚朋友，好像也没个集中卖的地方。",
+      "order": 6
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "提供一个集中选购特产的平台吗？好主意！",
+      "order": 7
+    }
+  ]
+}

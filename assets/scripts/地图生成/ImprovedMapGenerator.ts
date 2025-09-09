@@ -438,7 +438,7 @@ export class ImprovedMapGenerator extends Component {
          };
          this.tileSelectionManager.initialize(this.getAllTiles(), mapConfig);
          
-         console.log('地块框选功能已启用');
+
      }
 
      /**

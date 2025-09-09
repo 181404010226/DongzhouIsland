@@ -1,0 +1,47 @@
+{
+  "dialogueInfo": {
+    "name": "人气值5000",
+    "fileName": "人气值5000.json",
+    "createdAt": "2025-09-08T07:31:46.697Z",
+    "type": "multi_turn",
+    "segmentCount": 6
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "导游",
+      "avatar": "resources/NPCUI/导游",
+      "content": "负责人，现在岛上的人是越来越多了，岛上可以游览的地方也越来越多。",
+      "order": 1
+    },
+    {
+      "characterName": "导游",
+      "avatar": "resources/NPCUI/导游",
+      "content": "客人走起来很累，反馈说要是能租个车代步就好了。",
+      "order": 2
+    },
+    {
+      "characterName": "导游",
+      "avatar": "resources/NPCUI/导游",
+      "content": "而且秋季快到了。",
+      "order": 3
+    },
+    {
+      "characterName": "导游",
+      "avatar": "resources/NPCUI/导游",
+      "content": "我建议种几排金色的银杏树，打造一条黄金大道，绝对是拍照热点！",
+      "order": 4
+    },
+    {
+      "characterName": "导游",
+      "avatar": "resources/NPCUI/导游",
+      "content": "再配套个租车店，完美。",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "一举两得，既解决了交通问题，又新增了景观。很好的建议！",
+      "order": 6
+    }
+  ]
+}

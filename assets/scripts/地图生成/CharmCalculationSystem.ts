@@ -85,7 +85,7 @@ export class CharmCalculationSystem extends Component {
         // 存储建筑魅力值到静态Map中
         this.buildingCharmValues.set(buildingId, totalCharmValue);
         
-        console.log(`[魅力值计算] 建筑 ${buildingType} 位置(${position.row}, ${position.col})：基础魅力值=${baseCharmValue}，覆盖建筑数=${coveredBuildingsCount}，覆盖加成=${coverageBonus}，总魅力值=${totalCharmValue}`);
+
         
         return {
             buildingId: buildingId,
@@ -115,7 +115,7 @@ export class CharmCalculationSystem extends Component {
             calculationTimestamp: Date.now()
         };
         
-        console.log(`[地图魅力值计算] 总建筑数: ${result.totalBuildingCount}, 地图总魅力值: ${result.totalMapCharmValue}`);
+
         
         return result;
     }
@@ -195,7 +195,7 @@ export class CharmCalculationSystem extends Component {
             }
         }
         
-        console.log('[魅力值计算] 计算结果验证通过');
+
         return true;
     }
     
@@ -232,7 +232,7 @@ export class CharmCalculationSystem extends Component {
     public static removeBuildingCharmValue(buildingId: string): void {
         if (this.buildingCharmValues.has(buildingId)) {
             this.buildingCharmValues.delete(buildingId);
-            console.log(`[魅力值计算系统] 已清除建筑 ${buildingId} 的魅力值记录`);
+
         }
     }
     
@@ -241,7 +241,7 @@ export class CharmCalculationSystem extends Component {
      */
     public static clearAllBuildingCharmValues(): void {
         this.buildingCharmValues.clear();
-        console.log(`[魅力值计算系统] 已清除所有建筑的魅力值记录`);
+
     }
     
     /**
@@ -262,7 +262,7 @@ export class CharmCalculationSystem extends Component {
             // 调用TopBarManager更新UI显示
             TopBarManager.handleCalculationResult(totalCharmValue, buildingCount);
             
-            console.log(`[魅力值计算系统] 已更新地图总魅力值显示: 总魅力值=${totalCharmValue}, 建筑数=${buildingCount}`);
+
             
         } catch (error) {
             console.error(`[魅力值计算系统] 更新地图总魅力值显示时发生错误:`, error);

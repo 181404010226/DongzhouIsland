@@ -62,7 +62,7 @@ export class BuildingManager {
         let adjacencyDisplay = buildingNode.getComponent(BuildingAdjacencyDisplay);
         if (!adjacencyDisplay) {
             adjacencyDisplay = buildingNode.addComponent(BuildingAdjacencyDisplay);
-            console.log(`为地图建筑 ${buildingNode.name} 添加了 BuildingAdjacencyDisplay 组件`);
+
             return true;
         }
         
@@ -101,7 +101,7 @@ export class BuildingManager {
                 influenceRange
             );
             
-            console.log(`[BuildingManager] 已更新建筑 ${buildingType} 在位置 (${position.row}, ${position.col}) 的相邻关系信息，覆盖建筑数: ${adjacencyResult.coveredBuildings.length}，被覆盖建筑数: ${adjacencyResult.coveringBuildings.length}`);
+
         } else {
             console.warn(`[BuildingManager] 建筑节点 ${buildingNode.name} 缺少 BuildingAdjacencyDisplay 组件`);
         }
@@ -408,7 +408,7 @@ export class BuildingManager {
                 charmData.position
             );
             
-            console.log(`[BuildingManager] 建筑 ${charmData.buildingType} 在位置 (${charmData.position.row}, ${charmData.position.col}) 的魅力值计算结果:`, charmResult);
+
             
             // 让魅力值计算系统负责计算总魅力值并更新UI显示
             CharmCalculationSystem.updateMapTotalCharmDisplay();
@@ -431,7 +431,7 @@ export class BuildingManager {
             // 更新地图总魅力值显示
             CharmCalculationSystem.updateMapTotalCharmDisplay();
             
-            console.log(`[BuildingManager] 已清除建筑 ${buildingId} 的魅力值记录并更新显示`);
+
             
         } catch (error) {
             console.error(`[BuildingManager] 清除建筑魅力值记录时发生错误:`, error);

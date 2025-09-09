@@ -31,7 +31,7 @@ export class TopBarManager extends Component {
         // 查找魅力值显示节点
         this.findCharmValueLabel();
         
-        console.log('[顶部面板管理器] 初始化完成');
+
     }
     
     onDestroy() {
@@ -50,7 +50,7 @@ export class TopBarManager extends Component {
             if (charmValueNode) {
                 this.charmValueLabel = charmValueNode.getComponent(Label);
                 if (this.charmValueLabel) {
-                    console.log('[顶部面板管理器] 成功找到魅力值Label组件');
+
                     // 设置初始显示
                     this.updateCharmValueDisplay(0);
                 } else {
@@ -79,7 +79,7 @@ export class TopBarManager extends Component {
         
         this.charmValueLabel.string = displayText;
         
-        console.log(`[顶部面板管理器] 更新魅力值显示: ${displayValue}`);
+
     }
     
 
@@ -95,7 +95,7 @@ export class TopBarManager extends Component {
             return;
         }
         
-        console.log(`[顶部面板管理器] 接收到魅力值计算结果: 总魅力值=${totalCharmValue}, 建筑数=${buildingCount}`);
+
         
         // 更新魅力值显示
         this.updateCharmValueDisplay(totalCharmValue);
