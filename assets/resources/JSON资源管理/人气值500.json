@@ -1,0 +1,53 @@
+{
+  "dialogueInfo": {
+    "name": "人气值500",
+    "fileName": "人气值500.json",
+    "createdAt": "2025-09-08T07:30:58.288Z",
+    "type": "multi_turn",
+    "segmentCount": 7
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "学生",
+      "avatar": "resources/NPCUI/学生",
+      "content": "你好，岛上有吃饭的地方吗？",
+      "order": 1
+    },
+    {
+      "characterName": "学生",
+      "avatar": "resources/NPCUI/学生",
+      "content": "逛着逛着我都饿了，想吃点炒菜米饭。",
+      "order": 2
+    },
+    {
+      "characterName": "学生",
+      "avatar": "resources/NPCUI/学生",
+      "content": "我一直想吃点儿特色的！",
+      "order": 3
+    },
+    {
+      "characterName": "学生",
+      "avatar": "resources/NPCUI/学生",
+      "content": "听说湘江里的鱼特别鲜，有没有卖小鱼干、嗦螺那种小吃铺啊？",
+      "order": 4
+    },
+    {
+      "characterName": "学生",
+      "avatar": "resources/NPCUI/学生",
+      "content": "又或者有本地特色的饭馆和小吃摊吗？",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "同学真是吃货界的专家。",
+      "order": 6
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "没问题，衡阳菜和江鲜小吃马上安排上！",
+      "order": 7
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "dialogueInfo": {
+    "name": "人气值90000",
+    "fileName": "人气值90000.json",
+    "createdAt": "2025-09-08T07:36:08.745Z",
+    "type": "multi_turn",
+    "segmentCount": 6
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "文化馆馆长",
+      "avatar": "resources/NPCUI/文化馆馆长",
+      "content": "负责人，东洲岛的发展令人欣喜。",
+      "order": 1
+    },
+    {
+      "characterName": "文化馆馆长",
+      "avatar": "resources/NPCUI/文化馆馆长",
+      "content": "但现在，我们到了需要为其注入最深层次文化灵魂的时刻",
+      "order": 2
+    },
+    {
+      "characterName": "文化馆馆长",
+      "avatar": "resources/NPCUI/文化馆馆长",
+      "content": "我建议设立雁峰馆文创店，深度开发以船山文化为核心的高端文创产品。",
+      "order": 3
+    },
+    {
+      "characterName": "文化馆馆长",
+      "avatar": "resources/NPCUI/文化馆馆长",
+      "content": "同时，修建夫之楼茶社，提供一个能静心品茗、研讨思想的高雅场所。",
+      "order": 4
+    },
+    {
+      "characterName": "文化馆馆长",
+      "avatar": "resources/NPCUI/文化馆馆长",
+      "content": "这将是我们区别于其他景区的核心竞争力。",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "我完全赞同。让文化成为东洲岛的根基和最高的吸引力。",
+      "order": 6
+    }
+  ]
+}

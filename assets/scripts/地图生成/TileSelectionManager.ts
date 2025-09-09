@@ -56,7 +56,7 @@ export class TileSelectionManager extends Component {
         this.findCamera();
         this.setupInput();
         
-        console.log('TileSelectionManager 初始化完成');
+
     }
     
     /**
@@ -67,20 +67,20 @@ export class TileSelectionManager extends Component {
         const canvas = this.node.scene.getComponentInChildren(Canvas);
         if (canvas && canvas.cameraComponent) {
             this.camera = canvas.cameraComponent;
-            console.log('找到Canvas摄像机');
+
         } else {
             // 如果没找到Canvas摄像机，查找场景中的第一个摄像机
             const cameraNode = this.node.scene.getComponentInChildren(Camera);
             if (cameraNode) {
                 this.camera = cameraNode;
-                console.log('找到场景摄像机');
+
             }
         }
         
         if (!this.camera) {
             console.warn('未找到摄像机，框选功能可能无法正常工作');
         } else {
-            console.log('摄像机初始化成功:', this.camera.node.name);
+
         }
     }
     
@@ -142,17 +142,17 @@ export class TileSelectionManager extends Component {
         }
         
         const screenPos = event.getLocation();
-        console.log(`鼠标点击位置: (${screenPos.x}, ${screenPos.y})`);
+
         
         const tileInfo = this.getTileAtScreenPos(screenPos);
         if (tileInfo) {
-            console.log(`找到地块: i=${tileInfo.row}, j=${tileInfo.col}`);
+
             this.isSelecting = true;
             this.startTile = tileInfo;
             this.endTile = tileInfo;
             this.updateSelectionByTileIndex();
         } else {
-            console.log('未找到地块，清除选择');
+
             this.clearSelection();
         }
     }
@@ -182,7 +182,7 @@ export class TileSelectionManager extends Component {
         }
         
         this.isSelecting = false;
-        console.log('选择完成');
+
     }
     
     /**
@@ -218,7 +218,7 @@ export class TileSelectionManager extends Component {
             }
         }
         
-        console.log(`未找到有效地块，世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)})`);
+
         return null;
     }
     
@@ -341,7 +341,7 @@ export class TileSelectionManager extends Component {
      */
     finalizeSelection() {
         if (this.selectedTiles.length > 0) {
-            console.log(`选择了 ${this.selectedTiles.length} 个地块`);
+
             
             // 这里可以添加选择完成后的逻辑
             // 比如触发建造系统等

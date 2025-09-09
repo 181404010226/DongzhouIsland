@@ -29,9 +29,7 @@ export class TooltipManager extends Component {
      */
     private initializeTooltip() {
         if (this.tooltipNode) {
-            // 记录原始位置
-            this.originalPosition = this.tooltipNode.getPosition().clone();
-            // 初始时隐藏提示
+                this.originalPosition = this.tooltipNode.getPosition().clone();
             this.tooltipNode.active = false;
         }
         
@@ -44,7 +42,6 @@ export class TooltipManager extends Component {
      * 设置事件监听器
      */
     private setupEventListeners() {
-        // 监听建筑放置失败事件
         BuildingPlacer.eventTarget.on('building-placement-failed', this.onBuildingPlacementFailed, this);
     }
     
@@ -55,9 +52,6 @@ export class TooltipManager extends Component {
         BuildingPlacer.eventTarget.off('building-placement-failed', this.onBuildingPlacementFailed, this);
     }
     
-    /**
-     * 处理建筑放置失败事件
-     */
     private onBuildingPlacementFailed(eventData: { reason: string, buildingType: string }) {
         const message = `${eventData.buildingType} 放置失败: ${eventData.reason}`;
         this.showTooltip(message);
@@ -71,17 +65,13 @@ export class TooltipManager extends Component {
             return;
         }
         
-        // 设置提示文本
         this.tooltipLabel.string = message;
         
-        // 重置位置和透明度
         this.tooltipNode.setPosition(this.originalPosition);
         this.tooltipNode.active = true;
-        
-        // 设置初始状态
         const labelComponent = this.tooltipLabel.getComponent(Label);
         if (labelComponent) {
-            labelComponent.color = new Color(255, 100, 100, 255); // 红色文本
+            labelComponent.color = new Color(255, 100, 100, 255);
         }
         
         this.playTooltipAnimation();
@@ -97,22 +87,17 @@ export class TooltipManager extends Component {
         
         this.isAnimating = true;
         
-        // 动画序列：淡入 -> 上移 -> 淡出
         const startPos = this.originalPosition.clone();
         const endPos = new Vec3(startPos.x, startPos.y + 50, startPos.z);
-        
-        // 第一阶段：淡入并轻微放大
         tween(this.tooltipNode)
             .to(0.2, { 
                 position: new Vec3(startPos.x, startPos.y + 10, startPos.z),
                 scale: new Vec3(1.1, 1.1, 1.1)
             }, { easing: 'backOut' })
             .call(() => {
-                // 第二阶段：保持显示
                 tween(this.tooltipNode)
                     .delay(1.0)
                     .call(() => {
-                        // 第三阶段：上移并淡出
                         this.fadeOutAnimation(endPos);
                     })
                     .start();
@@ -128,7 +113,6 @@ export class TooltipManager extends Component {
             return;
         }
         
-        // 同时进行位置移动和透明度变化
         tween(this.tooltipNode)
             .to(0.5, { 
                 position: endPos,
@@ -139,7 +123,7 @@ export class TooltipManager extends Component {
             })
             .start();
             
-        // 文本颜色渐变
+        
         if (this.tooltipLabel) {
             const labelComponent = this.tooltipLabel.getComponent(Label);
             if (labelComponent) {
@@ -160,7 +144,6 @@ export class TooltipManager extends Component {
         
         if (this.tooltipNode) {
             this.tooltipNode.active = false;
-            // 重置状态
             this.tooltipNode.setPosition(this.originalPosition);
             this.tooltipNode.setScale(Vec3.ONE);
         }

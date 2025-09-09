@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "b209f2ce-1d73-41ac-8c32-60abfb296b49",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "b209f2ce-1d73-41ac-8c32-60abfb296b49@6c48a",
+      "displayName": "玩家女",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "b209f2ce-1d73-41ac-8c32-60abfb296b49",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "b209f2ce-1d73-41ac-8c32-60abfb296b49@f9941",
+      "displayName": "玩家女",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": -42.5,
+        "offsetY": -18,
+        "trimX": 15,
+        "trimY": 36,
+        "width": 941,
+        "height": 1548,
+        "rawWidth": 1056,
+        "rawHeight": 1584,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -470.5,
+            -774,
+            0,
+            470.5,
+            -774,
+            0,
+            -470.5,
+            774,
+            0,
+            470.5,
+            774,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            15,
+            1548,
+            956,
+            1548,
+            15,
+            0,
+            956,
+            0
+          ],
+          "nuv": [
+            0.014204545454545454,
+            0,
+            0.9053030303030303,
+            0,
+            0.014204545454545454,
+            0.9772727272727273,
+            0.9053030303030303,
+            0.9772727272727273
+          ],
+          "minPos": [
+            -470.5,
+            -774,
+            0
+          ],
+          "maxPos": [
+            470.5,
+            774,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "b209f2ce-1d73-41ac-8c32-60abfb296b49@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "b209f2ce-1d73-41ac-8c32-60abfb296b49@6c48a"
+  }
+}

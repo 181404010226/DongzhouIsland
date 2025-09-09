@@ -74,7 +74,6 @@ export class TileOccupancyManager extends Component {
     private placeBuildingAtPosition(row: number, col: number, buildInfo: BuildInfo, buildingNode: Node): boolean {
         // 检查是否可以放置建筑
         if (!this.canPlaceBuildingAt(row, col, buildInfo.getBuildingWidth(), buildInfo.getBuildingHeight())) {
-            console.log(`无法在地块 (${row}, ${col}) 放置建筑，区域被占用或超出边界`);
             return false;
         }
         
@@ -107,17 +106,14 @@ export class TileOccupancyManager extends Component {
         
         // 提前添加BuildingAdjacencyDisplay组件，确保在相邻信息更新时组件已存在
         // 遵循信息传递顺序：TileOccupancyManager → BuildingManager → BuildingAdjacencyDisplay
-        console.log(`[建筑放置] 为建筑 ${buildInfo.getBuildingType()} 在位置(${row}, ${col}) 添加BuildingAdjacencyDisplay组件`);
         BuildingManager.addAdjacencyDisplayToMapBuilding(buildingNode);
         
         // 标记所有占用的地块（这会触发相邻信息更新）
-        console.log(`[建筑放置] 开始标记地块占用并更新相邻信息`);
         this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
         
         // 建筑放置完成后不自动显示详情按钮
         // 详情按钮只有在点击建筑时才会显示
         
-        console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getBuildingType()}`);
         return true;
     }
     
@@ -185,14 +181,14 @@ export class TileOccupancyManager extends Component {
         // 获取所有已放置的建筑
         const placedBuildings = this.getAllPlacedBuildings();
         
-        console.log(`[相邻信息更新] 开始更新 ${placedBuildings.length} 个建筑的相邻信息`);
+
         
         // 获取地图尺寸
         const mapRows = this.mapGenerator.rows;
         const mapCols = this.mapGenerator.columns;
         
         for (const building of placedBuildings) {
-            console.log(`[相邻信息更新] 正在更新建筑: ${building.buildingInfo.buildingType} 位置(${building.row}, ${building.col})`);
+
             
             // 根据建筑尺寸计算检测圈层数
             const detectionRadius = BuildInfo.calculateDetectionRadius(
@@ -319,7 +315,6 @@ export class TileOccupancyManager extends Component {
         this.tileOccupancyMap.clear();
         // 更新编辑器只读字段
         this.updateReadonlyFields();
-        console.log('已清除所有地块占用标记');
     }
     
     /**
@@ -342,7 +337,6 @@ export class TileOccupancyManager extends Component {
         const occupancyInfo = this.getBuildingInfoAt(row, col);
         
         if (!occupancyInfo) {
-            console.log(`地块 (${row}, ${col}) 没有建筑可移除`);
             return null;
         }
         
@@ -364,12 +358,10 @@ export class TileOccupancyManager extends Component {
             
             if (destroyNode) {
                 buildingNode.destroy();
-                console.log(`成功移除建筑: ${occupancyInfo.buildingType} (${occupancyInfo.width}x${occupancyInfo.height})`);
                 return null;
             } else {
                 // 从父节点移除但不销毁
                 buildingNode.removeFromParent();
-                console.log(`成功取出建筑: ${occupancyInfo.buildingType} (${occupancyInfo.width}x${occupancyInfo.height})`);
                 return buildingNode;
             }
         }
@@ -393,7 +385,7 @@ export class TileOccupancyManager extends Component {
         // 确保清空占用映射
         this.clearAllOccupancy();
         
-        console.log('已清除所有建筑');
+
     }
     
     
@@ -454,7 +446,6 @@ export class TileOccupancyManager extends Component {
         const tileInfo = this.getTileAtScreenPos(screenPos, camera);
         
         if (!tileInfo) {
-            console.log('未找到有效地块，无法放置建筑');
             return false;
         }
         

@@ -182,6 +182,7 @@ export class BuildingDetailPanelManager extends Component {
             return;
         }
         
+        
         // 更新建筑名称
         if (this.buildingNameLabel) {
             this.buildingNameLabel.string = buildingInfo.buildingType || '未知建筑';
@@ -198,8 +199,6 @@ export class BuildingDetailPanelManager extends Component {
             } else {
                 console.warn('建筑预览图片不存在');
             }
-        } else {
-            console.warn('建筑图片精灵组件未找到');
         }
     }
     
@@ -221,7 +220,7 @@ export class BuildingDetailPanelManager extends Component {
             this.page2Container.active = true;
         }
         
-        console.log(`切换到第${this.currentPageIndex}页`);
+
     }
     
     /**
@@ -231,22 +230,16 @@ export class BuildingDetailPanelManager extends Component {
         // 绑定关闭按钮
         if (this.closeButton) {
             this.closeButton.node.on(Button.EventType.CLICK, this.onDetailPanelCloseClicked, this);
-        } else {
-            console.warn('关闭按钮未设置，请在编辑器中拖拽设置');
         }
         
         // 绑定左翻页按钮
         if (this.leftPageButton) {
             this.leftPageButton.node.on(Button.EventType.CLICK, this.onLeftPageClicked, this);
-        } else {
-            console.warn('左翻页按钮未设置，请在编辑器中拖拽设置');
         }
         
         // 绑定右翻页按钮
         if (this.rightPageButton) {
             this.rightPageButton.node.on(Button.EventType.CLICK, this.onRightPageClicked, this);
-        } else {
-            console.warn('右翻页按钮未设置，请在编辑器中拖拽设置');
         }
     }
     
@@ -295,7 +288,7 @@ export class BuildingDetailPanelManager extends Component {
                 this.onCloseCallback = null;
             }
             
-            console.log('关闭建筑详情面板');
+
         }
     }
     

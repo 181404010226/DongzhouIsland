@@ -1,0 +1,47 @@
+{
+  "dialogueInfo": {
+    "name": "人气值18000",
+    "fileName": "人气值18000.json",
+    "createdAt": "2025-09-08T07:35:20.865Z",
+    "type": "multi_turn",
+    "segmentCount": 6
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "负责人，我们的绿化计划需要进一步丰富。",
+      "order": 1
+    },
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "春季有桃花，但还不够。",
+      "order": 2
+    },
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "我们引进了樱花树，可以打造樱花长廊，延长春季花期。",
+      "order": 3
+    },
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "另外，我推荐种植些苦槠树。",
+      "order": 4
+    },
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "这种树秋冬结果，果实还能用来制作特色苦槠豆腐，既有观赏性又有实用性。",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "你考虑得非常周到，让东洲岛四季皆有景，景景各不同。",
+      "order": 6
+    }
+  ]
+}

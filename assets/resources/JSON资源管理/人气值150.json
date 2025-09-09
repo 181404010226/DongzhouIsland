@@ -1,0 +1,53 @@
+{
+  "dialogueInfo": {
+    "name": "人气值150",
+    "fileName": "人气值150.json",
+    "createdAt": "2025-09-08T07:30:51.473Z",
+    "type": "multi_turn",
+    "segmentCount": 7
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "负责人，现在基础服务差不多了，该进一步提升景观了。",
+      "order": 1
+    },
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "咱们东洲岛不是以“桃浪”闻名吗？",
+      "order": 2
+    },
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "我建议成片种植桃树，重现历史盛景！",
+      "order": 3
+    },
+    {
+      "characterName": "园艺师",
+      "avatar": "resources/NPCUI/园艺师",
+      "content": "还可以在一些角落点缀些松树，增加四季常绿的层次感。",
+      "order": 4
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "好主意！",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "“东洲桃浪”是我们的金字招牌，必须重点打造。",
+      "order": 6
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "就按你们的方案办。",
+      "order": 7
+    }
+  ]
+}

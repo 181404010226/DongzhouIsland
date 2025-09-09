@@ -209,7 +209,7 @@ export class BuildingPlacer extends Component {
         
         // 如果是重新放置节点，记录其原始位置信息
         if (this.replacementNode && originalInfo) {
-            console.log("赋值信息");
+
             if (originalInfo.originalTileInfo) {
                 this.replacementOriginalRow = originalInfo.originalTileInfo.row;
                 this.replacementOriginalCol = originalInfo.originalTileInfo.col;
@@ -231,7 +231,7 @@ export class BuildingPlacer extends Component {
         
         this.createPreviewNode();
         this.startDrag();
-        console.log(`设置建筑信息: ${buildInfo.getBuildingType()}`);
+
     }
     
     /**
@@ -240,11 +240,11 @@ export class BuildingPlacer extends Component {
     public clearBuildingInfo() {
         // 清理预览节点（但不删除重新放置的节点）
         if (this.previewNode && this.previewNode !== this.replacementNode) {
-            console.log('清除预览节点');
+
             this.previewNode.destroy();
         } else if (this.previewNode && this.previewNode === this.replacementNode) {
             // 如果预览节点就是重新放置的节点，恢复其旋转和透明度
-            console.log('恢复重新放置节点的旋转和透明度');
+
             this.previewNode.setRotationFromEuler(0, 0, 0);
             this.setNodeColor(this.previewNode, new Color(255, 255, 255, 255));
         }
@@ -270,7 +270,7 @@ export class BuildingPlacer extends Component {
             PlayerOperationState.resetToIdle();
         }
         
-        console.log('清除建筑信息');
+
     }
     
     /**
@@ -289,7 +289,7 @@ export class BuildingPlacer extends Component {
             this.influenceRangePreviewNode.active = true;
         }
         
-        console.log('开始拖拽建筑');
+
     }
     
     /**
@@ -452,7 +452,7 @@ export class BuildingPlacer extends Component {
         
 
         
-        console.log('结束拖拽建筑');
+
     }
     
     /**
@@ -496,7 +496,7 @@ export class BuildingPlacer extends Component {
         const influenceRange = buildInfo.getInfluenceRange();
         buildInfo.setInfluenceRange(influenceRange);
         
-        console.log(`建筑放置完成: ${buildInfo.getBuildingType()}，影响范围已存储（${influenceRange.length}个地块）`);
+
         
         // 调用外部回调函数
         if (this.onBuildingPlacedCallback) {
@@ -601,14 +601,12 @@ export class BuildingPlacer extends Component {
                         this.replacementBuildInfo, 
                         this.replacementNode
                     );
-                    if (success) {
-                        console.log(`建筑已恢复到原始位置 (${this.replacementOriginalRow}, ${this.replacementOriginalCol})`);
-                    } else {
+                    if (!success) {
                         console.warn('恢复建筑占用信息失败');
                     }
                 }
                 
-                console.log('已将建筑恢复到原始位置和父节点');
+
             } else {
                 console.warn('无法找到原始地块节点');
             }

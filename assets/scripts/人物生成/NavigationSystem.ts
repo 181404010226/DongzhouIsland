@@ -101,7 +101,7 @@ export class NavigationSystem extends Component {
                 this.navigationPoints.set(pointData.name, pointData);
             }
             
-            console.log(`成功解析 ${data.length} 个导航点数据`);
+
             
         } catch (error) {
             console.error('解析导航数据失败:', error);
