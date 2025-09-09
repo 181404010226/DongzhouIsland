@@ -199,13 +199,11 @@ export class StoryDialogueManager extends Component {
      */
     public playNextStoryInQueue(): void {
         if (this.currentStoryIndex >= this.storyQueue.length) {
-            console.log("所有剧情已播放完毕");
             this.hideDialoguePanel();
             return;
         }
         
         const storyConfig = this.storyQueue[this.currentStoryIndex];
-        console.log(`开始播放剧情: ${storyConfig.name}`);
         
         this.loadStoryData(storyConfig.storyJsonFile, () => {
             this.startStoryDialogue();
@@ -241,14 +239,12 @@ export class StoryDialogueManager extends Component {
         
         if (!targetAsset) {
             console.error(`在拖拽的JSON资源中找不到文件: ${fileName}`);
-            console.log(`可用的JSON资源:`, this.storyJsonAssets.map(asset => asset.name));
             return;
         }
         
         this.currentStoryData = targetAsset.json as StoryData;
         this.currentDialogueIndex = 0;
         
-        console.log(`成功从拖拽资源加载剧情数据: ${fileName}`, this.currentStoryData);
         callback();
     }
     
@@ -260,12 +256,9 @@ export class StoryDialogueManager extends Component {
             const configData = this.storyConfigAsset.json;
             if (configData && configData.stories) {
                 this.storyQueue = [...configData.stories];
-                console.log(`从配置文件加载了 ${this.storyQueue.length} 个剧情`);
             } else {
                 console.warn("配置文件格式不正确，使用默认剧情列表");
             }
-        } else {
-            console.log("未设置配置文件，使用默认剧情列表");
         }
     }
     
@@ -308,8 +301,6 @@ export class StoryDialogueManager extends Component {
         this.currentDisplayText = '';
         this.isTextAnimating = true;
         this.textDisplayTimer = 0;
-        
-        console.log(`播放对话 ${this.currentDialogueIndex + 1}/${this.currentStoryData.dialogueSegments.length}: ${dialogue.characterName} - ${dialogue.content}`);
     }
     
     /**
@@ -324,7 +315,6 @@ export class StoryDialogueManager extends Component {
      * 当前剧情播放完毕
      */
     private onCurrentStoryFinished(): void {
-        console.log(`剧情 "${this.storyQueue[this.currentStoryIndex].name}" 播放完毕`);
         this.isPlayingDialogue = false;
         
         // 显示切换下一个剧情的按钮
@@ -345,9 +335,6 @@ export class StoryDialogueManager extends Component {
             processedPath = processedPath.substring('resources/'.length);
         }
         
-        console.log(`尝试加载角色头像，原始路径: ${avatarPath}`);
-        console.log(`处理后路径: ${processedPath}`);
-        
         // 尝试多种路径格式
         const pathsToTry = [
             `${processedPath}/SpriteFrame`,  // 标准SpriteFrame路径
@@ -364,22 +351,18 @@ export class StoryDialogueManager extends Component {
     private tryLoadAvatarWithPaths(paths: string[], index: number): void {
         if (index >= paths.length) {
             console.error(`所有路径都尝试失败，无法加载头像`);
-            console.log(`尝试过的路径:`, paths);
             return;
         }
         
         const currentPath = paths[index];
-        console.log(`尝试路径 ${index + 1}/${paths.length}: ${currentPath}`);
         
         resources.load(currentPath, SpriteFrame, (err, spriteFrame) => {
             if (err) {
-                console.log(`路径 ${currentPath} 加载失败:`, err.message);
                 // 尝试下一个路径
                 this.tryLoadAvatarWithPaths(paths, index + 1);
                 return;
             }
             
-            console.log(`成功加载角色头像: ${currentPath}`);
             this.characterAvatarSprite.spriteFrame = spriteFrame;
         });
     }

@@ -136,7 +136,7 @@ export class TouristGenerator extends Component {
             this.currentTouristCount--;
         });
         
-        console.log(`生成游客: 起点=${finalStartPoint}, 皮肤=${skinName || '随机'}`);
+
         
         return touristNode;
     }
@@ -172,7 +172,7 @@ export class TouristGenerator extends Component {
         if (finalSkinName) {
             try {
                 spineComponent.setSkin(finalSkinName);
-                console.log(`设置游客皮肤: ${finalSkinName}`);
+
             } catch (error) {
                 console.error(`设置皮肤失败: ${finalSkinName}`, error);
             }

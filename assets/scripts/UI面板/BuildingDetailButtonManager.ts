@@ -20,9 +20,6 @@ export class BuildingDetailButtonManager extends Component {
     private currentBuilding: Node | null = null; // 当前关联的建筑
     
     start() {
-        if (!this.detailButtonPrefab) {
-            console.error('详情按钮预制体未设置，请在编辑器中设置预制体');
-        }
     }
     
     /**
@@ -62,21 +59,18 @@ export class BuildingDetailButtonManager extends Component {
      */
     private createButtonAtPosition(buildingNode: Node, clickPosition: Vec3) {
         if (!this.detailButtonPrefab) {
-            console.error('详情按钮预制体未设置，无法创建按钮');
             return;
         }
         
         // 创建按钮实例
         const buttonNode = instantiate(this.detailButtonPrefab);
         if (!buttonNode) {
-            console.error('无法创建按钮实例');
             return;
         }
         
         // 获取Canvas节点
         const canvas = this.node.scene.getComponentInChildren(Canvas);
         if (!canvas) {
-            console.error('未找到Canvas节点');
             buttonNode.destroy();
             return;
         }
@@ -109,7 +103,7 @@ export class BuildingDetailButtonManager extends Component {
         this.currentButton = buttonNode;
         this.currentBuilding = buildingNode;
         
-        console.log(`在点击位置创建详情按钮`);
+
     }
     
     /**
@@ -121,7 +115,7 @@ export class BuildingDetailButtonManager extends Component {
         }
         this.currentButton = null;
         this.currentBuilding = null;
-        console.log('删除详情按钮');
+
     }
     
 
@@ -141,8 +135,6 @@ export class BuildingDetailButtonManager extends Component {
             
             // 显示详情面板
             this.showBuildingDetailPanel(buildingNode);
-        } else {
-            console.error('无法找到对应的建筑节点');
         }
     }
     
@@ -152,7 +144,6 @@ export class BuildingDetailButtonManager extends Component {
      */
     private showBuildingDetailPanel(buildingNode: Node) {
         if (!this.detailPanelManager) {
-            console.error('建筑详情面板管理器未设置');
             return;
         }
         

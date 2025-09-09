@@ -80,7 +80,7 @@ export class BuildingBarManager extends Component {
      */
     private onBuildingNodeTouched(index: number, event: EventTouch) {
         if (!PlayerOperationState.isBuildingPlacementAllowed()) {
-            console.log('当前操作状态不允许建筑操作');
+
             return;
         }
         
@@ -88,7 +88,7 @@ export class BuildingBarManager extends Component {
         const buildInfo = node.getComponent(BuildInfo);
         
         if (!buildInfo || !buildInfo.isEnabled()) {
-            console.log('建筑不可用或已禁用');
+
             return;
         }
         
@@ -102,7 +102,7 @@ export class BuildingBarManager extends Component {
             });
         }
         
-        console.log(`选中建筑: ${buildInfo.getBuildingType()}`);
+
     }
     
     /**
@@ -137,7 +137,7 @@ export class BuildingBarManager extends Component {
         // 这里可以添加视觉反馈，比如改变透明度、边框等
         // 例如：node.getComponent(Sprite).color = selected ? Color.YELLOW : Color.WHITE;
         
-        console.log(`建筑节点 ${node.name} ${selected ? '选中' : '取消选中'}`);
+
     }
     
     /**
@@ -189,7 +189,7 @@ export class BuildingBarManager extends Component {
             this.onBuildingNodeTouched(index, event);
         }, this);
         
-        console.log(`添加建筑节点到建造栏: ${node.name}`);
+
         return true;
     }
  
@@ -214,7 +214,7 @@ export class BuildingBarManager extends Component {
         }
         
         this.buildingNodes.splice(index, 1);
-        console.log(`从建造栏移除建筑节点: ${node.name}`);
+
         return true;
     }
     

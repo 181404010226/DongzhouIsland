@@ -87,7 +87,7 @@ export class BuildingDetailPanelManager extends Component {
             // 更新建筑信息显示
             this.updateBuildingInfo(buildingNode);
             
-            console.log('显示建筑详情面板');
+
             return true;
         }
         
@@ -152,9 +152,6 @@ export class BuildingDetailPanelManager extends Component {
         if (this.buildingNameLabel) {
             const buildingType = buildInfo.getBuildingType();
             this.buildingNameLabel.string = buildingType || '未知建筑';
-            console.log(`更新建筑名称: ${buildingType}`);
-        } else {
-            console.warn('建筑名称标签组件未找到');
         }
         
         // 更新建筑图片
@@ -162,12 +159,7 @@ export class BuildingDetailPanelManager extends Component {
             const previewImage = buildInfo.getPreviewImage();
             if (previewImage) {
                 this.buildingImageSprite.spriteFrame = previewImage;
-                console.log('更新建筑预览图片');
-            } else {
-                console.warn('建筑预览图片不存在');
             }
-        } else {
-            console.warn('建筑图片精灵组件未找到');
         }
     }
     
@@ -189,7 +181,7 @@ export class BuildingDetailPanelManager extends Component {
             this.page2Container.active = true;
         }
         
-        console.log(`切换到第${this.currentPageIndex}页`);
+
     }
     
     /**
@@ -199,22 +191,16 @@ export class BuildingDetailPanelManager extends Component {
         // 绑定关闭按钮
         if (this.closeButton) {
             this.closeButton.node.on(Button.EventType.CLICK, this.onDetailPanelCloseClicked, this);
-        } else {
-            console.warn('关闭按钮未设置，请在编辑器中拖拽设置');
         }
         
         // 绑定左翻页按钮
         if (this.leftPageButton) {
             this.leftPageButton.node.on(Button.EventType.CLICK, this.onLeftPageClicked, this);
-        } else {
-            console.warn('左翻页按钮未设置，请在编辑器中拖拽设置');
         }
         
         // 绑定右翻页按钮
         if (this.rightPageButton) {
             this.rightPageButton.node.on(Button.EventType.CLICK, this.onRightPageClicked, this);
-        } else {
-            console.warn('右翻页按钮未设置，请在编辑器中拖拽设置');
         }
     }
     
@@ -263,7 +249,7 @@ export class BuildingDetailPanelManager extends Component {
                 this.onCloseCallback = null;
             }
             
-            console.log('关闭建筑详情面板');
+
         }
     }
     
