@@ -1,6 +1,17 @@
-import { _decorator, Component, Node, Button, Prefab, instantiate, Vec3, Label, Sprite, Canvas, UITransform, BlockInputEvents } from 'cc';
-import { BuildInfo } from '../地图生成/BuildInfo';
+import { _decorator, Component, Node, Button, Prefab, instantiate, Vec3, Label, Sprite, Canvas, UITransform, BlockInputEvents, SpriteFrame } from 'cc';
 const { ccclass, property } = _decorator;
+
+/**
+ * 建筑信息接口
+ */
+export interface IBuildingInfo {
+    buildingType: string;
+    previewImage?: SpriteFrame;
+    description?: string;
+    level?: number;
+    population?: number;
+    resources?: { [key: string]: number };
+}
 
 /**
  * 建筑详情面板管理器
@@ -33,11 +44,22 @@ export class BuildingDetailPanelManager extends Component {
     /**
      * 显示建筑详情面板
      * @param buildingNode 建筑节点
+     * @param buildingInfo 建筑信息
      * @param onClose 关闭回调函数
      */
-    public showBuildingDetailPanel(buildingNode: Node, onClose?: () => void): boolean {
+    public showBuildingDetailPanel(buildingNode: Node, buildingInfo: any, onClose?: () => void): boolean {
+        console.log('[BuildingDetailPanelManager] showBuildingDetailPanel 开始执行:', {
+            hasBuildingNode: !!buildingNode,
+            buildingNodeValid: buildingNode ? buildingNode.isValid : false,
+            hasBuildingInfo: !!buildingInfo,
+            buildingInfo: buildingInfo,
+            hasPrefab: !!this.buildingDetailPanelPrefab,
+            hasCurrentPanel: !!this.currentDetailPanel
+        });
+        
         // 如果已经有详情面板在显示，先关闭它
         if (this.currentDetailPanel && this.currentDetailPanel.isValid) {
+            console.log('[BuildingDetailPanelManager] 关闭现有详情面板');
             this.closeBuildingDetailPanel();
         }
         
@@ -48,13 +70,24 @@ export class BuildingDetailPanelManager extends Component {
         }
         
         // 创建详情面板实例
+        console.log('[BuildingDetailPanelManager] 开始创建详情面板实例');
         this.currentDetailPanel = instantiate(this.buildingDetailPanelPrefab);
+        console.log('[BuildingDetailPanelManager] 详情面板实例创建结果:', {
+            panelCreated: !!this.currentDetailPanel,
+            panelValid: this.currentDetailPanel ? this.currentDetailPanel.isValid : false
+        });
         
         if (this.currentDetailPanel && buildingNode) {
             // 查找Canvas节点并将面板添加到Canvas下
             const canvas = this.node.scene.getComponentInChildren(Canvas);
+            console.log('[BuildingDetailPanelManager] Canvas查找结果:', {
+                hasCanvas: !!canvas,
+                canvasNode: canvas ? canvas.node.name : 'null'
+            });
+            
             if (canvas) {
                 this.currentDetailPanel.setParent(canvas.node);
+                console.log('[BuildingDetailPanelManager] 面板已添加到Canvas');
                 
                 // 创建全屏遮罩来阻止背景交互
                 this.createModalMask(canvas.node);
@@ -85,12 +118,20 @@ export class BuildingDetailPanelManager extends Component {
             this.bindDetailPanelEvents();
             
             // 更新建筑信息显示
-            this.updateBuildingInfo(buildingNode);
+            this.updateBuildingInfo(buildingInfo);
             
-
+            console.log('[BuildingDetailPanelManager] 建筑详情面板显示完成');
             return true;
+        } else {
+            console.error('[BuildingDetailPanelManager] 面板创建失败或建筑节点无效:', {
+                panelCreated: !!this.currentDetailPanel,
+                panelValid: this.currentDetailPanel ? this.currentDetailPanel.isValid : false,
+                hasBuildingNode: !!buildingNode,
+                buildingNodeValid: buildingNode ? buildingNode.isValid : false
+            });
         }
         
+        console.log('[BuildingDetailPanelManager] showBuildingDetailPanel 执行结束，返回false');
         return false;
     }
 
@@ -133,32 +174,30 @@ export class BuildingDetailPanelManager extends Component {
     
     /**
      * 更新建筑信息显示
-     * @param buildingNode 建筑节点
+     * @param buildingInfo 建筑信息
      */
-    private updateBuildingInfo(buildingNode: Node) {
-        if (!buildingNode || !buildingNode.isValid) {
-            console.warn('建筑节点无效，无法更新建筑信息');
+    private updateBuildingInfo(buildingInfo: any) {
+        if (!buildingInfo) {
+            console.warn('建筑信息无效，无法更新建筑信息');
             return;
         }
         
-        // 获取建筑的BuildInfo组件
-        const buildInfo = buildingNode.getComponent(BuildInfo);
-        if (!buildInfo) {
-            console.warn('建筑节点缺少BuildInfo组件，无法获取建筑信息');
-            return;
-        }
         
         // 更新建筑名称
         if (this.buildingNameLabel) {
-            const buildingType = buildInfo.getBuildingType();
-            this.buildingNameLabel.string = buildingType || '未知建筑';
+            this.buildingNameLabel.string = buildingInfo.buildingType || '未知建筑';
+            console.log(`更新建筑名称: ${buildingInfo.buildingType}`);
+        } else {
+            console.warn('建筑名称标签组件未找到');
         }
         
         // 更新建筑图片
         if (this.buildingImageSprite) {
-            const previewImage = buildInfo.getPreviewImage();
-            if (previewImage) {
-                this.buildingImageSprite.spriteFrame = previewImage;
+            if (buildingInfo.previewImage) {
+                this.buildingImageSprite.spriteFrame = buildingInfo.previewImage;
+                console.log('更新建筑预览图片');
+            } else {
+                console.warn('建筑预览图片不存在');
             }
         }
     }

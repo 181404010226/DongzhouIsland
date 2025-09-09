@@ -1,5 +1,7 @@
 import { BuildingAdjacencyDisplay } from './BuildingAdjacencyDisplay';
 import { CharmCalculationSystem } from './CharmCalculationSystem';
+import { BuildingDetailButtonManager} from '../UI面板/BuildingDetailButtonManager';
+import { Vec3, SpriteFrame, director } from 'cc';
 
 /**
  * 地块占用信息接口
@@ -435,6 +437,70 @@ export class BuildingManager {
             
         } catch (error) {
             console.error(`[BuildingManager] 清除建筑魅力值记录时发生错误:`, error);
+        }
+    }
+    
+    /**
+     * 处理建筑点击事件的中介方法
+     * 从TileOccupancyManager接收建筑点击信息，转发给BuildingDetailButtonManager
+     * @param buildingDetailButtonManager 建筑详情按钮管理器实例（可为null，会自动查找）
+     * @param buildingNode 被点击的建筑节点（null表示点击空白处）
+     * @param clickPosition 点击位置（世界坐标）
+     * @param buildingInfo 建筑信息（由调用方提供）
+     */
+    public static handleBuildingClick(
+        buildingDetailButtonManager: BuildingDetailButtonManager | null,
+        buildingNode: any | null,
+        clickPosition: Vec3,
+        buildingInfo?: any
+    ): void {
+        console.log('[BuildingManager] handleBuildingClick 被调用:', {
+            hasButtonManager: !!buildingDetailButtonManager,
+            hasBuildingNode: !!buildingNode,
+            buildingNodeName: buildingNode ? buildingNode.name : 'null',
+            hasBuildingInfo: !!buildingInfo,
+            buildingInfo: buildingInfo,
+            clickPosition: clickPosition
+        });
+        
+        let buttonManager = buildingDetailButtonManager;
+        
+        // 如果没有提供BuildingDetailButtonManager实例，尝试从场景中查找
+        if (!buttonManager) {
+            const scene = buildingNode?.scene || (typeof director !== 'undefined' ? director.getScene() : null);
+            if (scene) {
+                buttonManager = scene.getComponentInChildren(BuildingDetailButtonManager);
+            }
+        }
+        
+        if (!buttonManager) {
+            console.error('[BuildingManager] 无法找到BuildingDetailButtonManager实例，无法处理建筑点击事件');
+            return;
+        }
+        
+        try {
+            // 验证buildingInfo的完整性
+            if (buildingNode && buildingInfo) {
+                console.log(`[BuildingManager] 转发建筑点击事件:`, {
+                    buildingType: buildingInfo.buildingType,
+                    hasPreviewImage: !!buildingInfo.previewImage,
+                    hasDescription: !!buildingInfo.description,
+                    buildingNodeName: buildingNode.name
+                });
+            }
+            
+            // 转发建筑点击事件给BuildingDetailButtonManager
+            buttonManager.onBuildingClicked(buildingNode, clickPosition, buildingInfo);
+            
+            console.log(`[BuildingManager] 已转发建筑点击事件: ${buildingNode ? '建筑节点' : '空白处'}`);
+            
+        } catch (error) {
+            console.error(`[BuildingManager] 处理建筑点击事件时发生错误:`, {
+                error: error,
+                buildingNode: buildingNode?.name || 'null',
+                hasBuildingInfo: !!buildingInfo,
+                buildingInfo: buildingInfo
+            });
         }
     }
 }

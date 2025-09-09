@@ -380,7 +380,7 @@ this.startCameraDrag();
      * 处理建筑点击事件
      */
     private handleBuildingClick(screenPos: Vec2) {
-        if (!this.tileOccupancyManager || !this.buildingDetailButtonManager || !this.camera) {
+        if (!this.tileOccupancyManager || !this.camera) {
             return;
         }
         
@@ -393,20 +393,20 @@ this.startCameraDrag();
         
         // 获取该地块的建筑信息
         const buildingInfo = this.tileOccupancyManager.getBuildingInfoAt(tilePos.row, tilePos.col);
+        
+        // 将屏幕坐标转换为世界坐标
+        const worldPos = this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+        
         if (buildingInfo && buildingInfo.buildingNode) {
-            console.log('点击了建筑:', buildingInfo.buildingNode.name);
+            console.log('[InteractionManager] 点击了建筑:', buildingInfo.buildingNode.name);
             
-            // 将屏幕坐标转换为世界坐标
-            const worldPos = this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
-            
-            // 调用新的onBuildingClicked方法
-            this.buildingDetailButtonManager.onBuildingClicked(buildingInfo.buildingNode, worldPos);
+            // 调用TileOccupancyManager的handleBuildingClick方法
+            this.tileOccupancyManager.handleBuildingClick(buildingInfo.buildingNode, worldPos);
         } else {
-            console.log('点击的地块没有建筑');
-            // 点击空白处，如果有详情按钮正在显示，则删除它
-            if (this.buildingDetailButtonManager.isDetailButtonVisible()) {
-                this.buildingDetailButtonManager.onBuildingClicked(null, new Vec3());
-            }
+            console.log('[InteractionManager] 点击的地块没有建筑');
+            
+            // 点击空白处，调用TileOccupancyManager的handleBuildingClick方法
+            this.tileOccupancyManager.handleBuildingClick(null, worldPos);
         }
     }
     
