@@ -2,7 +2,7 @@ import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransfo
 import { BuildInfo } from './BuildInfo';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
 import { BuildingManager } from './BuildingManager';
-import { BuildingDetailButtonManager} from '../UI面板/BuildingDetailButtonManager';
+
 const { ccclass, property } = _decorator;
 
 
@@ -28,8 +28,7 @@ export class TileOccupancyManager extends Component {
     @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
     mapGenerator: ImprovedMapGenerator = null;
     
-    @property({ type: BuildingDetailButtonManager, tooltip: '建筑详情按钮管理器' })
-    buildingDetailButtonManager: BuildingDetailButtonManager | null = null;
+
     
     // 编辑器只读字段：已放置建筑节点索引
     @property({ type: [Node], readonly: true, tooltip: '当前已放置的建筑节点列表（编辑器查看）' })
@@ -351,12 +350,6 @@ export class TileOccupancyManager extends Component {
         if (occupancyInfo.buildingNode && occupancyInfo.buildingNode.isValid) {
             const buildingNode = occupancyInfo.buildingNode;
             
-            // 清理建筑详情按钮
-            if (this.buildingDetailButtonManager) {
-                this.buildingDetailButtonManager.onBuildingClicked(null, new Vec3());
-             }
-            
-            
             // 重置BuildInfo中的位置信息
             const buildInfo = buildingNode.getComponent(BuildInfo);
             if (buildInfo) {
@@ -629,7 +622,57 @@ export class TileOccupancyManager extends Component {
         return this.tileOccupancyMap.has(tileKey);
     }
     
-
-    
+    /**
+     * 处理建筑点击事件
+     * 直接通过BuildingManager处理，不再依赖BuildingDetailButtonManager
+     * @param buildingNode 被点击的建筑节点（null表示点击空白处）
+     * @param clickPosition 点击位置（世界坐标）
+     */
+    public handleBuildingClick(buildingNode: Node | null, clickPosition: Vec3): void {
+        console.log('[TileOccupancyManager] handleBuildingClick 被调用:', {
+            hasBuildingNode: !!buildingNode,
+            buildingNodeName: buildingNode ? buildingNode.name : 'null',
+            buildingNodeValid: buildingNode ? buildingNode.isValid : false,
+            clickPosition: clickPosition
+        });
+        
+        // 通过BuildingManager转发建筑点击事件
+        // 定义建筑信息接口结构（与BuildingDetailPanelManager中的IBuildingInfo保持一致）
+        interface LocalBuildingInfo {
+            buildingType: string;
+            previewImage?: any;
+            description?: string;
+            level?: number;
+            population?: number;
+            resources?: { [key: string]: number };
+        }
+        
+        let buildingInfo: LocalBuildingInfo | undefined = undefined;
+        
+        // 如果有建筑节点，从BuildInfo组件获取建筑信息
+        if (buildingNode && buildingNode.isValid) {
+            const buildInfo = buildingNode.getComponent(BuildInfo);
+            if (buildInfo) {
+                buildingInfo = {
+                    buildingType: buildInfo.getBuildingType() || '未知建筑',
+                    previewImage: buildInfo.getPreviewImage(),
+                    description: buildInfo.getDescription() || '暂无描述',
+                    level: 1, // 默认等级
+                    population: 0, // 默认人口
+                    resources: {} // 默认资源
+                };
+                console.log('[TileOccupancyManager] 创建建筑信息:', buildingInfo);
+            } else {
+                console.warn('建筑节点缺少BuildInfo组件', buildingNode.name);
+            }
+        }
+        
+        BuildingManager.handleBuildingClick(
+            null,
+            buildingNode,
+            clickPosition,
+            buildingInfo
+        );
+    }
 
 }

@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Button, Vec3, Canvas, Prefab, instantiate, input, Input, EventTouch, UITransform } from 'cc';
-import { BuildingDetailPanelManager } from './BuildingDetailPanelManager';
+import { BuildingDetailPanelManager, IBuildingInfo } from './BuildingDetailPanelManager';
 
 const { ccclass, property } = _decorator;
 
@@ -29,8 +29,16 @@ export class BuildingDetailButtonManager extends Component {
      * 处理建筑点击事件
      * @param buildingNode 被点击的建筑节点
      * @param clickPosition 点击位置（世界坐标）
+     * @param buildingInfo 建筑信息（可选，当buildingNode不为null时需要提供）
      */
-    public onBuildingClicked(buildingNode: Node | null, clickPosition: Vec3) {
+    public onBuildingClicked(buildingNode: Node | null, clickPosition: Vec3, buildingInfo?: any) {
+        console.log('[BuildingDetailButtonManager] onBuildingClicked 调用:', {
+            hasBuildingNode: !!buildingNode,
+            buildingNodeName: buildingNode?.name,
+            hasBuildingInfo: !!buildingInfo,
+            buildingInfo: buildingInfo
+        });
+        
         // 如果buildingNode为null（点击空白处），删除当前按钮
         if (buildingNode === null) {
             if (this.currentButton) {
@@ -51,7 +59,7 @@ export class BuildingDetailButtonManager extends Component {
         }
         
         // 在点击位置创建新按钮
-        this.createButtonAtPosition(buildingNode, clickPosition);
+        this.createButtonAtPosition(buildingNode, clickPosition, buildingInfo);
     }
     
 
@@ -59,8 +67,9 @@ export class BuildingDetailButtonManager extends Component {
      * 在指定位置创建按钮
      * @param buildingNode 关联的建筑节点
      * @param clickPosition 点击位置（世界坐标）
+     * @param buildingInfo 建筑信息
      */
-    private createButtonAtPosition(buildingNode: Node, clickPosition: Vec3) {
+    private createButtonAtPosition(buildingNode: Node, clickPosition: Vec3, buildingInfo?: any) {
         if (!this.detailButtonPrefab) {
             console.error('详情按钮预制体未设置，无法创建按钮');
             return;
@@ -96,8 +105,15 @@ export class BuildingDetailButtonManager extends Component {
         
         buttonNode.setPosition(localPos);
         
-        // 保存建筑节点引用
+        // 保存建筑节点引用和建筑信息
         (buttonNode as any)._buildingNodeRef = buildingNode;
+        (buttonNode as any)._buildingInfo = buildingInfo;
+        
+        console.log('[BuildingDetailButtonManager] 按钮创建完成，存储的信息:', {
+            hasBuildingNodeRef: !!(buttonNode as any)._buildingNodeRef,
+            hasBuildingInfo: !!(buttonNode as any)._buildingInfo,
+            storedBuildingInfo: (buttonNode as any)._buildingInfo
+        });
         
         // 绑定按钮点击事件
         const button = buttonNode.getComponent(Button);
@@ -132,17 +148,34 @@ export class BuildingDetailButtonManager extends Component {
         // 阻止事件冒泡
         event.propagationStopped = true;
         
-        // 获取关联的建筑节点
-        const buildingNode: Node | null = (event.target as any)._buildingNodeRef || null;
+        console.log('[BuildingDetailButtonManager] 详情按钮被点击，检查存储的信息:', {
+            hasCurrentButton: !!this.currentButton,
+            currentButtonValid: this.currentButton ? this.currentButton.isValid : false,
+            storedBuildingNodeRef: this.currentButton ? (this.currentButton as any)._buildingNodeRef : 'no button',
+            storedBuildingInfo: this.currentButton ? (this.currentButton as any)._buildingInfo : 'no button'
+        });
         
-        if (buildingNode && buildingNode.isValid) {
+        // 从当前按钮节点获取关联的建筑节点和建筑信息
+        const buildingNode: Node | null = this.currentButton ? (this.currentButton as any)._buildingNodeRef || null : null;
+        const buildingInfo: any = this.currentButton ? (this.currentButton as any)._buildingInfo || null : null;
+        
+        if (buildingNode && buildingNode.isValid && buildingInfo) {
+            console.log('[BuildingDetailButtonManager] 建筑信息验证通过，显示详情面板');
             // 删除按钮
             this.destroyCurrentButton();
             
             // 显示详情面板
-            this.showBuildingDetailPanel(buildingNode);
+            this.showBuildingDetailPanel(buildingNode, buildingInfo);
         } else {
-            console.error('无法找到对应的建筑节点');
+            console.error('[PreviewInEditor] 无法找到对应的建筑节点或建筑信息', {
+                hasCurrentButton: !!this.currentButton,
+                hasBuildingNode: !!buildingNode,
+                buildingNodeValid: buildingNode ? buildingNode.isValid : false,
+                hasBuildingInfo: !!buildingInfo
+            });
+            console.error('[PreviewInEditor] 无法找到对应的建筑节点或建筑信息', {
+                hasBuildingInfo: !!buildingInfo
+            });
         }
     }
     
@@ -150,13 +183,22 @@ export class BuildingDetailButtonManager extends Component {
     /**
      * 显示建筑详情面板
      */
-    private showBuildingDetailPanel(buildingNode: Node) {
+    private showBuildingDetailPanel(buildingNode: Node, buildingInfo: any) {
+        console.log('[BuildingDetailButtonManager] showBuildingDetailPanel 调用:', {
+            hasBuildingNode: !!buildingNode,
+            buildingNodeValid: buildingNode ? buildingNode.isValid : false,
+            hasBuildingInfo: !!buildingInfo,
+            buildingInfo: buildingInfo,
+            hasDetailPanelManager: !!this.detailPanelManager
+        });
+        
         if (!this.detailPanelManager) {
             console.error('建筑详情面板管理器未设置');
             return;
         }
         
-        this.detailPanelManager.showBuildingDetailPanel(buildingNode);
+        const result = this.detailPanelManager.showBuildingDetailPanel(buildingNode, buildingInfo);
+        console.log('[BuildingDetailButtonManager] 详情面板显示结果:', result);
     }
 
     
