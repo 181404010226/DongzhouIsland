@@ -1,0 +1,1946 @@
+{
+"skeleton": { "hash": "jxeodierg7HGwgpSvBbZQqhygVA", "spine": "3.4.01", "width": 149, "height": 230.75, "images": "" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "bCrotch", "parent": "root", "length": 12.15, "rotation": -89.09, "x": -1.15, "y": 41.94 },
+	{ "name": "bBody", "parent": "bCrotch", "length": 39.42, "rotation": 178.64 },
+	{ "name": "bArmUL", "parent": "bBody", "length": 16.44, "rotation": 147.75, "x": 34.21, "y": 7.77, "inheritScale": false },
+	{ "name": "bArmLL", "parent": "bArmUL", "length": 17.63, "rotation": 4.08, "x": 16.44 },
+	{ "name": "bArmUR", "parent": "bBody", "length": 17, "rotation": -146.94, "x": 34.12, "y": -13.23, "inheritScale": false },
+	{ "name": "bArmLR", "parent": "bArmUR", "length": 18.23, "rotation": -4.95, "x": 17, "y": 0.02 },
+	{ "name": "bLegL", "parent": "bCrotch", "length": 15.95, "rotation": -3.58, "x": 1.86, "y": -7.27 },
+	{ "name": "bFeetL", "parent": "bLegL", "length": 18.9, "rotation": 1.8, "x": 15.95, "y": -0.06 },
+	{ "name": "bLegR", "parent": "bCrotch", "length": 17.01, "rotation": 0.9, "x": 2.06, "y": 9.29 },
+	{ "name": "bFeetR", "parent": "bLegR", "length": 19.71, "x": 17.01 },
+	{ "name": "bHead", "parent": "bBody", "length": 52.92, "x": 39.42, "y": -0.23, "inheritScale": false },
+	{ "name": "bShadow", "parent": "root" }
+],
+"slots": [
+	{ "name": "shadow", "bone": "bShadow", "attachment": "images/SHADOW" },
+	{ "name": "hairB", "bone": "bHead", "attachment": "hairB" },
+	{ "name": "fistL", "bone": "bArmLL", "attachment": "fistL" },
+	{ "name": "armUL", "bone": "bArmUL", "attachment": "armUL" },
+	{ "name": "armLL", "bone": "bArmLL", "attachment": "armLL" },
+	{ "name": "legL", "bone": "bLegL", "attachment": "images/NPC_n_leg_left" },
+	{ "name": "feetL", "bone": "bFeetL", "attachment": "images/NPC_n_feet_left" },
+	{ "name": "crotch", "bone": "bCrotch", "attachment": "images/NPC_n_crotch" },
+	{ "name": "legR", "bone": "bLegR", "attachment": "images/NPC_n_leg_right" },
+	{ "name": "body", "bone": "bBody", "attachment": "body" },
+	{ "name": "feetR", "bone": "bFeetR", "attachment": "images/NPC_n_feet_right" },
+	{ "name": "cloth", "bone": "bBody", "attachment": "cloth" },
+	{ "name": "armUR", "bone": "bArmUR", "attachment": "armUR" },
+	{ "name": "head", "bone": "bHead", "attachment": "head" },
+	{ "name": "hairF", "bone": "bHead", "attachment": "hairF" },
+	{ "name": "face", "bone": "bHead", "attachment": "face" },
+	{ "name": "fistR", "bone": "bArmLR", "attachment": "fistR" },
+	{ "name": "armLR", "bone": "bArmLR", "attachment": "armLR" }
+],
+"skins": {
+	"default": {
+		"armLL": {
+			"images/NPC_f_arm_left_lower_1": { "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 },
+			"images/NPC_f_arm_left_lower_2": { "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 },
+			"images/NPC_f_arm_left_lower_3": { "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 },
+			"images/NPC_f_arm_left_lower_4": { "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 },
+			"images/NPC_m_arm_left_lower_1": { "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 },
+			"images/NPC_m_arm_left_lower_3": { "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"images/NPC_f_arm_right_lower_1": { "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 },
+			"images/NPC_f_arm_right_lower_2": { "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 },
+			"images/NPC_f_arm_right_lower_3": { "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 },
+			"images/NPC_f_arm_right_lower_4": { "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 },
+			"images/NPC_m_arm_right_lower_1": { "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 },
+			"images/NPC_m_arm_right_lower_3": { "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"images/NPC_f_arm_left_upper_1": { "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 },
+			"images/NPC_f_arm_left_upper_2": { "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 },
+			"images/NPC_f_arm_left_upper_3": { "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 },
+			"images/NPC_m_arm_left_upper_1": { "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 },
+			"images/NPC_m_arm_left_upper_3": { "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"images/NPC_f_arm_right_upper_1": { "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 },
+			"images/NPC_f_arm_right_upper_2": { "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 },
+			"images/NPC_f_arm_right_upper_3": { "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 },
+			"images/NPC_m_arm_right_upper_1": { "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 },
+			"images/NPC_m_arm_right_upper_3": { "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"images/NPC_n_body_1": { "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 },
+			"images/NPC_n_body_2": { "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 },
+			"images/NPC_n_body_3": { "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 },
+			"images/NPC_n_body_4": { "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"images/NPC_f_cloth_1": { "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 },
+			"images/NPC_f_cloth_2": { "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 },
+			"images/NPC_f_cloth_3": { "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 },
+			"images/NPC_f_cloth_4": { "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 },
+			"images/NPC_m_cloth_1": { "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 },
+			"images/NPC_m_cloth_2": { "rotation": -89.54, "width": 69, "height": 96 },
+			"images/NPC_m_cloth_3": { "rotation": -89.54, "width": 69, "height": 96 },
+			"images/NPC_m_cloth_4": { "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"crotch": {
+			"images/NPC_n_crotch": { "x": 2.31, "y": 1.12, "rotation": 89.09, "width": 46, "height": 36 }
+		},
+		"face": {
+			"images/NPC_f_face": { "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 },
+			"images/NPC_m_face": { "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"feetL": {
+			"images/NPC_n_feet_left": { "x": 11.42, "y": 0.85, "rotation": 90.89, "width": 32, "height": 44 }
+		},
+		"feetR": {
+			"images/NPC_n_feet_right": { "x": 10.34, "y": -0.55, "rotation": 88.19, "width": 32, "height": 44 }
+		},
+		"fistL": {
+			"images/NPC_n_fist_1": { "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 },
+			"images/NPC_n_fist_2": { "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 },
+			"images/NPC_n_fist_3": { "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 },
+			"images/NPC_n_fist_4": { "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"images/NPC_n_fist_1": { "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 },
+			"images/NPC_n_fist_2": { "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 },
+			"images/NPC_n_fist_3": { "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 },
+			"images/NPC_n_fist_4": { "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"images/NPC_f_hair_back_1": { "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 },
+			"images/NPC_f_hair_back_2": { "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 },
+			"images/NPC_f_hair_back_3": { "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 },
+			"images/NPC_f_hair_back_4": { "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"images/NPC_f_hair_front_1": { "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 },
+			"images/NPC_f_hair_front_2": { "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 },
+			"images/NPC_f_hair_front_3": { "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 },
+			"images/NPC_f_hair_front_4": { "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 },
+			"images/NPC_m_hair_front_1": { "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 },
+			"images/NPC_m_hair_front_2": { "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 },
+			"images/NPC_m_hair_front_3": { "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 },
+			"images/NPC_m_hair_front_4": { "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"images/NPC_n_head_1": { "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 },
+			"images/NPC_n_head_2": { "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 },
+			"images/NPC_n_head_3": { "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 },
+			"images/NPC_n_head_4": { "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		},
+		"legL": {
+			"images/NPC_n_leg_left": { "x": 7.81, "y": -0.65, "rotation": 92.7, "width": 32, "height": 44 }
+		},
+		"legR": {
+			"images/NPC_n_leg_right": { "x": 8.71, "y": -0.57, "rotation": 88.19, "width": 32, "height": 44 }
+		},
+		"shadow": {
+			"images/SHADOW": { "x": -0.99, "y": -0.51, "width": 92, "height": 36 }
+		}
+	},
+	"random_young_female_1": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": {
+				"name": "images/NPC_f_arm_right_lower_2",
+				"path": "images/NPC_f_arm_right_lower_3",
+				"x": 3.89,
+				"y": 0.75,
+				"rotation": 62.34,
+				"width": 30,
+				"height": 28
+			}
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_1", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_2": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_4", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_3": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_2", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_2", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": {
+				"name": "images/NPC_f_hair_back_5",
+				"path": "images/NPC_f_hair_back_2",
+				"x": 47.94,
+				"y": -8.28,
+				"rotation": -89.54,
+				"width": 142,
+				"height": 166
+			}
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_4": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_3", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_5": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_3", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_6": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_3", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_7": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_2", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_2", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_1", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_8": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_4", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_9": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_2", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_10": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_1", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_11": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_2", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_12": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_3", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_13": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_4", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_14": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_2", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_2", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_1", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_15": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_1", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_16": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_1", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_17": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_2", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_18": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_4", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_19": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_f_arm_left_upper_2", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_3", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_female_20": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_f_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_f_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairB": {
+			"hairB": { "name": "images/NPC_f_hair_back_3", "x": 47.94, "y": -8.28, "rotation": -89.54, "width": 142, "height": 166 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_f_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_1": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_2": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_3": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_4": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_5": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_2", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_2", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_f_arm_right_upper_2", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_1", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_1", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_1", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_1", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_6": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_7": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_8": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_9": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_10": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_2", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_2", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_2", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_2", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_11": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_12": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_13": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_14": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_15": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_3", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_3", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_3", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_3", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_16": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_f_arm_left_lower_2", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_f_arm_right_lower_2", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_3", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_1", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_17": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.74, "y": 0.46, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_18": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_2", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_3", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_19": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_1", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_1", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_1", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_1", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_1", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_4", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	},
+	"random_young_male_20": {
+		"armLL": {
+			"armLL": { "name": "images/NPC_m_arm_left_lower_3", "x": 6.94, "y": -0.43, "rotation": 118.61, "width": 30, "height": 28 }
+		},
+		"armLR": {
+			"armLR": { "name": "images/NPC_m_arm_right_lower_3", "x": 3.89, "y": 0.75, "rotation": 62.34, "width": 30, "height": 28 }
+		},
+		"armUL": {
+			"armUL": { "name": "images/NPC_m_arm_left_upper_3", "x": 7.64, "y": -1.57, "rotation": 122.69, "width": 40, "height": 41 }
+		},
+		"armUR": {
+			"armUR": { "name": "images/NPC_m_arm_right_upper_3", "x": 6.27, "y": 0.63, "rotation": 57.39, "width": 40, "height": 41 }
+		},
+		"body": {
+			"body": { "name": "images/NPC_n_body_4", "x": 21.09, "y": -0.73, "rotation": -89.54, "width": 47, "height": 58 }
+		},
+		"cloth": {
+			"cloth": { "name": "images/NPC_m_cloth_4", "x": 3.45, "y": -0.6, "rotation": -89.54, "width": 69, "height": 96 }
+		},
+		"face": {
+			"face": { "name": "images/NPC_m_face", "x": 27.01, "y": 4.35, "rotation": -89.54, "width": 58, "height": 55 }
+		},
+		"fistL": {
+			"fistL": { "name": "images/NPC_n_fist_4", "x": 18.23, "y": 0.86, "rotation": 118.61, "width": 40, "height": 41 }
+		},
+		"fistR": {
+			"fistR": { "name": "images/NPC_n_fist_4", "x": 16.29, "y": -0.41, "rotation": 62.34, "width": 40, "height": 41 }
+		},
+		"hairF": {
+			"hairF": { "name": "images/NPC_m_hair_front_2", "x": 58.46, "y": -5.3, "rotation": -89.54, "width": 149, "height": 122 }
+		},
+		"head": {
+			"head": { "name": "images/NPC_n_head_4", "x": 37.45, "y": -5.14, "rotation": -89.54, "width": 120, "height": 106 }
+		}
+	}
+},
+"animations": {
+	"default": {
+		"bones": {
+			"root": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bHead": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bArmUL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bArmLL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bBody": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bArmUR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bArmLR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bLegR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bFeetR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bLegL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bFeetL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bCrotch": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			},
+			"bShadow": {
+				"rotate": [
+					{ "time": 0, "angle": 0 }
+				],
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			}
+		}
+	},
+	"idle": {
+		"bones": {
+			"bBody": {
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 },
+					{ "time": 0.2333, "x": 5.89, "y": -0.11 },
+					{ "time": 0.5, "x": 0, "y": 0 }
+				],
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1, "curve": "stepped" },
+					{ "time": 0.2333, "x": 1, "y": 1, "curve": "stepped" },
+					{ "time": 0.5, "x": 1, "y": 1 }
+				]
+			},
+			"bArmUL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.3333, "angle": -26.59 },
+					{ "time": 0.5, "angle": 0 }
+				]
+			},
+			"bArmUR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.3333, "angle": 20.82 },
+					{ "time": 0.5, "angle": 0 }
+				]
+			},
+			"bHead": {
+				"translate": [
+					{ "time": 0, "x": -1.22, "y": 0 },
+					{ "time": 0.2333, "x": -4.72, "y": 0 },
+					{ "time": 0.5, "x": -1.22, "y": 0 }
+				]
+			},
+			"bLegL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.2333, "angle": -12.14 },
+					{ "time": 0.5, "angle": 0 }
+				]
+			},
+			"bFeetL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.2333, "angle": 22.98 },
+					{ "time": 0.5, "angle": 0 }
+				]
+			},
+			"bLegR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.2333, "angle": -13.55 },
+					{ "time": 0.5, "angle": 0 }
+				]
+			},
+			"bFeetR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.2333, "angle": 27.94 },
+					{ "time": 0.5, "angle": 0 }
+				]
+			}
+		}
+	},
+	"walk": {
+		"bones": {
+			"bLegR": {
+				"rotate": [
+					{ "time": 0, "angle": -17.32 },
+					{ "time": 0.1, "angle": -28.35 },
+					{ "time": 0.2333, "angle": -0.95 },
+					{ "time": 0.3333, "angle": 17.07 },
+					{ "time": 0.4333, "angle": 25.85 },
+					{ "time": 0.5666, "angle": -9.46 },
+					{ "time": 0.6666, "angle": -17.32 }
+				]
+			},
+			"bLegL": {
+				"rotate": [
+					{ "time": 0, "angle": 17.07 },
+					{ "time": 0.1, "angle": 25.85 },
+					{ "time": 0.2333, "angle": -9.46 },
+					{ "time": 0.3333, "angle": -17.32 },
+					{ "time": 0.4333, "angle": -28.35 },
+					{ "time": 0.5666, "angle": -0.95 },
+					{ "time": 0.6666, "angle": 17.07 }
+				]
+			},
+			"bFeetR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.1, "angle": 28.95 },
+					{ "time": 0.2333, "angle": -0.76 },
+					{ "time": 0.3333, "angle": 0 },
+					{ "time": 0.4333, "angle": 13.61 },
+					{ "time": 0.5666, "angle": 80.39 },
+					{ "time": 0.6666, "angle": 0 }
+				]
+			},
+			"bFeetL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.1, "angle": 13.61 },
+					{ "time": 0.2333, "angle": 80.39 },
+					{ "time": 0.3333, "angle": 0 },
+					{ "time": 0.4333, "angle": 28.95 },
+					{ "time": 0.5666, "angle": -0.76 },
+					{ "time": 0.6666, "angle": 0 }
+				]
+			},
+			"bArmUR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.3333, "angle": 302.2 },
+					{ "time": 0.6666, "angle": 0 }
+				]
+			},
+			"bArmUL": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.3333, "angle": -311.39 },
+					{ "time": 0.6666, "angle": 0 }
+				]
+			},
+			"bArmLR": {
+				"rotate": [
+					{ "time": 0, "angle": 0 },
+					{ "time": 0.3333, "angle": -19.13 },
+					{ "time": 0.6666, "angle": 0 }
+				]
+			},
+			"bArmLL": {
+				"rotate": [
+					{ "time": 0, "angle": -17.48 },
+					{ "time": 0.3333, "angle": 0 },
+					{ "time": 0.6666, "angle": -17.48 }
+				]
+			},
+			"bCrotch": {
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 },
+					{ "time": 0.1, "x": 0, "y": -2.98 },
+					{ "time": 0.2333, "x": 0, "y": 0.85 },
+					{ "time": 0.3333, "x": 0, "y": 0 },
+					{ "time": 0.4333, "x": 0, "y": -2.98 },
+					{ "time": 0.5666, "x": 0, "y": 0.85 },
+					{ "time": 0.6666, "x": 0, "y": 0 }
+				]
+			},
+			"bHead": {
+				"translate": [
+					{ "time": 0, "x": 0, "y": 0 },
+					{ "time": 0.1, "x": -1.69, "y": 0 },
+					{ "time": 0.3333, "x": 0, "y": 0 },
+					{ "time": 0.4333, "x": -1.69, "y": 0 },
+					{ "time": 0.6666, "x": 0, "y": 0 }
+				]
+			},
+			"bShadow": {
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 },
+					{ "time": 0.1, "x": 1.1, "y": 1.1 },
+					{ "time": 0.2666, "x": 0.9, "y": 0.9 },
+					{ "time": 0.3333, "x": 1, "y": 1 },
+					{ "time": 0.4333, "x": 1.1, "y": 1.1 },
+					{ "time": 0.6, "x": 0.9, "y": 0.9 },
+					{ "time": 0.6666, "x": 1, "y": 1 }
+				]
+			},
+			"bBody": {
+				"scale": [
+					{ "time": 0, "x": 1, "y": 1 }
+				]
+			}
+		}
+	}
+}
+}

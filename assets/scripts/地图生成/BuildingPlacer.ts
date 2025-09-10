@@ -214,7 +214,7 @@ export class BuildingPlacer extends Component {
         
         // 如果是重新放置节点，记录其原始位置信息
         if (this.replacementNode && originalInfo) {
-            console.log("赋值信息");
+
             if (originalInfo.originalTileInfo) {
                 this.replacementOriginalRow = originalInfo.originalTileInfo.row;
                 this.replacementOriginalCol = originalInfo.originalTileInfo.col;
@@ -245,11 +245,11 @@ export class BuildingPlacer extends Component {
     public clearBuildingInfo() {
         // 清理预览节点（但不删除重新放置的节点）
         if (this.previewNode && this.previewNode !== this.replacementNode) {
-            console.log('清除预览节点');
+
             this.previewNode.destroy();
         } else if (this.previewNode && this.previewNode === this.replacementNode) {
             // 如果预览节点就是重新放置的节点，恢复其旋转和透明度
-            console.log('恢复重新放置节点的旋转和透明度');
+
             this.previewNode.setRotationFromEuler(0, 0, 0);
             this.setNodeColor(this.previewNode, new Color(255, 255, 255, 255));
         }
@@ -294,7 +294,7 @@ export class BuildingPlacer extends Component {
             this.influenceRangePreviewNode.active = true;
         }
         
-        console.log('开始拖拽建筑');
+
     }
     
     /**
@@ -404,10 +404,10 @@ export class BuildingPlacer extends Component {
             
             // 计算影响范围的尺寸（建筑占用地块数 + 影响范围扩展）
             const tileSize = this.tileOccupancyManager.mapGenerator.tileSize / Math.sqrt(2); // 地块边长
-            const influenceRadius = 2.5; // 影响范围半径（考虑中心地块0.5占用）
+            const influenceRadius = BuildInfo.calculateDetectionRadius(buildInfo.getWidth(), buildInfo.getHeight()); 
             
-            const totalWidth = (buildInfo.getWidth() + influenceRadius * 2-1) * tileSize;
-            const totalHeight = (buildInfo.getHeight() + influenceRadius * 2-1) * tileSize;
+            const totalWidth = (buildInfo.getWidth() + influenceRadius * 2) * tileSize;
+            const totalHeight = (buildInfo.getHeight() + influenceRadius * 2) * tileSize;
             
             // 设置绘制样式
             graphics.lineWidth = 3;
@@ -419,8 +419,8 @@ export class BuildingPlacer extends Component {
             
             // 绘制矩形边框（以左下角为基准点）
             // 左下角向外延伸2.5格，右上角延伸到建筑尺寸+2.5格
-            const leftOffset = -influenceRadius * tileSize;
-            const bottomOffset = influenceRadius * tileSize; // 修正为正值，确保是左下角
+            const leftOffset = -(influenceRadius+0.5) * tileSize;
+            const bottomOffset = (influenceRadius+0.5) * tileSize; // 修正为正值，确保是左下角
             
             graphics.rect(leftOffset, -bottomOffset,  totalHeight,totalWidth);
             graphics.fill();
@@ -454,7 +454,7 @@ export class BuildingPlacer extends Component {
         
 
         
-        console.log('结束拖拽建筑');
+
     }
     
     /**
@@ -604,14 +604,12 @@ export class BuildingPlacer extends Component {
                         this.replacementBuildInfo, 
                         this.replacementNode
                     );
-                    if (success) {
-                        console.log(`建筑已恢复到原始位置 (${this.replacementOriginalRow}, ${this.replacementOriginalCol})`);
-                    } else {
+                    if (!success) {
                         console.warn('恢复建筑占用信息失败');
                     }
                 }
                 
-                console.log('已将建筑恢复到原始位置和父节点');
+
             } else {
                 console.warn('无法找到原始地块节点');
             }

@@ -1,0 +1,53 @@
+{
+  "dialogueInfo": {
+    "name": "人气值28000",
+    "fileName": "人气值28000.json",
+    "createdAt": "2025-09-08T07:35:29.408Z",
+    "type": "multi_turn",
+    "segmentCount": 7
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "负责人，之前有很多游客从罗汉寺出来，都想请些开过光的平安符、香囊回去做纪念。",
+      "order": 1
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "可惜的是我们目前没有地方卖。",
+      "order": 2
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "嗯，宗教文化也是重要的一部分，那就依你所言我们建一个文创馆。",
+      "order": 3
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "对了！我们可以在文创店旁边种上几棵红豆杉。",
+      "order": 4
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "这种树被称为“风水神树”，寓意吉祥，和祈福文创的主题非常契合。",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "“红豆生南国”，既有好意头，又是珍稀树种。",
+      "order": 6
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "很好，一并落实。",
+      "order": 7
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "dialogueInfo": {
+    "name": "开场（人气值0）",
+    "fileName": "开场（人气值0）.json",
+    "createdAt": "2025-09-08T07:28:48.946Z",
+    "type": "multi_turn",
+    "segmentCount": 6
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "XXX，可算把你盼来了！",
+      "order": 1
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "我是小张，咱们东洲岛现在的光景，你也看到了，空有好山水，却留不住人。",
+      "order": 2
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "比如说您看看咱们这罗汉古寺周边，游客拜完想找个吃斋饭的地方都没有，太可惜了！",
+      "order": 3
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "很多香客和游客都问。寺后头有块旧斋堂地基，稍微整理一下就能用。",
+      "order": 4
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "咱们这素斋手艺是现成的，就差个像样的地方经营。",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "你：我明白了。恢复素斋馆，既能满足游客需求，也能弘扬古寺文化，是件好事。",
+      "order": 6
+    }
+  ]
+}

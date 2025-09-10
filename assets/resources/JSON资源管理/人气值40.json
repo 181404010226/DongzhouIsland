@@ -1,0 +1,35 @@
+{
+  "dialogueInfo": {
+    "name": "人气值40",
+    "fileName": "人气值40.json",
+    "createdAt": "2025-09-08T07:30:35.737Z",
+    "type": "multi_turn",
+    "segmentCount": 4
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "年轻人，你们这岛上哪儿有卖水的地方啊？孩子渴了。",
+      "order": 1
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "走了半天，连个自动售货机都没看到。要是有个便利店就好了。",
+      "order": 2
+    },
+    {
+      "characterName": "游客",
+      "avatar": "resources/NPCUI/游客",
+      "content": "还有要是能有免费的饮水处接点热水泡茶，那就更贴心咯。",
+      "order": 3
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "您提的建议非常及时，我们这就规划建设，尽快解决大家喝水购物的问题。",
+      "order": 4
+    }
+  ]
+}

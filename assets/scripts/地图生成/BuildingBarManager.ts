@@ -494,7 +494,7 @@ export class DynamicBuildingBarManager extends Component {
      */
     private onBuildingNodeTouched(index: number) {
         if (!PlayerOperationState.isBuildingPlacementAllowed()) {
-            console.log('当前操作状态不允许建筑操作');
+
             return;
         }
         
@@ -502,7 +502,7 @@ export class DynamicBuildingBarManager extends Component {
         const buildInfo = node.getComponent(BuildInfo);
         
         if (!buildInfo || !buildInfo.isEnabled()) {
-            console.log('建筑不可用或已禁用');
+
             return;
         }
         
@@ -548,12 +548,11 @@ export class DynamicBuildingBarManager extends Component {
         }
         
         const node = this.buildingNodes[index];
-        const buildInfo = node.getComponent(BuildInfo);
+         const buildInfo = node.getComponent(BuildInfo);
         
         if (buildInfo) {
             buildInfo.setSelected(selected);
         }
-        
         console.log(`建筑节点 ${node.name} ${selected ? '选中' : '取消选中'}`);
     }
     
@@ -590,7 +589,7 @@ export class DynamicBuildingBarManager extends Component {
         // 重置操作状态，但不调用clearBuildingInfo以保留已放置的建筑
         PlayerOperationState.resetToIdle();
     }
-    
+ 
     /**
      * 重新加载建筑配置
      */

@@ -4,6 +4,7 @@ import { PlayerOperationState, PlayerOperationType } from './PlayerOperationStat
 import { BuildingPlacer } from '../地图生成/BuildingPlacer';
 import { TileOccupancyManager } from '../地图生成/TileOccupancyManager';
 import { BuildInfo } from '../地图生成/BuildInfo';
+import { BuildingDetailButtonManager } from '../UI面板/BuildingDetailButtonManager';
 
 const { ccclass, property } = _decorator;
 
@@ -46,6 +47,9 @@ export class InteractionManager extends Component {
     // InteractionControl引用，用于区域检测
     private interactionControl: any = null;
     
+    @property({ type: BuildingDetailButtonManager, tooltip: '建筑详情按钮管理器' })
+    buildingDetailButtonManager: BuildingDetailButtonManager = null;
+    
     @property({ tooltip: '相机移动速度' })
     cameraMoveSpeed: number = 1.0;
     
@@ -54,6 +58,9 @@ export class InteractionManager extends Component {
     
     @property({ tooltip: '边界自动移图速度' })
     edgeScrollSpeed: number = 200;
+    
+    @property({ tooltip: '点击检测阈值（像素）' })
+    clickThreshold: number = 10;
     
     // 私有变量
     private camera: Camera = null;
@@ -96,6 +103,8 @@ export class InteractionManager extends Component {
             allowedInteractions: ['ui']
         });
     }
+    private touchStartPos: Vec2 = new Vec2(); // 触摸开始位置
+    private totalMoveDistance: number = 0; // 总移动距离
     
     start() {
         this.initializeCamera();
@@ -510,6 +519,53 @@ export class InteractionManager extends Component {
         } catch (error) {
             console.warn('无法获取地块信息:', error);
             return null;
+        }
+    }
+    
+    /**
+     * 处理建筑点击事件
+     */
+    private handleBuildingClick(screenPos: Vec2) {
+        if (!this.tileOccupancyManager || !this.camera) {
+            return;
+        }
+        
+        // 获取点击位置的地块坐标
+        const tilePos = this.tileOccupancyManager.getTileInfoAtScreenPos(screenPos, this.camera);
+        if (!tilePos) {
+            console.log('未找到对应的地块');
+            return;
+        }
+        
+        // 获取该地块的建筑信息
+        const buildingInfo = this.tileOccupancyManager.getBuildingInfoAt(tilePos.row, tilePos.col);
+        
+        // 将屏幕坐标转换为世界坐标
+        const worldPos = this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+        
+        if (buildingInfo && buildingInfo.buildingNode) {
+            console.log('[InteractionManager] 点击了建筑:', buildingInfo.buildingNode.name);
+            
+            // 调用TileOccupancyManager的handleBuildingClick方法
+            this.tileOccupancyManager.handleBuildingClick(buildingInfo.buildingNode, worldPos);
+        } else {
+            console.log('[InteractionManager] 点击的地块没有建筑');
+            
+            // 点击空白处，调用TileOccupancyManager的handleBuildingClick方法
+            this.tileOccupancyManager.handleBuildingClick(null, worldPos);
+        }
+    }
+    
+    /**
+     * 更新长按计时器
+     */
+    update(deltaTime: number) {
+        if (this.isLongPressing && !this.longPressTriggered) {
+            this.longPressTimer += deltaTime;
+            
+            if (this.longPressTimer >= this.longPressTime) {
+                this.triggerLongPressSelection();
+            }
         }
     }
     

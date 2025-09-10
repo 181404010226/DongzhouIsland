@@ -1,0 +1,531 @@
+
+npc_old.png
+size: 1024,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/NPC_n_crotch
+  rotate: false
+  xy: 468, 33
+  size: 46, 36
+  orig: 46, 36
+  offset: 0, 0
+  index: -1
+images/NPC_n_fist_1
+  rotate: true
+  xy: 516, 78
+  size: 40, 41
+  orig: 40, 41
+  offset: 0, 0
+  index: -1
+images/NPC_n_fist_2
+  rotate: true
+  xy: 516, 36
+  size: 40, 41
+  orig: 40, 41
+  offset: 0, 0
+  index: -1
+images/NPC_n_fist_3
+  rotate: false
+  xy: 754, 42
+  size: 40, 41
+  orig: 40, 41
+  offset: 0, 0
+  index: -1
+images/NPC_n_fist_4
+  rotate: false
+  xy: 796, 42
+  size: 40, 41
+  orig: 40, 41
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_left_lower_1
+  rotate: false
+  xy: 765, 134
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_left_lower_2
+  rotate: false
+  xy: 813, 134
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_left_lower_3
+  rotate: false
+  xy: 468, 71
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_left_upper_1
+  rotate: true
+  xy: 559, 65
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_left_upper_2
+  rotate: true
+  xy: 608, 65
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_left_upper_3
+  rotate: false
+  xy: 657, 64
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_right_lower_1
+  rotate: false
+  xy: 861, 150
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_right_lower_2
+  rotate: false
+  xy: 909, 150
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_right_lower_3
+  rotate: false
+  xy: 957, 150
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_right_upper_1
+  rotate: false
+  xy: 705, 85
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_right_upper_2
+  rotate: false
+  xy: 753, 85
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_arm_right_upper_3
+  rotate: false
+  xy: 801, 85
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_back_hair_1
+  rotate: false
+  xy: 2, 369
+  size: 130, 141
+  orig: 130, 141
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_back_hair_2
+  rotate: false
+  xy: 2, 226
+  size: 130, 141
+  orig: 130, 141
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_back_hair_3
+  rotate: false
+  xy: 134, 369
+  size: 130, 141
+  orig: 130, 141
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_back_hair_4
+  rotate: false
+  xy: 2, 83
+  size: 130, 141
+  orig: 130, 141
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_cloth_1
+  rotate: true
+  xy: 2, 11
+  size: 70, 85
+  orig: 70, 85
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_cloth_2
+  rotate: false
+  xy: 859, 199
+  size: 70, 85
+  orig: 70, 85
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_cloth_3
+  rotate: false
+  xy: 931, 199
+  size: 70, 85
+  orig: 70, 85
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_cloth_4
+  rotate: true
+  xy: 89, 11
+  size: 70, 85
+  orig: 70, 85
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_face
+  rotate: false
+  xy: 701, 134
+  size: 62, 47
+  orig: 62, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_feet_left
+  rotate: true
+  xy: 705, 37
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_feet_right
+  rotate: true
+  xy: 705, 37
+  size: 46, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_hair_front_1
+  rotate: false
+  xy: 504, 394
+  size: 120, 116
+  orig: 120, 116
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_hair_front_2
+  rotate: false
+  xy: 626, 394
+  size: 120, 116
+  orig: 120, 116
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_hair_front_3
+  rotate: false
+  xy: 748, 394
+  size: 120, 116
+  orig: 120, 116
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_hair_front_4
+  rotate: false
+  xy: 870, 394
+  size: 120, 116
+  orig: 120, 116
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_head_1
+  rotate: false
+  xy: 504, 286
+  size: 120, 106
+  orig: 120, 106
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_head_2
+  rotate: false
+  xy: 626, 286
+  size: 120, 106
+  orig: 120, 106
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_head_3
+  rotate: false
+  xy: 748, 286
+  size: 120, 106
+  orig: 120, 106
+  offset: 0, 0
+  index: -1
+images/NPC_old_f_head_4
+  rotate: false
+  xy: 870, 286
+  size: 120, 106
+  orig: 120, 106
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_left_lower_1
+  rotate: true
+  xy: 849, 80
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_left_lower_2
+  rotate: true
+  xy: 891, 80
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_left_lower_3
+  rotate: true
+  xy: 933, 80
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_left_lower_4
+  rotate: true
+  xy: 838, 44
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_left_upper_1
+  rotate: true
+  xy: 880, 44
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_left_upper_2
+  rotate: true
+  xy: 922, 44
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_left_upper_3
+  rotate: false
+  xy: 838, 2
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_right_lower_1
+  rotate: false
+  xy: 874, 2
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_right_lower_2
+  rotate: false
+  xy: 910, 2
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_right_lower_3
+  rotate: false
+  xy: 946, 2
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_right_lower_4
+  rotate: true
+  xy: 964, 44
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_right_upper_1
+  rotate: false
+  xy: 982, 2
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_right_upper_2
+  rotate: true
+  xy: 975, 80
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_arm_right_upper_3
+  rotate: true
+  xy: 307, 24
+  size: 34, 40
+  orig: 34, 40
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_beard_1
+  rotate: false
+  xy: 134, 234
+  size: 117, 133
+  orig: 117, 133
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_beard_2
+  rotate: false
+  xy: 266, 377
+  size: 117, 133
+  orig: 117, 133
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_beard_3
+  rotate: false
+  xy: 134, 99
+  size: 117, 133
+  orig: 117, 133
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_beard_4
+  rotate: false
+  xy: 385, 377
+  size: 117, 133
+  orig: 117, 133
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_cane
+  rotate: true
+  xy: 246, 26
+  size: 34, 59
+  orig: 34, 59
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_cloth_1
+  rotate: true
+  xy: 253, 62
+  size: 61, 74
+  orig: 61, 74
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_cloth_2
+  rotate: true
+  xy: 329, 60
+  size: 61, 74
+  orig: 61, 74
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_cloth_3
+  rotate: false
+  xy: 405, 47
+  size: 61, 74
+  orig: 61, 74
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_cloth_4
+  rotate: true
+  xy: 483, 120
+  size: 61, 74
+  orig: 61, 74
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_face_1
+  rotate: false
+  xy: 483, 183
+  size: 92, 101
+  orig: 92, 101
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_face_2
+  rotate: false
+  xy: 577, 183
+  size: 92, 101
+  orig: 92, 101
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_face_3
+  rotate: false
+  xy: 671, 183
+  size: 92, 101
+  orig: 92, 101
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_face_4
+  rotate: false
+  xy: 765, 183
+  size: 92, 101
+  orig: 92, 101
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_feet_left
+  rotate: true
+  xy: 516, 2
+  size: 32, 44
+  orig: 32, 44
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_feet_right
+  rotate: true
+  xy: 861, 116
+  size: 32, 44
+  orig: 32, 44
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_hair_back_1
+  rotate: false
+  xy: 176, 28
+  size: 68, 69
+  orig: 68, 69
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_hair_back_2
+  rotate: true
+  xy: 559, 113
+  size: 68, 69
+  orig: 68, 69
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_hair_back_4
+  rotate: true
+  xy: 630, 113
+  size: 68, 69
+  orig: 68, 69
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_head_1
+  rotate: true
+  xy: 253, 247
+  size: 120, 106
+  orig: 120, 106
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_head_2
+  rotate: true
+  xy: 253, 125
+  size: 120, 106
+  orig: 120, 106
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_head_3
+  rotate: false
+  xy: 361, 269
+  size: 120, 106
+  orig: 120, 106
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_head_4
+  rotate: false
+  xy: 361, 161
+  size: 120, 106
+  orig: 120, 106
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_leg_left
+  rotate: true
+  xy: 907, 116
+  size: 32, 44
+  orig: 32, 44
+  offset: 0, 0
+  index: -1
+images/NPC_old_m_leg_right
+  rotate: true
+  xy: 953, 116
+  size: 32, 44
+  orig: 32, 44
+  offset: 0, 0
+  index: -1
+images/SHADOW
+  rotate: false
+  xy: 361, 123
+  size: 92, 36
+  orig: 92, 36
+  offset: 0, 0
+  index: -1

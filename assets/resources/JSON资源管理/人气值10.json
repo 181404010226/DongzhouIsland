@@ -1,0 +1,59 @@
+{
+  "dialogueInfo": {
+    "name": "人气值10",
+    "fileName": "人气值10.json",
+    "createdAt": "2025-09-08T07:30:22.977Z",
+    "type": "multi_turn",
+    "segmentCount": 8
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "领导！领导！稍等一下！",
+      "order": 1
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "怎么了？",
+      "order": 2
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "是这样的，人一多，垃圾就多了起来。",
+      "order": 3
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "光靠我们几个弯腰去捡不是办法，得赶紧多放置一些垃圾桶才行啊！",
+      "order": 4
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "不然这么好的环境就要被破坏了。",
+      "order": 5
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "还有还有！入口那片空地光秃秃的，显得很荒凉。",
+      "order": 6
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "我申请了一批古樟树的树苗，咱们赶紧种上几棵吧？既能遮阴又能提升整体格调！",
+      "order": 7
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "说得对，基础环境和绿化是门面。我马上安排。",
+      "order": 8
+    }
+  ]
+}

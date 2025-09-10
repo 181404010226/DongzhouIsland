@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单轮对话配置系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .avatar-preview {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .avatar-preview img {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 50%;
+            border: 3px solid #4facfe;
+            object-fit: cover;
+        }
+
+        .dialogue-segment {
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            position: relative;
+        }
+
+        .dialogue-segment:hover {
+            border-color: #4facfe;
+        }
+
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .segment-title {
+            font-weight: bold;
+            color: #4facfe;
+            font-size: 1.1em;
+        }
+
+        .remove-segment {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-segment:hover {
+            background: #c82333;
+        }
+
+        .segment-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            align-items: start;
+        }
+
+        .character-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .character-name-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .avatar-upload {
+            position: relative;
+        }
+
+        .avatar-display {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: white;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-display:hover {
+            border-color: #4facfe;
+        }
+
+        .avatar-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            font-size: 24px;
+            color: #ccc;
+        }
+
+        .content-input {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        @media (max-width: 768px) {
+            .segment-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .preview-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .preview-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .json-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-display {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border: 2px dashed #e1e5e9;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-display:hover {
+            border-color: #4facfe;
+            background: #f0f8ff;
+        }
+
+        .file-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+            color: #4facfe;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 多人对话配置系统</h1>
+            <p>轻松创建和管理多角色游戏对话配置文件</p>
+        </div>
+
+        <div class="form-container">
+            <form id="dialogueForm">
+                <div class="form-group">
+                    <label for="dialogueName">📝 对话名字（文件名）</label>
+                    <input type="text" id="dialogueName" name="dialogueName" placeholder="请输入对话名字，如：村长的问候" required>
+                </div>
+
+                <div class="form-group">
+                    <label>👥 对话片段配置</label>
+                    <div id="dialogueSegments">
+                        <!-- 对话片段将在这里动态添加 -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addDialogueSegment()" style="width: 100%; margin-top: 10px;">➕ 添加对话片段</button>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="clearForm()">🗑️ 清空</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearLocalStorageData()" title="清除本地保存的数据">🧹 清除缓存</button>
+                    <button type="button" class="btn btn-secondary" onclick="importJSON()" title="导入之前下载的JSON文件">📂 导入JSON</button>
+                    <button type="button" class="btn btn-primary" onclick="generateConfig()">✨ 生成配置</button>
+                    <button type="button" class="btn btn-primary" onclick="downloadConfig()">💾 下载JSON</button>
+                </div>
+                
+                <!-- 隐藏的文件输入框用于导入JSON -->
+                <input type="file" id="jsonFileInput" accept=".json" style="display: none;" onchange="handleJSONImport(this)">
+            </form>
+
+            <div class="preview-section" id="previewSection" style="display: none;">
+                <div class="preview-title">📋 配置预览</div>
+                <div class="json-output" id="jsonOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = null;
+        let segmentCounter = 0;
+        const STORAGE_KEY = 'dialogue_config_data';
+
+        // 保存数据到本地存储
+        function saveToLocalStorage() {
+            const data = {
+                dialogueName: document.getElementById('dialogueName').value,
+                segments: [],
+                segmentCounter: segmentCounter
+            };
+
+            // 收集所有片段数据
+            const segmentElements = document.querySelectorAll('.dialogue-segment');
+            segmentElements.forEach(segment => {
+                const segmentId = segment.id.replace('segment-', '');
+                const characterName = segment.querySelector('.character-name-input').value;
+                const content = segment.querySelector('.content-input').value;
+                const avatarDisplay = segment.querySelector('.avatar-display');
+                const avatar = avatarDisplay.getAttribute('data-avatar');
+
+                data.segments.push({
+                    id: segmentId,
+                    characterName: characterName,
+                    content: content,
+                    avatar: avatar
+                });
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        // 从本地存储加载数据
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (!savedData) return false;
+
+            try {
+                const data = JSON.parse(savedData);
+                
+                // 恢复对话名称
+                document.getElementById('dialogueName').value = data.dialogueName || '';
+                
+                // 清空现有片段
+                document.getElementById('dialogueSegments').innerHTML = '';
+                segmentCounter = 0;
+                
+                // 恢复片段数据
+                if (data.segments && data.segments.length > 0) {
+                    data.segments.forEach(segmentData => {
+                        addDialogueSegment();
+                        const currentSegment = document.getElementById(`segment-${segmentCounter}`);
+                        
+                        // 恢复角色名称
+                        const nameInput = currentSegment.querySelector('.character-name-input');
+                        nameInput.value = segmentData.characterName || '';
+                        
+                        // 恢复对话内容
+                        const contentInput = currentSegment.querySelector('.content-input');
+                        contentInput.value = segmentData.content || '';
+                        
+                        // 恢复头像
+                        if (segmentData.avatar) {
+                            const avatarDisplay = currentSegment.querySelector('.avatar-display');
+                            avatarDisplay.innerHTML = `<img src="${segmentData.avatar}" alt="头像">`;
+                            avatarDisplay.setAttribute('data-avatar', segmentData.avatar);
+                        }
+                    });
+                } else {
+                    // 如果没有保存的片段，添加一个默认片段
+                    addDialogueSegment();
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('加载本地数据失败:', error);
+                return false;
+            }
+        }
+
+        // 清除本地存储
+        function clearLocalStorage() {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+
+        // 清除本地存储数据（用户手动操作）
+        function clearLocalStorageData() {
+            if (confirm('确定要清除本地保存的数据吗？这将删除所有自动保存的内容。')) {
+                clearLocalStorage();
+                alert('本地缓存已清除！');
+            }
+        }
+
+        // 添加对话片段
+        function addDialogueSegment() {
+            segmentCounter++;
+            const segmentsContainer = document.getElementById('dialogueSegments');
+            
+            const segmentDiv = document.createElement('div');
+            segmentDiv.className = 'dialogue-segment';
+            segmentDiv.id = `segment-${segmentCounter}`;
+            
+            segmentDiv.innerHTML = `
+                <div class="segment-header">
+                    <div class="segment-title">💬 对话片段 ${segmentCounter}</div>
+                    <button type="button" class="remove-segment" onclick="removeSegment(${segmentCounter})" title="删除片段">×</button>
+                </div>
+                <div class="segment-row">
+                    <div class="character-info">
+                        <input type="text" class="character-name-input" placeholder="角色名称" data-segment="${segmentCounter}">
+                        <div class="avatar-upload">
+                            <input type="file" id="avatar-${segmentCounter}" accept="image/*" style="display: none;" onchange="handleAvatarUpload(${segmentCounter}, this)">
+                            <div class="avatar-display" onclick="document.getElementById('avatar-${segmentCounter}').click()" id="avatar-display-${segmentCounter}">
+                                <span class="avatar-placeholder">📷</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <textarea class="form-group input content-input" placeholder="请输入该角色的对话内容..." data-segment="${segmentCounter}"></textarea>
+                    </div>
+                </div>
+            `;
+            
+            segmentsContainer.appendChild(segmentDiv);
+            
+            // 为新添加的片段绑定自动保存事件
+            bindAutoSaveEvents(segmentDiv);
+            
+            // 保存到本地存储
+            saveToLocalStorage();
+        }
+
+        // 删除对话片段
+         function removeSegment(segmentId) {
+             const segment = document.getElementById(`segment-${segmentId}`);
+             if (segment) {
+                 segment.remove();
+                 // 保存到本地存储
+                 saveToLocalStorage();
+             }
+         }
+
+        // 处理头像上传
+         function handleAvatarUpload(segmentId, input) {
+             const file = input.files[0];
+             const avatarDisplay = document.getElementById(`avatar-display-${segmentId}`);
+             
+             if (file) {
+                 // 自动填入角色名称（从文件名提取，去除扩展名）
+                 const characterNameInput = document.querySelector(`[data-segment="${segmentId}"].character-name-input`);
+                 if (characterNameInput && !characterNameInput.value.trim()) {
+                     const fileName = file.name;
+                     const nameWithoutExtension = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+                     characterNameInput.value = nameWithoutExtension;
+                 }
+                 
+                 // 使用新的路径格式：resources/NPCUI/角色名
+                 const characterName = document.querySelector(`[data-segment="${segmentId}"].character-name-input`).value.trim() || file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                 const relativePath = `resources/NPCUI/${characterName}`;
+                 const objectURL = URL.createObjectURL(file);
+                 
+                 avatarDisplay.innerHTML = `<img src="${objectURL}" alt="头像">`;
+                 avatarDisplay.setAttribute('data-avatar', relativePath);
+                  
+                  // 保存到本地存储
+                  setTimeout(saveToLocalStorage, 100);
+             }
+         }
+
+        // 导入JSON文件
+        function importJSON() {
+            document.getElementById('jsonFileInput').click();
+        }
+
+        // 处理JSON文件导入
+        function handleJSONImport(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    
+                    // 验证JSON格式
+                    if (!jsonData.dialogueInfo || !jsonData.dialogueSegments) {
+                        alert('JSON文件格式不正确！请选择正确的对话配置文件。');
+                        return;
+                    }
+
+                    // 清空现有数据
+                    document.getElementById('dialogueSegments').innerHTML = '';
+                    segmentCounter = 0;
+
+                    // 导入对话名称
+                    document.getElementById('dialogueName').value = jsonData.dialogueInfo.name || '';
+
+                    // 导入对话片段
+                    if (jsonData.dialogueSegments && jsonData.dialogueSegments.length > 0) {
+                        jsonData.dialogueSegments.forEach(segment => {
+                            addDialogueSegment();
+                            const currentSegment = document.getElementById(`segment-${segmentCounter}`);
+                            
+                            // 设置角色名称
+                            const nameInput = currentSegment.querySelector('.character-name-input');
+                            nameInput.value = segment.characterName || '';
+                            
+                            // 设置对话内容
+                            const contentInput = currentSegment.querySelector('.content-input');
+                            contentInput.value = segment.content || '';
+                            
+                            // 处理头像路径 - 转换为新格式
+                            if (segment.avatar) {
+                                const avatarDisplay = currentSegment.querySelector('.avatar-display');
+                                let newAvatarPath = segment.avatar;
+                                
+                                // 如果是旧格式路径，转换为新格式
+                                if (segment.avatar.startsWith('./assets/avatars/')) {
+                                    const fileName = segment.avatar.replace('./assets/avatars/', '');
+                                    const characterName = segment.characterName || fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+                                    newAvatarPath = `resources/NPCUI/${characterName}`;
+                                }
+                                
+                                avatarDisplay.innerHTML = `<span class="avatar-placeholder">📷</span>`;
+                                avatarDisplay.setAttribute('data-avatar', newAvatarPath);
+                                
+                                // 尝试显示头像预览（如果路径存在）
+                                const img = new Image();
+                                img.onload = function() {
+                                    avatarDisplay.innerHTML = `<img src="${newAvatarPath}" alt="头像">`;
+                                };
+                                img.onerror = function() {
+                                    // 如果图片加载失败，保持占位符
+                                    avatarDisplay.innerHTML = `<span class="avatar-placeholder">📷</span>`;
+                                };
+                                img.src = newAvatarPath;
+                            }
+                        });
+                    } else {
+                        addDialogueSegment();
+                    }
+
+                    // 保存到本地存储
+                    saveToLocalStorage();
+                    
+                    alert('JSON文件导入成功！头像路径已自动转换为新格式。');
+                    
+                } catch (error) {
+                    console.error('JSON解析错误:', error);
+                    alert('JSON文件格式错误，请检查文件内容！');
+                }
+            };
+            
+            reader.readAsText(file);
+            // 清空input值，允许重复选择同一文件
+            input.value = '';
+        }
+
+        // 生成配置
+        function generateConfig() {
+            const dialogueName = document.getElementById('dialogueName').value.trim();
+            
+            if (!dialogueName) {
+                alert('请输入对话名字！');
+                return;
+            }
+
+            // 收集所有对话片段
+            const segments = [];
+            const segmentElements = document.querySelectorAll('.dialogue-segment');
+            
+            if (segmentElements.length === 0) {
+                alert('请至少添加一个对话片段！');
+                return;
+            }
+
+            segmentElements.forEach((segment, index) => {
+                const characterName = segment.querySelector('.character-name-input').value.trim();
+                const content = segment.querySelector('.content-input').value.trim();
+                const avatarDisplay = segment.querySelector('.avatar-display');
+                const avatar = avatarDisplay.getAttribute('data-avatar') || null;
+
+                if (!characterName) {
+                    alert(`请输入第${index + 1}个片段的角色名称！`);
+                    return;
+                }
+
+                if (!content) {
+                    alert(`请输入第${index + 1}个片段的对话内容！`);
+                    return;
+                }
+
+                segments.push({
+                    characterName: characterName,
+                    avatar: avatar,
+                    content: content,
+                    order: index + 1
+                });
+            });
+
+            if (segments.length === 0) {
+                return;
+            }
+
+            // 生成文件名（移除特殊字符）
+            const fileName = dialogueName.replace(/[\\/:*?"<>|]/g, '_') + '.json';
+
+            currentConfig = {
+                dialogueInfo: {
+                    name: dialogueName,
+                    fileName: fileName,
+                    createdAt: new Date().toISOString(),
+                    type: "multi_turn",
+                    segmentCount: segments.length
+                },
+                dialogueSegments: segments
+            };
+
+            // 显示预览
+            const previewSection = document.getElementById('previewSection');
+            const jsonOutput = document.getElementById('jsonOutput');
+            
+            previewSection.style.display = 'block';
+            jsonOutput.textContent = JSON.stringify(currentConfig, null, 2);
+
+            // 滚动到预览区域
+            previewSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 下载配置文件
+        function downloadConfig() {
+            if (!currentConfig) {
+                alert('请先生成配置！');
+                return;
+            }
+
+            const dataStr = JSON.stringify(currentConfig, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = currentConfig.dialogueInfo.fileName;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(link.href);
+        }
+
+        // 清空表单
+        function clearForm() {
+            if (confirm('确定要清空所有内容吗？')) {
+                document.getElementById('dialogueForm').reset();
+                document.getElementById('dialogueSegments').innerHTML = '';
+                document.getElementById('previewSection').style.display = 'none';
+                segmentCounter = 0;
+                currentConfig = null;
+                clearLocalStorage();
+                // 添加一个默认片段
+                addDialogueSegment();
+            }
+        }
+
+        // 实时预览更新和自动保存
+        document.getElementById('dialogueName').addEventListener('input', function() {
+            updatePreview();
+            saveToLocalStorage();
+        });
+
+        // 为动态添加的元素绑定自动保存事件
+        function bindAutoSaveEvents(segment) {
+            const nameInput = segment.querySelector('.character-name-input');
+            const contentInput = segment.querySelector('.content-input');
+            
+            nameInput.addEventListener('input', saveToLocalStorage);
+            contentInput.addEventListener('input', function() {
+                updatePreview();
+                saveToLocalStorage();
+            });
+        }
+
+        function updatePreview() {
+            if (currentConfig) {
+                generateConfig();
+            }
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('多人对话配置系统已加载完成');
+            
+            // 尝试从本地存储加载数据
+            const loaded = loadFromLocalStorage();
+            
+            // 如果没有加载到数据，添加一个默认片段
+            if (!loaded) {
+                addDialogueSegment();
+            }
+        });
+    </script>
+</body>
+</html>

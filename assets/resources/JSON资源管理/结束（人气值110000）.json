@@ -1,0 +1,59 @@
+{
+  "dialogueInfo": {
+    "name": "结束（人气值110000）",
+    "fileName": "结束（人气值110000）.json",
+    "createdAt": "2025-09-08T07:29:57.737Z",
+    "type": "multi_turn",
+    "segmentCount": 8
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "负责人，恭喜您！您成功地让东洲岛重现辉煌，甚至超越了往昔！",
+      "order": 1
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "我们的成功经验引起了市里的高度重视。",
+      "order": 2
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "经过研究，决定将XXX景区的规划和开发也交给您！",
+      "order": 3
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "新的地图，新的挑战！",
+      "order": 4
+    },
+    {
+      "characterName": "场地员工",
+      "avatar": "resources/NPCUI/场地员工",
+      "content": "希望您能将这份成功复制过去，打造出衡阳又一个文旅标杆！",
+      "order": 5
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "感谢大家的共同努力！",
+      "order": 6
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "东洲岛罗汉寺是我们的基石。",
+      "order": 7
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "现在，让我们整装出发，一起去征服新的高度！",
+      "order": 8
+    }
+  ]
+}

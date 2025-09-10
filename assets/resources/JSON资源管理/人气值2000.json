@@ -1,0 +1,59 @@
+{
+  "dialogueInfo": {
+    "name": "人气值2000",
+    "fileName": "人气值2000.json",
+    "createdAt": "2025-09-08T07:31:08.945Z",
+    "type": "multi_turn",
+    "segmentCount": 8
+  },
+  "dialogueSegments": [
+    {
+      "characterName": "垂钓者",
+      "avatar": "resources/NPCUI/垂钓者",
+      "content": "老板，你这岛风景是真不错，就是对我们钓鱼佬不太友好啊。",
+      "order": 1
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "老哥此话怎讲？",
+      "order": 2
+    },
+    {
+      "characterName": "垂钓者",
+      "avatar": "resources/NPCUI/垂钓者",
+      "content": "这江边光秃秃的，甚至连些遮阳的地方都没有。",
+      "order": 3
+    },
+    {
+      "characterName": "垂钓者",
+      "avatar": "resources/NPCUI/垂钓者",
+      "content": "要是江边种点垂柳，更有意境，我们在这钓鱼坐着也舒服。",
+      "order": 4
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "确实，您说的很有道理！",
+      "order": 5
+    },
+    {
+      "characterName": "垂钓者",
+      "avatar": "resources/NPCUI/垂钓者",
+      "content": "是吧！如果顺便再开个渔具店，卖点鱼饵钓具，我绝对能在这儿待一天！",
+      "order": 6
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "哈哈，好一幅“柳映湘江”的画面。",
+      "order": 7
+    },
+    {
+      "characterName": "玩家男",
+      "avatar": "resources/NPCUI/玩家男",
+      "content": "没问题，我一定让东洲岛也成为垂钓者的乐园。",
+      "order": 8
+    }
+  ]
+}

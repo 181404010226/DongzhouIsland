@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剧情建筑配置工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #3498db;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #2980b9;
+            background: #ecf0f1;
+        }
+
+        .upload-area.dragover {
+            border-color: #27ae60;
+            background: #d5f4e6;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .file-list {
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .file-item {
+            background: #ecf0f1;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .story-config {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .building-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .building-item {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .building-item:hover {
+            background: #d5dbdb;
+        }
+
+        .building-item.selected {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .output-area {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .story-list {
+            margin-top: 20px;
+        }
+
+        .story-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .story-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .story-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .selected-buildings {
+            margin-top: 10px;
+        }
+
+        .building-tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>剧情建筑配置工具</h1>
+            <p>合并剧情人物对话与建筑数据的配置工具</p>
+        </div>
+
+        <div class="content">
+            <!-- 文件上传区域 -->
+            <div class="section">
+                <h2>📁 文件上传</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h3>剧情人物对话文件夹</h3>
+                        <div class="upload-area" id="storyUpload">
+                            <div class="upload-text">点击或拖拽文件夹到此处</div>
+                            <input type="file" id="storyFiles" class="file-input" webkitdirectory multiple>
+                        </div>
+                        <div class="file-list" id="storyFileList"></div>
+                    </div>
+                    
+                    <div>
+                        <h3>建筑数据文件夹</h3>
+                        <div class="upload-area" id="buildingUpload">
+                            <div class="upload-text">点击或拖拽文件夹到此处</div>
+                            <input type="file" id="buildingFiles" class="file-input" webkitdirectory multiple>
+                        </div>
+                        <div class="file-list" id="buildingFileList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 剧情配置区域 -->
+            <div class="section">
+                <h2>⚙️ 剧情配置</h2>
+                
+                <div id="storyConfigs"></div>
+                
+                <button class="btn btn-success" onclick="addStoryConfig()">+ 添加新剧情</button>
+            </div>
+
+            <!-- 输出区域 -->
+            <div class="section">
+                <h2>📄 配置输出</h2>
+                
+                <div style="margin-bottom: 15px;">
+                    <button class="btn btn-success" onclick="generateConfig()">生成配置JSON</button>
+                    <button class="btn" onclick="downloadConfig()">下载配置文件</button>
+                    <button class="btn" onclick="importConfig()">导入配置文件</button>
+                    <button class="btn btn-danger" onclick="clearCache()">清除缓存</button>
+                    <button class="btn btn-danger" onclick="clearAll()">清空所有</button>
+                </div>
+                
+                <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+                
+                <div class="output-area" id="outputArea">配置输出将显示在这里...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let storyData = {};
+        let buildingData = {};
+        let storyConfigs = [];
+        let configCounter = 0;
+
+        // 本地存储键名
+        const STORAGE_KEYS = {
+            storyData: 'storyBuildingConfig_storyData',
+            buildingData: 'storyBuildingConfig_buildingData',
+            storyConfigs: 'storyBuildingConfig_storyConfigs',
+            configCounter: 'storyBuildingConfig_configCounter'
+        };
+
+        // 保存数据到本地存储
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.storyData, JSON.stringify(storyData));
+                localStorage.setItem(STORAGE_KEYS.buildingData, JSON.stringify(buildingData));
+                localStorage.setItem(STORAGE_KEYS.storyConfigs, JSON.stringify(storyConfigs));
+                localStorage.setItem(STORAGE_KEYS.configCounter, configCounter.toString());
+            } catch (error) {
+                console.warn('保存到本地存储失败:', error);
+            }
+        }
+
+        // 从本地存储加载数据
+        function loadFromLocalStorage() {
+            try {
+                const savedStoryData = localStorage.getItem(STORAGE_KEYS.storyData);
+                const savedBuildingData = localStorage.getItem(STORAGE_KEYS.buildingData);
+                const savedStoryConfigs = localStorage.getItem(STORAGE_KEYS.storyConfigs);
+                const savedConfigCounter = localStorage.getItem(STORAGE_KEYS.configCounter);
+
+                if (savedStoryData) {
+                    storyData = JSON.parse(savedStoryData);
+                    updateFileList('storyFileList', Object.keys(storyData));
+                }
+                if (savedBuildingData) {
+                    buildingData = JSON.parse(savedBuildingData);
+                    updateFileList('buildingFileList', Object.keys(buildingData));
+                }
+                if (savedStoryConfigs) {
+                    storyConfigs = JSON.parse(savedStoryConfigs);
+                    renderStoryConfigs();
+                }
+                if (savedConfigCounter) {
+                    configCounter = parseInt(savedConfigCounter) || 0;
+                }
+            } catch (error) {
+                console.warn('从本地存储加载失败:', error);
+            }
+        }
+
+        // 更新文件列表显示
+        function updateFileList(listId, fileNames) {
+            const fileList = document.getElementById(listId);
+            fileList.innerHTML = '';
+            fileNames.forEach(fileName => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${fileName}</span>
+                    <span style="color: #27ae60;">✓ 已解析</span>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        // 清空本地存储
+        function clearLocalStorage() {
+            Object.values(STORAGE_KEYS).forEach(key => {
+                localStorage.removeItem(key);
+            });
+        }
+
+        // 清除缓存功能
+        function clearCache() {
+            if (confirm('确定要清除所有缓存数据吗？这将删除所有本地保存的配置信息。')) {
+                clearLocalStorage();
+                // 重置所有数据
+                storyData = {};
+                buildingData = {};
+                storyConfigs = [];
+                configCounter = 0;
+                
+                // 清空界面显示
+                document.getElementById('storyFileList').innerHTML = '';
+                document.getElementById('buildingFileList').innerHTML = '';
+                document.getElementById('storyConfigs').innerHTML = '';
+                document.getElementById('outputArea').textContent = '配置输出将显示在这里...';
+                
+                alert('缓存已清除！');
+            }
+        }
+
+        // 导入配置文件
+        function importConfig() {
+            document.getElementById('importFileInput').click();
+        }
+
+        // 处理导入的配置文件
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedConfig = JSON.parse(e.target.result);
+                    
+                    // 验证导入的配置格式
+                    if (!importedConfig.metadata || !importedConfig.stories) {
+                        alert('导入失败：配置文件格式不正确！');
+                        return;
+                    }
+
+                    // 清空当前配置
+                    storyConfigs = [];
+                    configCounter = 0;
+
+                    // 重建配置数据
+                    importedConfig.stories.forEach((story, index) => {
+                        configCounter++;
+                        const config = {
+                            id: configCounter,
+                            name: story.name || `导入的剧情 ${index + 1}`,
+                            popularity: story.popularity || 0,
+                            storyJson: story.storyFile || '',
+                            buildings: story.buildings ? story.buildings.map(b => ({
+                                id: b.id,
+                                name: b.name || `建筑 ${b.id}`,
+                                count: b.count || 1
+                            })) : []
+                        };
+                        storyConfigs.push(config);
+                    });
+
+                    // 更新界面
+                    renderStoryConfigs();
+                    saveToLocalStorage();
+                    
+                    // 显示导入结果
+                    document.getElementById('outputArea').textContent = 
+                        `成功导入 ${storyConfigs.length} 个剧情配置！\n\n` + 
+                        JSON.stringify(importedConfig, null, 2);
+                    
+                    alert(`成功导入 ${storyConfigs.length} 个剧情配置！`);
+                    
+                } catch (error) {
+                    alert('导入失败：文件格式错误或内容无效！\n错误信息：' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            // 清空文件输入，允许重复导入同一文件
+            event.target.value = '';
+        }
+
+        // 文件上传处理
+        function setupFileUpload(uploadId, inputId, listId, dataStore, isBuilding = false) {
+            const uploadArea = document.getElementById(uploadId);
+            const fileInput = document.getElementById(inputId);
+            const fileList = document.getElementById(listId);
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files, dataStore, fileList, isBuilding);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files, dataStore, fileList, isBuilding);
+            });
+        }
+
+        function handleFiles(files, dataStore, fileList, isBuilding) {
+            fileList.innerHTML = '';
+            
+            Array.from(files).forEach(file => {
+                if (file.name.endsWith('.json')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const jsonData = JSON.parse(e.target.result);
+                            if (isBuilding) {
+                                buildingData[file.name] = jsonData;
+                            } else {
+                                storyData[file.name] = jsonData;
+                            }
+                            
+                            const fileItem = document.createElement('div');
+                            fileItem.className = 'file-item';
+                            fileItem.innerHTML = `
+                                <span>${file.name}</span>
+                                <span style="color: #27ae60;">✓ 已解析</span>
+                            `;
+                            fileList.appendChild(fileItem);
+                            
+                            // 自动保存
+                            saveToLocalStorage();
+                        } catch (error) {
+                            const fileItem = document.createElement('div');
+                            fileItem.className = 'file-item';
+                            fileItem.innerHTML = `
+                                <span>${file.name}</span>
+                                <span style="color: #e74c3c;">✗ 解析失败</span>
+                            `;
+                            fileList.appendChild(fileItem);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        // 添加剧情配置
+        function addStoryConfig() {
+            configCounter++;
+            const config = {
+                id: configCounter,
+                name: '',
+                popularity: 0,
+                storyJson: '',
+                buildings: []
+            };
+            
+            storyConfigs.push(config);
+            renderStoryConfigs();
+            saveToLocalStorage();
+        }
+
+        // 渲染剧情配置
+        function renderStoryConfigs() {
+            const container = document.getElementById('storyConfigs');
+            container.innerHTML = '';
+
+            storyConfigs.forEach(config => {
+                const configDiv = document.createElement('div');
+                configDiv.className = 'story-config';
+                configDiv.innerHTML = `
+                    <div class="story-header">
+                        <div class="story-title">剧情配置 #${config.id}</div>
+                        <button class="btn btn-danger" onclick="removeStoryConfig(${config.id})">删除</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>剧情名称:</label>
+                        <input type="text" value="${config.name}" onchange="updateConfig(${config.id}, 'name', this.value)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>所需人气值:</label>
+                        <input type="number" value="${config.popularity}" onchange="updateConfig(${config.id}, 'popularity', parseInt(this.value))">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>对应剧情JSON:</label>
+                        <select onchange="updateConfig(${config.id}, 'storyJson', this.value)">
+                            <option value="">请选择剧情文件</option>
+                            ${Object.keys(storyData).map(key => 
+                                `<option value="${key}" ${config.storyJson === key ? 'selected' : ''}>${key}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>解锁建筑:</label>
+                        <div class="building-selector" id="buildings-${config.id}">
+                            ${renderBuildingSelector(config)}
+                        </div>
+                        <div class="selected-buildings">
+                            <strong>已选择 ${config.buildings.length} 个建筑:</strong>
+                            ${config.buildings.map(b => `<span class="building-tag">${b.name} (数量: ${b.count || 1})</span>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="building-counts-${config.id}" style="${config.buildings.length > 0 ? '' : 'display: none;'}">
+                        <label>建筑数量配置:</label>
+                        ${config.buildings.map(b => `
+                            <div style="display: flex; align-items: center; margin: 5px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                                <span style="flex: 1; font-weight: bold;">${b.name}:</span>
+                                <input type="number" min="1" value="${b.count || 1}" 
+                                       style="width: 80px; margin-left: 10px;" 
+                                       onchange="updateBuildingCount(${config.id}, '${b.id}', parseInt(this.value))">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(configDiv);
+            });
+        }
+
+        // 渲染建筑选择器
+        function renderBuildingSelector(config) {
+            let html = '';
+            
+            Object.values(buildingData).forEach(buildingFile => {
+                if (buildingFile.buildings && Array.isArray(buildingFile.buildings)) {
+                    buildingFile.buildings.forEach(building => {
+                        const isSelected = config.buildings.some(b => b.id === building.id);
+                        html += `
+                            <div class="building-item ${isSelected ? 'selected' : ''}" 
+                                 onclick="toggleBuilding(${config.id}, '${building.id}', '${building.name}')">
+                                <div><strong>${building.name}</strong></div>
+                                <div>ID: ${building.id}</div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+            
+            return html || '<div>暂无建筑数据</div>';
+        }
+
+        // 更新配置
+        function updateConfig(configId, field, value) {
+            const config = storyConfigs.find(c => c.id === configId);
+            if (config) {
+                config[field] = value;
+                saveToLocalStorage();
+            }
+        }
+
+        // 切换建筑选择
+        function toggleBuilding(configId, buildingId, buildingName) {
+            const config = storyConfigs.find(c => c.id === configId);
+            if (config) {
+                const existingIndex = config.buildings.findIndex(b => b.id === buildingId);
+                if (existingIndex >= 0) {
+                    config.buildings.splice(existingIndex, 1);
+                } else {
+                    config.buildings.push({ id: buildingId, name: buildingName, count: 1 });
+                }
+                renderStoryConfigs();
+                saveToLocalStorage();
+            }
+        }
+
+        // 更新建筑数量
+        function updateBuildingCount(configId, buildingId, count) {
+            const config = storyConfigs.find(c => c.id === configId);
+            if (config) {
+                const building = config.buildings.find(b => b.id === buildingId);
+                if (building) {
+                    building.count = Math.max(1, count || 1);
+                    saveToLocalStorage();
+                }
+            }
+        }
+
+        // 删除剧情配置
+        function removeStoryConfig(configId) {
+            storyConfigs = storyConfigs.filter(c => c.id !== configId);
+            renderStoryConfigs();
+            saveToLocalStorage();
+        }
+
+        // 生成配置JSON
+        function generateConfig() {
+            // 创建文件索引映射
+            const storyFileIndex = {};
+            const buildingFileIndex = {};
+            
+            Object.keys(storyData).forEach((filename, index) => {
+                storyFileIndex[filename] = index;
+            });
+            
+            Object.keys(buildingData).forEach((filename, index) => {
+                buildingFileIndex[filename] = index;
+            });
+
+            const finalConfig = {
+                metadata: {
+                    generatedAt: new Date().toISOString(),
+                    totalStories: storyConfigs.length,
+                    storyFileIndex: storyFileIndex,
+                    buildingFileIndex: buildingFileIndex
+                },
+                stories: storyConfigs.map(config => ({
+                    id: config.id,
+                    name: config.name,
+                    requiredPopularity: config.popularity,
+                    storyJsonIndex: storyFileIndex[config.storyJson] !== undefined ? storyFileIndex[config.storyJson] : null,
+                    storyJsonFile: config.storyJson,
+                    unlockedBuildings: config.buildings.map(b => ({
+                        buildingId: b.id,
+                        count: b.count || 1
+                    })),
+                    totalBuildingCount: config.buildings.reduce((sum, b) => sum + (b.count || 1), 0)
+                }))
+            };
+
+            document.getElementById('outputArea').textContent = JSON.stringify(finalConfig, null, 2);
+        }
+
+        // 下载配置文件
+        function downloadConfig() {
+            const outputArea = document.getElementById('outputArea');
+            if (outputArea.textContent === '配置输出将显示在这里...') {
+                alert('请先生成配置JSON');
+                return;
+            }
+
+            const blob = new Blob([outputArea.textContent], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `story-building-config-${new Date().getTime()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 清空所有
+        function clearAll() {
+            if (confirm('确定要清空所有配置吗？')) {
+                storyData = {};
+                buildingData = {};
+                storyConfigs = [];
+                configCounter = 0;
+                document.getElementById('storyFileList').innerHTML = '';
+                document.getElementById('buildingFileList').innerHTML = '';
+                document.getElementById('storyConfigs').innerHTML = '';
+                document.getElementById('outputArea').textContent = '配置输出将显示在这里...';
+                clearLocalStorage();
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            setupFileUpload('storyUpload', 'storyFiles', 'storyFileList', storyData, false);
+            setupFileUpload('buildingUpload', 'buildingFiles', 'buildingFileList', buildingData, true);
+            
+            // 加载本地存储的数据
+            loadFromLocalStorage();
+        });
+
+        // 页面卸载时保存数据
+        window.addEventListener('beforeunload', () => {
+            saveToLocalStorage();
+        });
+    </script>
+</body>
+</html>
