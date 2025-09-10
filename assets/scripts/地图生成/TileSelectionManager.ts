@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, Vec3, Vec2, Color, input, Input, EventMouse, Camera, Graphics, Sprite, Canvas } from 'cc';
+import { _decorator, Component, Node, UITransform, Vec3, Vec2, Color, Camera, Graphics, Sprite, Canvas, EventTouch } from 'cc';
 
 const { ccclass, property } = _decorator;
 
@@ -124,25 +124,28 @@ export class TileSelectionManager extends Component {
     
     /**
      * 设置输入事件监听
+     * 注意：输入事件现在由InteractionControl统一管理
+     * 此方法保留用于兼容性，但不再直接监听输入事件
      */
     setupInput() {
-        input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
-        input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
-        input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        // 输入事件现在由InteractionControl统一管理
+        // 如需处理选择逻辑，请通过InteractionManager调用相关方法
+        console.log('TileSelectionManager: 输入事件由InteractionControl统一管理');
     }
     
 
     
     /**
-     * 鼠标按下事件
+     * 开始地块选择（由InteractionManager调用）
      */
-    public onMouseDown(event: EventMouse) {
+    public startTileSelection(event: EventTouch) {
         if (!this.isEnabled) {
             return;
         }
         
-        const screenPos = event.getLocation();
-        console.log(`鼠标点击位置: (${screenPos.x}, ${screenPos.y})`);
+        // 获取UI坐标
+        const screenPos = event.getUILocation();
+        console.log(`开始地块选择位置: (${screenPos.x}, ${screenPos.y})`);
         
         const tileInfo = this.getTileAtScreenPos(screenPos);
         if (tileInfo) {
@@ -158,14 +161,15 @@ export class TileSelectionManager extends Component {
     }
     
     /**
-     * 鼠标移动事件
+     * 更新地块选择（由InteractionManager调用）
      */
-    onMouseMove(event: EventMouse) {
+    public updateTileSelection(event: EventTouch) {
         if (!this.isEnabled || !this.isSelecting) {
             return;
         }
         
-        const screenPos = event.getLocation();
+        // 获取UI坐标
+        const screenPos = event.getUILocation();
         const tileInfo = this.getTileAtScreenPos(screenPos);
         if (tileInfo) {
             this.endTile = tileInfo;
@@ -174,15 +178,15 @@ export class TileSelectionManager extends Component {
     }
     
     /**
-     * 鼠标抬起事件
+     * 结束地块选择（由InteractionManager调用）
      */
-    onMouseUp(event: EventMouse) {
+    public endTileSelection(event: EventTouch) {
         if (!this.isEnabled || !this.isSelecting) {
             return;
         }
         
         this.isSelecting = false;
-        console.log('选择完成');
+        console.log('地块选择完成');
     }
     
     /**
@@ -392,8 +396,8 @@ export class TileSelectionManager extends Component {
     }
     
     onDestroy() {
-        input.off(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
-        input.off(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
-        input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        // 清理资源
+        // 输入事件现在由InteractionControl统一管理，无需在此处移除
+        console.log('TileSelectionManager: 组件销毁');
     }
 }

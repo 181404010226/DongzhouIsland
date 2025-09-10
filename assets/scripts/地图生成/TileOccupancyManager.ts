@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransform, Camera, Color, CCString } from 'cc';
+import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransform, Camera, Color, CCString, sys, Canvas, view } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
 const { ccclass, property } = _decorator;
@@ -28,7 +28,7 @@ export class TileOccupancyManager extends Component {
     // 编辑器只读字段：已放置建筑节点索引
     @property({ type: [Node], readonly: true, tooltip: '当前已放置的建筑节点列表（编辑器查看）' })
     private readonly placedBuildingNodes: Node[] = [];
-    
+
     // 编辑器只读字段：地块占用情况网格
     @property({ type: [CCString], readonly: true, tooltip: '地块占用情况网格（编辑器查看）' })
     private readonly tileOccupancyGrid: string[] = [];
@@ -65,7 +65,7 @@ export class TileOccupancyManager extends Component {
      */
     private placeBuildingAtPosition(row: number, col: number, buildInfo: BuildInfo, buildingNode: Node): boolean {
         // 检查是否可以放置建筑
-        if (!this.canPlaceBuildingAt(row, col, buildInfo.getBuildingWidth(), buildInfo.getBuildingHeight())) {
+        if (!this.canPlaceBuildingAt(row, col, buildInfo.getWidth(), buildInfo.getHeight())) {
             console.log(`无法在地块 (${row}, ${col}) 放置建筑，区域被占用或超出边界`);
             return false;
         }
@@ -79,7 +79,7 @@ export class TileOccupancyManager extends Component {
         }
         
         // 生成唯一的建筑ID
-        const buildingId = `Building_${row}_${col}_${buildInfo.getBuildingType()}_${Date.now()}`;
+        const buildingId = `Building_${row}_${col}_${buildInfo.getType()}_${Date.now()}`;
         buildingNode.name = buildingId;
         
         // 确保节点有BuildInfo组件
@@ -90,17 +90,37 @@ export class TileOccupancyManager extends Component {
         // 复制原始BuildInfo的数据
         instanceBuildInfo.copyFrom(buildInfo);
         
+        // 查找并设置Sprite组件引用
+        const spriteNode = buildingNode.getChildByName('Sprite');
+        if (spriteNode) {
+            const spriteComponent = spriteNode.getComponent(Sprite);
+            if (spriteComponent) {
+                instanceBuildInfo.buildingSprite = spriteComponent;
+                // 加载并设置建筑图片
+                instanceBuildInfo.loadAndSetImage(buildingNode).then((success) => {
+                    if (success) {
+                        console.log(`成功加载建筑图片: ${buildInfo.getBuildingName()}`);
+                    } else {
+                        console.warn(`建筑图片加载失败: ${buildInfo.getBuildingName()}`);
+                    }
+                });
+            }
+        }
+        
         // 设置建筑当前位置信息
         instanceBuildInfo.setCurrentPosition(row, col);
         
         // 将建筑放置在地块上
         buildingNode.parent = tile;
-        buildingNode.setPosition(0, 0, 1); // 稍微抬高一点
+        // 不强制设置位置到地块中心，保持建筑在拖拽时的相对位置
+        // 只设置Z轴高度，让建筑保持在手指放置的位置
+        const currentPos = buildingNode.position;
+        buildingNode.setPosition(currentPos.x, currentPos.y, 1); // 稍微抬高一点
         
         // 标记所有占用的地块
         this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
         
-        console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getBuildingType()}`);
+        console.log(`成功在地块 (${row}, ${col}) 放置建筑: ${buildInfo.getType()}`);
         return true;
     }
     
@@ -108,12 +128,12 @@ export class TileOccupancyManager extends Component {
      * 标记地块为已占用
      */
     public markTilesAsOccupied(anchorRow: number, anchorCol: number, buildInfo: BuildInfo, buildingId: string, buildingNode: Node): void {
-        const width = buildInfo.getBuildingWidth();
-        const height = buildInfo.getBuildingHeight();
+        const width = buildInfo.getWidth();
+        const height = buildInfo.getHeight();
         
         const occupancyInfo: TileOccupancyInfo = {
             buildingId: buildingId,
-            buildingType: buildInfo.getBuildingType(),
+            buildingType: buildInfo.getType(),
             anchorRow: anchorRow,
             anchorCol: anchorCol,
             width: width,
@@ -250,7 +270,7 @@ export class TileOccupancyManager extends Component {
             this.clearTileOccupancyByBuildingId(occupancyInfo.buildingId);
             
             if (destroyNode) {
-                buildingNode.destroy();
+               // buildingNode.destroy();
                 console.log(`成功移除建筑: ${occupancyInfo.buildingType} (${occupancyInfo.width}x${occupancyInfo.height})`);
                 return null;
             } else {
@@ -296,12 +316,27 @@ export class TileOccupancyManager extends Component {
         const previewNode = instantiate(buildInfo.getBuildingPrefab());
         previewNode.name = 'BuildingPreview';
         
-        // 查找Sprite子节点并设置预览图片
+        // 确保预览节点有BuildInfo组件并设置图片
+        let previewBuildInfo = previewNode.getComponent(BuildInfo);
+        if (!previewBuildInfo) {
+            previewBuildInfo = previewNode.addComponent(BuildInfo);
+        }
+        previewBuildInfo.copyFrom(buildInfo);
+        
+        // 查找并设置Sprite组件引用，然后加载图片
         const spriteNode = previewNode.getChildByName('Sprite');
-        if (spriteNode && buildInfo.getPreviewImage()) {
-            const sprite = spriteNode.getComponent(Sprite);
-            if (sprite) {
-                sprite.spriteFrame = buildInfo.getPreviewImage();
+        if (spriteNode) {
+            const spriteComponent = spriteNode.getComponent(Sprite);
+            if (spriteComponent) {
+                previewBuildInfo.buildingSprite = spriteComponent;
+                // 异步加载图片
+                previewBuildInfo.loadAndSetImage(previewNode).then((success) => {
+                    if (success) {
+                        console.log(`预览节点图片加载成功: ${buildInfo.getBuildingName()}`);
+                    } else {
+                        console.warn(`预览节点图片加载失败: ${buildInfo.getBuildingName()}`);
+                    }
+                });
             }
         }
         
@@ -329,21 +364,26 @@ export class TileOccupancyManager extends Component {
     
     
     /**
-     * 尝试在屏幕位置放置建筑
+     * 尝试在UI位置放置建筑（使用画线终点坐标）
      */
-    public tryPlaceBuildingAtScreenPos(screenPos: Vec2, camera: Camera, buildInfo: BuildInfo, existingNode?: Node): boolean {
+    public tryPlaceBuildingAtScreenPos(uiPos: Vec2, camera: Camera, buildInfo: BuildInfo, existingNode?: Node): boolean {
         if (!camera || !this.mapGenerator) {
             console.warn('缺少必要组件，无法放置建筑');
             return false;
         }
         
-        // 获取地块信息
-        const tileInfo = this.getTileAtScreenPos(screenPos, camera);
+        // 直接使用传入的UI坐标
+        console.log('[TileOccupancyManager] 使用UI坐标:', uiPos);
+        
+        // 直接使用UI坐标进行瓦片匹配
+        const tileInfo = this.getTileAtScreenPos(uiPos, camera);
         
         if (!tileInfo) {
             console.log('未找到有效地块，无法放置建筑');
             return false;
         }
+        
+        console.log(`[TileOccupancyManager] 使用UI坐标 (${uiPos.x}, ${uiPos.y}) 匹配到地块 (${tileInfo.row}, ${tileInfo.col})`);
         
         // 放置建筑（使用现有节点或创建新节点）
         if (existingNode) {
@@ -357,29 +397,32 @@ export class TileOccupancyManager extends Component {
             
             const buildingInstance = instantiate(buildInfo.getBuildingPrefab());
             
-            // 查找Sprite子节点并设置预览图片
+            // 查找Sprite子节点（预览图片功能已移除）
             const spriteNode = buildingInstance.getChildByName('Sprite');
-            if (spriteNode && buildInfo.getPreviewImage()) {
-                const sprite = spriteNode.getComponent(Sprite);
-                if (sprite) {
-                    sprite.spriteFrame = buildInfo.getPreviewImage();
-                }
-            }
+            // 注意：getPreviewImage方法已被删除，使用默认预制体显示
             
             return this.placeBuildingAtPosition(tileInfo.row, tileInfo.col, buildInfo, buildingInstance);
         }
     }
     
     /**
-     * 获取屏幕位置对应的地块索引
+     * 获取UI位置对应的地块索引
      */
-    private getTileAtScreenPos(screenPos: Vec2, camera: Camera): { row: number, col: number } | null {
+    private getTileAtScreenPos(uiPos: Vec2, camera: Camera): { row: number, col: number } | null {
         if (!camera || !this.mapGenerator) {
             return null;
         }
-        
-        const worldPos = this.screenToWorldPos(screenPos, camera);
+        console.log('UI坐标:',uiPos);
+        // 使用UI坐标转换为世界坐标
+        const worldPos = this.screenToWorldPos(uiPos, camera);
         const allTiles = this.mapGenerator.getAllTiles();
+        console.log('世界坐标:',worldPos);
+        console.log('世界坐标:',camera.node.name);
+        
+        // 在编辑器环境下添加调试信息
+        if (sys.platform === 'EDITOR_PAGE') {
+            console.log('编辑器环境 - 开始检测瓦片，总数:', allTiles.length);
+        }
         
         // 遍历所有地块，使用UITransform的检测方法
         for (const tile of allTiles) {
@@ -400,25 +443,62 @@ export class TileOccupancyManager extends Component {
                 if (match) {
                     const i = parseInt(match[1]);
                     const j = parseInt(match[2]);
+                    
+                    // 在编辑器环境下添加调试信息
+                    if (sys.platform === 'EDITOR_PAGE') {
+                        console.log('编辑器环境 - 找到匹配瓦片:', tileName, '行列:', i, j);
+                        // 将世界位置转换为UI坐标Vec2
+                        const tileWorldPos = tile.getWorldPosition();
+                        const canvasNode = this.node.scene.getComponentInChildren(Canvas).node;
+                        // 使用UITransform的convertToNodeSpace将世界坐标转换为Canvas节点下的坐标
+                        const uiTransform = canvasNode.getComponent(UITransform);
+                        const nodePos = uiTransform.convertToNodeSpaceAR(new Vec3(tileWorldPos.x, tileWorldPos.y, 0));
+                        const tileUIPos = new Vec2(nodePos.x, nodePos.y);
+                        
+                        // 将UI坐标转换为绘制坐标（以画布中心为原点）
+                        // 注意：UI坐标本身就是相对于节点的坐标，所以直接使用即可
+                        const drawPos = new Vec2(tileUIPos.x, tileUIPos.y);
+                        
+                        console.log('编辑器环境 - 瓦片UI位置:', tileUIPos);
+                        console.log('编辑器环境 - 瓦片绘制坐标:', drawPos);
+                        console.log('编辑器环境 - 本地坐标:', localPos.x, localPos.y);
+                    }
+                    
                     return { row: i, col: j };
                 }
             }
+        }
+        
+        // 在编辑器环境下添加调试信息
+        if (sys.platform === 'EDITOR_PAGE') {
+            console.log('编辑器环境 - 未找到匹配的瓦片');
         }
         
         return null;
     }
     
     /**
-     * 屏幕坐标转世界坐标
+     * UI坐标转世界坐标
      */
-    private screenToWorldPos(screenPos: Vec2, camera: Camera): Vec3 {
+    private screenToWorldPos(uiPos: Vec2, camera: Camera): Vec3 {
         if (!camera) {
             console.error('Camera not found for coordinate conversion');
             return new Vec3(0, 0, 0);
         }
         
-        // 直接使用摄像机的screenToWorld方法转换屏幕坐标
-        const worldPos = camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+        // 在编辑器环境下添加调试信息
+        if (sys.platform === 'EDITOR_PAGE') {
+            console.log('编辑器环境 - 原始UI坐标:', uiPos.x, uiPos.y);
+        }
+        
+        // 直接使用摄像机的screenToWorld方法转换UI坐标
+        const worldPos = camera.screenToWorld(new Vec3(uiPos.x, uiPos.y, 0));
+        
+        // 在编辑器环境下添加调试信息
+        if (sys.platform === 'EDITOR_PAGE') {
+            console.log('编辑器环境 - 转换后世界坐标:', worldPos.x, worldPos.y, worldPos.z);
+        }
+        
         return worldPos;
     }
     

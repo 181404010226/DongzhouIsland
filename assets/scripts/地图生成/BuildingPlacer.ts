@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, EventTouch, input, Input, Color, Camera, Graphics, EventTarget } from 'cc';
+import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, Color, Camera, Graphics, EventTarget, EventTouch } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { TileOccupancyManager } from './TileOccupancyManager';
 import { PlayerOperationState, PlayerOperationType } from '../交互管理/PlayerOperationState';
@@ -12,7 +12,7 @@ const { ccclass, property } = _decorator;
 export class BuildingPlacer extends Component {
     @property({ type: Camera, tooltip: '主相机' })
     mainCamera: Camera = null;
-    
+
     @property({ type: TileOccupancyManager, tooltip: '地块占用管理器' })
     tileOccupancyManager: TileOccupancyManager = null;
     
@@ -47,18 +47,20 @@ export class BuildingPlacer extends Component {
     
     /**
      * 设置输入事件
+     * 注意：输入事件现在由InteractionControl统一管理
      */
     private setupInputEvents() {
-        input.on(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
-        input.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
+        // 输入事件现在由InteractionControl统一管理
+        console.log('BuildingPlacer: 输入事件由InteractionControl统一管理');
     }
     
     /**
      * 移除输入事件
+     * 注意：输入事件现在由InteractionControl统一管理
      */
     private removeInputEvents() {
-        input.off(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
-        input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
+        // 输入事件现在由InteractionControl统一管理
+        console.log('BuildingPlacer: 移除输入事件监听');
     }
     
     /**
@@ -164,32 +166,35 @@ export class BuildingPlacer extends Component {
 
     
     /**
-     * 触摸移动事件
+     * 处理建筑拖拽移动（由InteractionManager调用）
      */
-    private onTouchMove(event: EventTouch) {
+    public handleBuildingDragMove(event: EventTouch) {
         if (!this.currentBuildInfo || !this.previewNode) {
             return;
         }
         
-        // 如果还没有开始拖拽，则开始拖拽
+        // 确保拖拽状态已开始（通常由setBuildingInfo触发）
         if (!this.isDragging) {
+            console.log('建筑拖拽移动时自动开始拖拽');
             this.startDrag();
         }
         
-        const touchPos = event.getLocation();
-        this.updatePreviewPosition(new Vec3(touchPos.x, touchPos.y, 0));
+        // 获取UI坐标
+        const uiPos = event.getUILocation();
+        this.updatePreviewPosition(new Vec3(uiPos.x, uiPos.y, 0));
     }
     
     /**
-     * 触摸结束事件
+     * 处理建筑拖拽结束（由InteractionManager调用）
      */
-    private onTouchEnd(event: EventTouch) {
+    public handleBuildingDragEnd(event: EventTouch) {
         if (!this.isDragging || !this.currentBuildInfo) {
             return;
         }
         
-        const touchPos = event.getLocation();
-        this.endDrag(new Vec3(touchPos.x, touchPos.y, 0));
+        // 获取UI坐标
+        const uiPos = event.getUILocation();
+        this.endDrag(new Vec3(uiPos.x, uiPos.y, 0));
     }
     
 
@@ -231,7 +236,7 @@ export class BuildingPlacer extends Component {
         
         this.createPreviewNode();
         this.startDrag();
-        console.log(`设置建筑信息: ${buildInfo.getBuildingType()}`);
+        console.log(`设置建筑信息: ${buildInfo.getType()}`);
     }
     
     /**
@@ -274,19 +279,6 @@ export class BuildingPlacer extends Component {
     }
     
     /**
-     * 检查点是否在节点范围内
-     */
-    private isPointInNode(point: Vec3, nodeTransform: UITransform, node: Node): boolean {
-        const nodePos = node.getWorldPosition();
-        const size = nodeTransform.contentSize;
-        
-        return point.x >= nodePos.x - size.width / 2 &&
-               point.x <= nodePos.x + size.width / 2 &&
-               point.y >= nodePos.y - size.height / 2 &&
-               point.y <= nodePos.y + size.height / 2;
-    }
-    
-    /**
      * 开始拖拽
      */
     public startDrag() {
@@ -294,7 +286,7 @@ export class BuildingPlacer extends Component {
         
         // 设置操作状态为建筑放置
         PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
-            buildingType: this.currentBuildInfo?.getBuildingType()
+            buildingType: this.currentBuildInfo?.getType()
         });
         
         // 显示影响范围预览
@@ -309,11 +301,14 @@ export class BuildingPlacer extends Component {
      * 更新预览位置
      */
     private updatePreviewPosition(touchPos: Vec3) {
+        console.log('预览位置');
         if (!this.previewNode || !this.mainCamera || !this.tileOccupancyManager) {
             return;
         }
         
-        const screenPos = new Vec2(touchPos.x, touchPos.y);
+        // 直接使用触摸位置作为UI坐标
+        const uiPos = new Vec2(touchPos.x, touchPos.y);
+        console.log('使用触摸UI位置:', uiPos);
         
         if (!this.currentBuildInfo) {
             return;
@@ -324,9 +319,9 @@ export class BuildingPlacer extends Component {
             this.previewNode.parent = this.layerRootNode;
             this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1);
         }
-        
-        // 使用TileOccupancyManager的边界检查逻辑
-        const tileInfo = this.tileOccupancyManager['getTileAtScreenPos'](screenPos, this.mainCamera);
+        console.log('更新预览位置');
+        // 使用TileOccupancyManager的边界检查逻辑，传入UI坐标
+        const tileInfo = this.tileOccupancyManager['getTileAtScreenPos'](uiPos, this.mainCamera);
         
         if (tileInfo) {
             // 显示预览节点
@@ -335,7 +330,7 @@ export class BuildingPlacer extends Component {
             // 检查是否可以放置建筑
             const canPlace = this.tileOccupancyManager.canPlaceBuildingAt(
                 tileInfo.row, tileInfo.col, 
-                this.currentBuildInfo.getBuildingWidth(), this.currentBuildInfo.getBuildingHeight()
+                this.currentBuildInfo.getWidth(), this.currentBuildInfo.getHeight()
             );
             
             // 获取地块节点并设置预览位置
@@ -357,18 +352,12 @@ export class BuildingPlacer extends Component {
             }
             
             // 同时更新影响范围预览位置
-            this.updateInfluenceRangePreviewPosition(screenPos, this.currentBuildInfo);
+            this.updateInfluenceRangePreviewPosition(uiPos, this.currentBuildInfo);
         } else {
             // 没有找到有效地块，隐藏预览
             this.previewNode.active = false;
         }
     }
-    
-
-    
-
-    
-
     
     /**
      * 设置预览节点颜色（递归设置所有Sprite组件）
@@ -417,8 +406,8 @@ export class BuildingPlacer extends Component {
             const tileSize = this.tileOccupancyManager.mapGenerator.tileSize / Math.sqrt(2); // 地块边长
             const influenceRadius = 2.5; // 影响范围半径（考虑中心地块0.5占用）
             
-            const totalWidth = (buildInfo.buildingWidth + influenceRadius * 2-1) * tileSize;
-            const totalHeight = (buildInfo.buildingHeight + influenceRadius * 2-1) * tileSize;
+            const totalWidth = (buildInfo.getWidth() + influenceRadius * 2-1) * tileSize;
+            const totalHeight = (buildInfo.getHeight() + influenceRadius * 2-1) * tileSize;
             
             // 设置绘制样式
             graphics.lineWidth = 3;
@@ -485,8 +474,9 @@ export class BuildingPlacer extends Component {
         }
         
         // 委托给TileOccupancyManager处理建筑放置
-        const screenPos = new Vec2(touchPos.x, touchPos.y);
-        const success = this.tileOccupancyManager.tryPlaceBuildingAtScreenPos(screenPos, this.mainCamera, this.currentBuildInfo, this.replacementNode);
+        // 使用UI坐标而不是屏幕坐标
+        const uiPos = new Vec2(touchPos.x, touchPos.y);
+        const success = this.tileOccupancyManager.tryPlaceBuildingAtScreenPos(uiPos, this.mainCamera, this.currentBuildInfo, this.replacementNode);
         
         if (success) {
             this.onBuildingPlaced(this.currentBuildInfo);
@@ -509,7 +499,7 @@ export class BuildingPlacer extends Component {
         const influenceRange = buildInfo.getInfluenceRange();
         buildInfo.setInfluenceRange(influenceRange);
         
-        console.log(`建筑放置完成: ${buildInfo.getBuildingType()}，影响范围已存储（${influenceRange.length}个地块）`);
+        console.log(`建筑放置完成: ${buildInfo.getType()}，影响范围已存储（${influenceRange.length}个地块）`);
         
         // 调用外部回调函数
         if (this.onBuildingPlacedCallback) {
@@ -630,7 +620,7 @@ export class BuildingPlacer extends Component {
         // 发射放置失败事件
         BuildingPlacer.eventTarget.emit('building-placement-failed', {
             reason: reason,
-            buildingType: this.currentBuildInfo?.getBuildingType() || '未知建筑'
+            buildingType: this.currentBuildInfo?.getType() || '未知建筑'
         });
         
         // 清空当前建筑信息

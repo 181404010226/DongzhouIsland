@@ -1,4 +1,5 @@
 import { _decorator } from 'cc';
+import { DynamicBuildingBarManager } from '../地图生成/BuildingBarManager';
 
 const { ccclass } = _decorator;
 
@@ -22,6 +23,9 @@ export class PlayerOperationState {
     private static _currentOperation: PlayerOperationType = PlayerOperationType.NONE;
     private static _operationData: any = null;
     private static _listeners: Map<string, (operation: PlayerOperationType, data?: any) => void> = new Map();
+    
+    // 组件管理
+    private static _dynamicBuildingBarManager: DynamicBuildingBarManager = null;
     
     /**
      * 获取当前操作类型
@@ -120,5 +124,29 @@ export class PlayerOperationState {
         return this._currentOperation === PlayerOperationType.NONE || 
                this._currentOperation === PlayerOperationType.LONG_PRESSING ||
                this._currentOperation === PlayerOperationType.TILE_SELECTION;
+    }
+    
+    // ========== 组件管理方法 ==========
+    
+    /**
+     * 设置动态建筑栏管理器
+     */
+    public static setDynamicBuildingBarManager(manager: DynamicBuildingBarManager) {
+        this._dynamicBuildingBarManager = manager;
+        console.log('[PlayerOperationState] 设置DynamicBuildingBarManager引用');
+    }
+    
+    /**
+     * 获取动态建筑栏管理器
+     */
+    public static getDynamicBuildingBarManager(): DynamicBuildingBarManager {
+        return this._dynamicBuildingBarManager;
+    }
+    
+    /**
+     * 检查动态建筑栏管理器是否可用
+     */
+    public static isDynamicBuildingBarManagerAvailable(): boolean {
+        return this._dynamicBuildingBarManager !== null;
     }
 }
