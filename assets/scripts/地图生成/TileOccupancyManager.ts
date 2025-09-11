@@ -250,7 +250,7 @@ export class TileOccupancyManager extends Component {
                 const buildInfo = currentBuildingNode.getComponent(BuildInfo);
                 if (buildInfo) {
                     const baseCharmValue = buildInfo.getBaseCharmValue();
-                    const buildingType = buildInfo.getBuildingType();
+                    const buildingName = buildInfo.getBuildingName();
                     
                     // 传递相邻关系信息给BuildingManager
                     BuildingManager.updateBuildingAdjacencyInfo(
@@ -269,7 +269,7 @@ export class TileOccupancyManager extends Component {
                         currentBuildingNode,
                         {
                             baseCharmValue: baseCharmValue,
-                            buildingType: buildingType,
+                            buildingType: buildingName,
                             coveredBuildings: adjacencyResult.coveredBuildings,
                             buildingId: building.buildingInfo.buildingId,
                             position: { row: building.row, col: building.col }
@@ -722,8 +722,8 @@ export class TileOccupancyManager extends Component {
             const buildInfo = buildingNode.getComponent(BuildInfo);
             if (buildInfo) {
                 buildingInfo = {
-                    buildingType: buildInfo.getBuildingType() || '未知建筑',
-                    previewImage: buildInfo.getPreviewImage(),
+                    buildingType: buildInfo.getBuildingName() || '未知建筑',
+                    previewImage: buildInfo.getImage(),
                     description: buildInfo.getDescription() || '暂无描述',
                     level: 1, // 默认等级
                     population: 0, // 默认人口

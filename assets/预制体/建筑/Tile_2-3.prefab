@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Tile_2-1",
+    "_name": "Tile_2-3",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Tile_2-1",
+    "_name": "Tile_2-3",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -89,8 +89,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -17.6776695,
-      "y": -17.6776695,
+      "x": 35.355339,
+      "y": 35.355339,
       "z": 0
     },
     "_lrot": {
@@ -103,7 +103,7 @@
     "_lscale": {
       "__type__": "cc.Vec3",
       "x": 2,
-      "y": 1,
+      "y": 3,
       "z": 1
     },
     "_mobility": 0,
@@ -135,8 +135,8 @@
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
+      "x": 0.5,
+      "y": 0.5
     },
     "_id": ""
   },
@@ -215,7 +215,7 @@
     "_isAbsBottom": true,
     "_isAbsHorizontalCenter": true,
     "_isAbsVerticalCenter": true,
-    "_originalWidth": 0,
+    "_originalWidth": 70.710678,
     "_originalHeight": 0,
     "_alignMode": 2,
     "_lockFlags": 0,
@@ -223,7 +223,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "48xgH+EWRKgbGIAUQFM2XA"
+    "fileId": "46qAf9Q71Pzaa3xDrFhddj"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -287,7 +287,7 @@
     "description": "",
     "buildingEnabled": true,
     "width": 2,
-    "height": 1,
+    "height": 3,
     "unlockPopularity": 0,
     "image": "",
     "decorationValue": 0,
@@ -300,7 +300,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "95LTa//XlPq7JLI/e0O3Pv"
+    "fileId": "67lAvNQIFO+JKAJlEKfpXq"
   },
   {
     "__type__": "cc.PrefabInfo",

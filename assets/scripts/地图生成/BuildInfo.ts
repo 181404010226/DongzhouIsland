@@ -480,8 +480,10 @@ export class BuildInfo extends Component {
         }
         
         return new Promise((resolve) => {
-            // 从resources/建筑目录加载图片，需要指定到spriteFrame子资源
-            const resourcePath = `建筑/${this.image}/spriteFrame`;
+            // 处理图片路径：添加/spriteFrame子资源路径（.png后缀已在BuildingsInterface中处理）
+            let imagePath = this.image;
+            // 不再处理.png后缀，因为BuildingsInterface已经处理过了
+            const resourcePath = `${imagePath}/spriteFrame`;
             
             resources.load(resourcePath, SpriteFrame, (err, spriteFrame) => {
                 if (err) {
@@ -493,7 +495,7 @@ export class BuildInfo extends Component {
                 // 直接使用装饰器引用的Sprite组件设置图片
                 if (this.buildingSprite && spriteFrame) {
                     this.buildingSprite.spriteFrame = spriteFrame;
-                    console.log(`设置建筑图片: ${this.image} -> ${this.buildingName}`);
+                    console.log(`设置建筑图片: ${imagePath} -> ${this.buildingName}`);
                     resolve(true);
                 } else {
                     console.warn(`buildingSprite为空或SpriteFrame为空: ${this.buildingName}`);

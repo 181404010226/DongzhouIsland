@@ -7,10 +7,12 @@ const { ccclass, property } = _decorator;
  */
 interface BuildingConfigData {
     name: string;
-    type: string;
-    unlockPopularity: number;
-    width: number;
-    height: number;
+    type?: string;
+    unlockPopularity?: number;
+    size: {
+        width: number;
+        length: number;
+    };
     image: string;
     decorationValue?: number;
     decorationRange?: number;
@@ -86,10 +88,24 @@ export class BuildingsInterface extends Component {
     public static mapConfigToBuildInfo(configData: BuildingConfigData, buildInfo: BuildInfo): void {
         // 字段映射：JSON -> BuildInfo
         buildInfo.setBuildingName(configData.name);  // name -> buildingName
-        buildInfo.setType(configData.type);          // type -> type
-        buildInfo.setUnlockPopularity(configData.unlockPopularity); // unlockPopularity -> unlockPopularity
-        buildInfo.setBuildingSize(configData.width, configData.height); // width,height -> width,height
-        buildInfo.setImage(configData.image);        // image -> image
+        buildInfo.setType(configData.type || 'unknown');          // type -> type
+        buildInfo.setUnlockPopularity(configData.unlockPopularity || 0); // unlockPopularity -> unlockPopularity
+        buildInfo.setBuildingSize(configData.size.width, configData.size.length);
+        
+        // 处理图片路径：去除assets/resources/前缀和.png后缀
+        let imagePath = configData.image;
+        
+        // 去除assets/resources/前缀（如果存在）
+        if (imagePath.startsWith('assets/resources/')) {
+            imagePath = imagePath.substring('assets/resources/'.length);
+        }
+        
+        // 去除.png后缀
+        if (imagePath.endsWith('.png')) {
+            imagePath = imagePath.substring(0, imagePath.length - 4);
+        }
+        
+        buildInfo.setImage(imagePath);        // image -> image
         
         // 可选字段映射
         if (configData.decorationValue !== undefined) {

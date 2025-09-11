@@ -555,19 +555,7 @@ export class InteractionManager extends Component {
             this.tileOccupancyManager.handleBuildingClick(null, worldPos);
         }
     }
-    
-    /**
-     * 更新长按计时器
-     */
-    update(deltaTime: number) {
-        if (this.isLongPressing && !this.longPressTriggered) {
-            this.longPressTimer += deltaTime;
-            
-            if (this.longPressTimer >= this.longPressTime) {
-                this.triggerLongPressSelection();
-            }
-        }
-    }
+
     
     /**
      * 设置地块选择管理器
@@ -704,6 +692,7 @@ export class InteractionManager extends Component {
      * @returns 是否有建筑可以拖拽
      */
     checkBuildingAtPosition(screenPos: Vec2): boolean {
+        console.log('检测方法触发，检查指定位置是否有建筑:', screenPos);
         // 1. 检查建筑栏区域是否有建筑，如果有则直接处理触摸
         const dynamicBuildingBarManager = PlayerOperationState.getDynamicBuildingBarManager();
         if (dynamicBuildingBarManager) {

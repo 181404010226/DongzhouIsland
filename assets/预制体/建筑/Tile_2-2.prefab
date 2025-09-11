@@ -26,10 +26,13 @@
     "_components": [
       {
         "__id__": 10
+      },
+      {
+        "__id__": 12
       }
     ],
     "_prefab": {
-      "__id__": 12
+      "__id__": 14
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -86,7 +89,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 35.355339,
+      "x": 17.6776695,
       "y": 35.355339,
       "z": 0
     },
@@ -99,8 +102,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 3,
-      "y": 3,
+      "x": 2,
+      "y": 2,
       "z": 1
     },
     "_mobility": 0,
@@ -262,6 +265,42 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "1fVQNDWe1CCYBQks+1ZnNh"
+  },
+  {
+    "__type__": "8b1faJ3MD1ECJtU3oumfMCx",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 13
+    },
+    "buildingPrefab": {
+      "__uuid__": "2861fd64-eb25-4ee4-84ac-5ed9a0038a8e",
+      "__expectedType__": "cc.Prefab"
+    },
+    "type": "",
+    "buildingName": "",
+    "description": "",
+    "buildingEnabled": true,
+    "width": 2,
+    "height": 2,
+    "unlockPopularity": 0,
+    "image": "",
+    "decorationValue": 0,
+    "decorationRange": 0,
+    "charmValue": 0,
+    "chainBuildings": [],
+    "buildingSprite": null,
+    "baseCharmValue": 5,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "67lAvNQIFO+JKAJlEKfpXq"
   },
   {
     "__type__": "cc.PrefabInfo",

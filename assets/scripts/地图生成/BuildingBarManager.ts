@@ -12,7 +12,7 @@ const { ccclass, property } = _decorator;
  * 动态建筑栏管理器
  * 根据配置文件动态生成建筑节点，支持预制体映射和固定预览尺寸
  */
-@ccclass('DynamicBuildingBarManager')
+@ccclass('BuildingBarManager')
 export class DynamicBuildingBarManager extends Component {
     @property({ type: Node, tooltip: '建筑栏容器节点' })
     buildingBarContainer: Node = null;
@@ -238,6 +238,9 @@ export class DynamicBuildingBarManager extends Component {
             // 设置为固定的预览尺寸
             uiTransform.setContentSize(new Size(this.previewIconWidth, this.previewIconHeight));
             
+            // 确保节点的碰撞区域与视觉尺寸一致
+            node.setScale(1, 1, 1);
+            
             // 递归调整子节点的缩放以适应预览尺寸
             this.adjustChildNodesScale(node);
         }
@@ -421,12 +424,20 @@ export class DynamicBuildingBarManager extends Component {
     public handleBuildingBarTouch(screenPos: Vec2): boolean {
         console.log(`[建筑栏触摸] 开始检测触摸位置: (${screenPos.x}, ${screenPos.y})`);
         
-        // 在触摸检测前，确保建筑栏布局是最新的（考虑滚动位置）
-        this.updateBuildingBarLayout();
+        // 确保有建筑节点可以检测
+        if (this.buildingNodes.length === 0) {
+            console.log(`[建筑栏触摸] 没有建筑节点可供检测`);
+            return false;
+        }
         
         // 遍历所有建筑节点，检查点击位置
         for (let i = 0; i < this.buildingNodes.length; i++) {
             const node = this.buildingNodes[i];
+            if (!node || !node.isValid || !node.active) {
+                console.log(`[建筑栏触摸] 节点 ${i} 无效或未激活，跳过`);
+                continue;
+            }
+            
             if (this.isPointInNode(screenPos, node)) {
                 const buildInfo = node.getComponent(BuildInfo);
                 const buildingName = buildInfo ? buildInfo.getBuildingName() : 'Unknown';
@@ -460,28 +471,28 @@ export class DynamicBuildingBarManager extends Component {
         // 获取节点的屏幕位置（UI坐标）
         const nodeScreenPos = uiTransform.convertToWorldSpaceAR(Vec3.ZERO);
         
-        // 获取节点的内容尺寸
-        const size = uiTransform.contentSize;
-        const halfWidth = size.width / 2;
-        const halfHeight = size.height / 2;
+        // 使用固定的预览尺寸进行碰撞检测，而不是节点的实际尺寸
+        // 这样可以确保触摸区域与视觉显示一致
+        const halfWidth = this.previewIconWidth / 2;
+        const halfHeight = this.previewIconHeight / 2;
         
-        // 计算节点在屏幕坐标系中的边界（主要关注X坐标）
+        // 计算节点在屏幕坐标系中的边界
         const left = nodeScreenPos.x - halfWidth;
         const right = nodeScreenPos.x + halfWidth;
         const bottom = nodeScreenPos.y - halfHeight;
         const top = nodeScreenPos.y + halfHeight;
         
-        // 既然已经确定在建造栏区域内，主要用X坐标进行匹配，Y坐标做简单范围检查
+        // 检查X和Y坐标是否在范围内
         const xInRange = screenPos.x >= left && screenPos.x <= right;
         const yInRange = screenPos.y >= bottom && screenPos.y <= top;
         
-        // 如果Y坐标检测有问题，可以放宽Y坐标的检测条件或只用X坐标
+        // 同时满足X和Y范围才算点击到节点
         const isInside = xInRange && yInRange;
         
         console.log(`[建筑栏触摸检测] 节点: ${node.name} (${buildingName})`);
         console.log(`  - 屏幕坐标: (${screenPos.x.toFixed(2)}, ${screenPos.y.toFixed(2)})`);
         console.log(`  - 节点屏幕位置: (${nodeScreenPos.x.toFixed(2)}, ${nodeScreenPos.y.toFixed(2)})`);
-        console.log(`  - 节点尺寸: ${size.width.toFixed(2)}x${size.height.toFixed(2)}`);
+        console.log(`  - 使用固定预览尺寸: ${this.previewIconWidth.toFixed(2)}x${this.previewIconHeight.toFixed(2)}`);
         console.log(`  - X范围: [${left.toFixed(2)}, ${right.toFixed(2)}], X匹配: ${xInRange}`);
         console.log(`  - Y范围: [${bottom.toFixed(2)}, ${top.toFixed(2)}], Y匹配: ${yInRange}`);
         console.log(`  - 最终结果: ${isInside}`);
@@ -494,15 +505,20 @@ export class DynamicBuildingBarManager extends Component {
      */
     private onBuildingNodeTouched(index: number) {
         if (!PlayerOperationState.isBuildingPlacementAllowed()) {
-
+            console.log(`[建筑栏] 当前状态不允许建筑放置，操作被忽略`);
             return;
         }
         
         const node = this.buildingNodes[index];
+        if (!node || !node.isValid) {
+            console.log(`[建筑栏] 建筑节点无效，索引: ${index}`);
+            return;
+        }
+        
         const buildInfo = node.getComponent(BuildInfo);
         
         if (!buildInfo || !buildInfo.isEnabled()) {
-
+            console.log(`[建筑栏] 建筑信息无效或未启用，索引: ${index}`);
             return;
         }
         
@@ -514,9 +530,16 @@ export class DynamicBuildingBarManager extends Component {
             this.buildingPlacer.setBuildingInfo(buildInfo, () => {
                 this.onBuildingPlaced();
             });
+            
+            // 设置操作状态为建筑放置
+            PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
+                buildingType: buildInfo.getType()
+            });
+            
+            console.log(`[建筑栏] 开始放置建筑: ${buildInfo.getBuildingName()} (${buildInfo.getType()})`);
+        } else {
+            console.log(`[建筑栏] 建筑放置器未设置，无法开始放置`);
         }
-        
-        console.log(`选中建筑: ${buildInfo.getBuildingName()} (${buildInfo.getType()})`);
     }
     
     /**
