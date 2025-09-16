@@ -1,6 +1,5 @@
 import { _decorator, Component, Node, Vec2, EventTouch, input, Input, Camera, UITransform, Vec3, Canvas } from 'cc';
 import { InteractionManager } from './InteractionManager';
-import { PlayerOperationState, PlayerOperationType } from './PlayerOperationState';
 
 const { ccclass, property } = _decorator;
 
@@ -109,11 +108,11 @@ export class InteractionControl extends Component {
     
     /**
      * 设置操作状态监听器
+     * 注意：移除PlayerOperationState依赖后，状态管理现在由各组件独立处理
      */
     private setupOperationStateListener() {
-        PlayerOperationState.addListener('InteractionControl', (operation: PlayerOperationType) => {
-            console.log(`InteractionControl 收到操作状态变更: ${operation}`);
-        });
+        // 移除PlayerOperationState依赖，状态管理现在分布式处理
+        console.log('InteractionControl: 状态管理已改为分布式处理');
     }
     
     /**
@@ -416,7 +415,7 @@ export class InteractionControl extends Component {
                         console.log('在没有点击建筑时，不触发建筑拖拽，改为地图拖拽');
                         this.currentLock = InteractionLock.MAP_DRAG;
                         this.interactionManager.startMapDrag();
-                        PlayerOperationState.setCurrentOperation(PlayerOperationType.CAMERA_DRAG);
+                        // 移除PlayerOperationState依赖，状态由InteractionManager管理
                     }
                 } else {
                     console.log('InteractionManager不可用或缺少建筑检测方法');
@@ -431,7 +430,7 @@ export class InteractionControl extends Component {
                 if (this.interactionManager) {
                     this.interactionManager.startMapDrag();
                 }
-                PlayerOperationState.setCurrentOperation(PlayerOperationType.CAMERA_DRAG);
+                // 移除PlayerOperationState依赖，状态由InteractionManager管理
                 break;
         }
     }
@@ -456,7 +455,7 @@ export class InteractionControl extends Component {
     private handleLongPressStart() {
         if (!this.hasMovedBeyondThreshold && this.currentLock === InteractionLock.NONE) {
             // 静止长按，触发长按选择
-            PlayerOperationState.setCurrentOperation(PlayerOperationType.LONG_PRESSING);
+            // 移除PlayerOperationState依赖，长按状态由InteractionManager处理
             if (this.interactionManager && this.touchStartEvent) {
                 this.interactionManager.handleLongPressSelection(this.touchStartEvent);
             }
@@ -496,11 +495,8 @@ export class InteractionControl extends Component {
      * 处理长按结束
      */
     private handleLongPressEnd() {
-        // 重置操作状态
-        if (PlayerOperationState.isOperation(PlayerOperationType.LONG_PRESSING) ||
-            PlayerOperationState.isOperation(PlayerOperationType.CAMERA_DRAG)) {
-            PlayerOperationState.resetToIdle();
-        }
+        // 移除PlayerOperationState依赖，状态重置由各组件自行处理
+        console.log('长按结束，状态重置由InteractionManager处理');
     }
     
     /**
@@ -720,9 +716,9 @@ export class InteractionControl extends Component {
      * 处理建造栏滚动移动
      */
     private handleBuildingBarMove(event: EventTouch) {
-        const buildingBarManager = PlayerOperationState.getDynamicBuildingBarManager();
-        if (!buildingBarManager) {
-            console.log('[InteractionControl] 建造栏管理器未配置');
+        // 移除PlayerOperationState依赖，通过InteractionManager处理建造栏滚动
+        if (!this.interactionManager) {
+            console.log('[InteractionControl] InteractionManager未配置');
             return;
         }
         
@@ -742,23 +738,22 @@ export class InteractionControl extends Component {
         const timeDelta = currentTime - this.lastMoveTime;
         const speed = timeDelta > 0 ? Math.sqrt(deltaX * deltaX + deltaY * deltaY) / timeDelta * 1000 : 0;
         
-        // 调用建造栏管理器的滚动方法
-        buildingBarManager.handleBuildingBarMove(deltaX, deltaY, speed);
+        // 通过InteractionManager处理建造栏滚动
+        this.interactionManager.handleBuildingBarMove(deltaX, deltaY, speed);
     }
     
     /**
      * 处理建造栏滚动结束
      */
     private handleBuildingBarEnd(event: EventTouch, touchDuration: number) {
-        const buildingBarManager = PlayerOperationState.getDynamicBuildingBarManager();
-        if (!buildingBarManager) {
+        if (!this.interactionManager) {
             return;
         }
         
         console.log('[InteractionControl] 建造栏滚动交互结束');
         
-        // 调用建造栏管理器的滚动结束方法
-        buildingBarManager.handleBuildingBarEnd();
+        // 通过InteractionManager处理建造栏滚动结束
+        this.interactionManager.handleBuildingBarEnd();
     }
     
 
@@ -768,9 +763,9 @@ export class InteractionControl extends Component {
      */
     forceReset() {
         this.resetTouchState();
-        if (PlayerOperationState.isOperation(PlayerOperationType.LONG_PRESSING) ||
-            PlayerOperationState.isOperation(PlayerOperationType.CAMERA_DRAG)) {
-            PlayerOperationState.resetToIdle();
+        // 移除PlayerOperationState依赖，状态重置由InteractionManager处理
+        if (this.interactionManager) {
+            this.interactionManager.forceReset();
         }
         console.log('强制重置交互状态');
     }
@@ -780,8 +775,7 @@ export class InteractionControl extends Component {
         input.off(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
         input.off(Input.EventType.TOUCH_END, this.onTouchEnd, this);
         
-        // 移除操作状态监听器
-        PlayerOperationState.removeListener('InteractionControl');
+        // 移除PlayerOperationState依赖，无需清理监听器
         
         console.log('[InteractionControl] 组件销毁完成');
     }

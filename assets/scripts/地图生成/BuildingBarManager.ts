@@ -1,7 +1,6 @@
 import { _decorator, Component, Node, Vec2, Vec3, UITransform, instantiate, Prefab, Layout, Size, Sprite, Camera, Widget, Canvas } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { BuildingPlacer } from './BuildingPlacer';
-import { PlayerOperationState, PlayerOperationType } from '../交互管理/PlayerOperationState';
 import { BuildingsInterface } from '../InterfaceManager/BuildingsInterface';
 import { CustomScrollView } from '../交互管理/CustomScrollView';
 
@@ -504,10 +503,8 @@ export class DynamicBuildingBarManager extends Component {
      * 建筑节点被触摸时的处理
      */
     private onBuildingNodeTouched(index: number) {
-        if (!PlayerOperationState.isBuildingPlacementAllowed()) {
-            console.log(`[建筑栏] 当前状态不允许建筑放置，操作被忽略`);
-            return;
-        }
+        // 移除PlayerOperationState依赖，简化状态检查
+        console.log(`[建筑栏] 建筑节点被触摸，索引: ${index}`);
         
         const node = this.buildingNodes[index];
         if (!node || !node.isValid) {
@@ -531,10 +528,7 @@ export class DynamicBuildingBarManager extends Component {
                 this.onBuildingPlaced();
             });
             
-            // 设置操作状态为建筑放置
-            PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
-                buildingType: buildInfo.getType()
-            });
+            // 移除PlayerOperationState依赖，状态管理简化
             
             console.log(`[建筑栏] 开始放置建筑: ${buildInfo.getBuildingName()} (${buildInfo.getType()})`);
         } else {
@@ -555,11 +549,8 @@ export class DynamicBuildingBarManager extends Component {
         this.currentSelectedIndex = index;
         this.setBuildingNodeSelected(index, true);
         
-        // 设置操作状态
-        const buildInfo = this.buildingNodes[index].getComponent(BuildInfo);
-        PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
-            buildingType: buildInfo?.getType()
-        });
+        // 移除PlayerOperationState依赖，状态管理简化
+        console.log(`[建筑栏] 建筑选中，索引: ${index}`);
     }
     
     /**
@@ -595,8 +586,8 @@ export class DynamicBuildingBarManager extends Component {
             this.buildingPlacer.clearBuildingInfo();
         }
         
-        // 重置操作状态
-        PlayerOperationState.resetToIdle();
+        // 移除PlayerOperationState依赖，状态重置简化
+        console.log(`[建筑栏] 取消选中状态`);
     }
     
     /**
@@ -609,8 +600,8 @@ export class DynamicBuildingBarManager extends Component {
             this.currentSelectedIndex = -1;
         }
         
-        // 重置操作状态，但不调用clearBuildingInfo以保留已放置的建筑
-        PlayerOperationState.resetToIdle();
+        // 移除PlayerOperationState依赖，状态重置简化
+        console.log(`[建筑栏] 建筑放置完成`);
     }
  
     /**

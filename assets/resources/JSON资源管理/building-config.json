@@ -3,7 +3,7 @@
     {
       "id": "building_20250904_170657_650",
       "name": "罗汉古寺素斋馆",
-      "image": "assets/resources/建筑UI/building-p.png",
+      "image": "建筑UI/building-p.png",
       "size": {
         "length": 4,
         "width": 2
@@ -14,7 +14,7 @@
     {
       "id": "building_20250904_171834_949",
       "name": "古樟树",
-      "image": "assets/resources/植被UI/hd_piece_2_4 (1).png",
+      "image": "植被UI/hd_piece_2_4 (1).png",
       "size": {
         "length": 1,
         "width": 1
@@ -25,7 +25,7 @@
     {
       "id": "building_20250904_172115_628",
       "name": "桃花树",
-      "image": "assets/resources/植被UI/hd_piece_3_5 (1).png",
+      "image": "植被UI/hd_piece_3_5 (1).png",
       "size": {
         "length": 1,
         "width": 1
@@ -36,7 +36,7 @@
     {
       "id": "building_20250904_172333_884",
       "name": "松树",
-      "image": "assets/resources/植被UI/hd_piece_1_5 (1).png",
+      "image": "植被UI/hd_piece_1_5 (1).png",
       "size": {
         "length": 1,
         "width": 1
@@ -47,7 +47,7 @@
     {
       "id": "building_20250904_172453_177",
       "name": "垂柳",
-      "image": "assets/resources/植被UI/hd_piece_3_2.png",
+      "image": "植被UI/hd_piece_3_2.png",
       "size": {
         "length": 1,
         "width": 1
@@ -58,7 +58,7 @@
     {
       "id": "building_20250904_172520_790",
       "name": "银杏树",
-      "image": "assets/resources/植被UI/hd_piece_3_4 (1).png",
+      "image": "植被UI/hd_piece_3_4 (1).png",
       "size": {
         "length": 1,
         "width": 1
@@ -69,7 +69,7 @@
     {
       "id": "building_20250904_172558_536",
       "name": "密花梭罗树",
-      "image": "assets/resources/植被UI/hd_piece_3_1.png",
+      "image": "植被UI/hd_piece_3_1.png",
       "size": {
         "length": 1,
         "width": 1
@@ -80,7 +80,7 @@
     {
       "id": "building_20250904_172621_095",
       "name": "苦槠树",
-      "image": "assets/resources/植被UI/hd_piece_5_2 (1).png",
+      "image": "植被UI/hd_piece_5_2 (1).png",
       "size": {
         "length": 1,
         "width": 1
@@ -91,7 +91,7 @@
     {
       "id": "building_20250904_172705_738",
       "name": "红豆杉",
-      "image": "assets/resources/植被UI/hd_piece_2_2 (1).png",
+      "image": "植被UI/hd_piece_2_2 (1).png",
       "size": {
         "length": 1,
         "width": 1
@@ -102,7 +102,7 @@
     {
       "id": "building_20250904_172732_332",
       "name": "樱花树",
-      "image": "assets/resources/植被UI/hd_piece_2_3 (1).png",
+      "image": "植被UI/hd_piece_2_3 (1).png",
       "size": {
         "length": 1,
         "width": 1
@@ -113,7 +113,7 @@
     {
       "id": "building_20250904_172855_911",
       "name": "垃圾桶",
-      "image": "assets/resources/建筑UI/chimney-large.png",
+      "image": "建筑UI/chimney-large.png",
       "size": {
         "length": 1,
         "width": 1
@@ -124,7 +124,7 @@
     {
       "id": "building_20250904_172954_888",
       "name": "饮水处",
-      "image": "assets/resources/建筑UI/chimney-basic.png",
+      "image": "建筑UI/chimney-basic.png",
       "size": {
         "length": 1,
         "width": 1
@@ -135,7 +135,7 @@
     {
       "id": "building_20250904_173015_566",
       "name": "便利店",
-      "image": "assets/resources/建筑UI/building-o.png",
+      "image": "建筑UI/building-o.png",
       "size": {
         "length": 2,
         "width": 2
@@ -146,7 +146,7 @@
     {
       "id": "building_20250904_173541_166",
       "name": "卫生间",
-      "image": "assets/resources/建筑UI/building-i.png",
+      "image": "建筑UI/building-i.png",
       "size": {
         "length": 2,
         "width": 3
@@ -157,7 +157,7 @@
     {
       "id": "building_20250904_173601_198",
       "name": "饭馆",
-      "image": "assets/resources/建筑UI/building-g.png",
+      "image": "建筑UI/building-g.png",
       "size": {
         "length": 3,
         "width": 3
@@ -168,7 +168,7 @@
     {
       "id": "building_20250904_173707_912",
       "name": "湘江渔味小吃铺",
-      "image": "assets/resources/建筑UI/building-d.png",
+      "image": "建筑UI/building-d.png",
       "size": {
         "length": 2,
         "width": 3
@@ -179,7 +179,7 @@
     {
       "id": "building_20250904_173745_575",
       "name": "渔具店",
-      "image": "assets/resources/建筑UI/building-k.png",
+      "image": "建筑UI/building-k.png",
       "size": {
         "length": 3,
         "width": 2
@@ -190,7 +190,7 @@
     {
       "id": "building_20250904_174331_252",
       "name": "租车店",
-      "image": "assets/resources/建筑UI/building-r.png",
+      "image": "建筑UI/building-r.png",
       "size": {
         "length": 4,
         "width": 2
@@ -201,7 +201,7 @@
     {
       "id": "building_20250904_174418_579",
       "name": "东洲岛湘绣体验店",
-      "image": "assets/resources/建筑UI/building-j.png",
+      "image": "建筑UI/building-j.png",
       "size": {
         "length": 2,
         "width": 2
@@ -212,7 +212,7 @@
     {
       "id": "building_20250904_174709_305",
       "name": "南岳香火文创店",
-      "image": "assets/resources/建筑UI/building-a.png",
+      "image": "建筑UI/building-a.png",
       "size": {
         "length": 3,
         "width": 3
@@ -223,7 +223,7 @@
     {
       "id": "building_20250904_174735_007",
       "name": "中式糕点店",
-      "image": "assets/resources/建筑UI/building-c.png",
+      "image": "建筑UI/building-c.png",
       "size": {
         "length": 2,
         "width": 2
@@ -234,7 +234,7 @@
     {
       "id": "building_20250904_174755_457",
       "name": "衡阳米粉店",
-      "image": "assets/resources/建筑UI/building-e.png",
+      "image": "建筑UI/building-e.png",
       "size": {
         "length": 2,
         "width": 2
@@ -245,7 +245,7 @@
     {
       "id": "building_20250904_174812_513",
       "name": "面包店",
-      "image": "assets/resources/建筑UI/building-l.png",
+      "image": "建筑UI/building-l.png",
       "size": {
         "length": 2,
         "width": 2
@@ -256,7 +256,7 @@
     {
       "id": "building_20250904_175040_622",
       "name": "小吃店",
-      "image": "assets/resources/建筑UI/building-s.png",
+      "image": "建筑UI/building-s.png",
       "size": {
         "length": 4,
         "width": 2
@@ -267,7 +267,7 @@
     {
       "id": "building_20250904_175126_856",
       "name": "奶茶店",
-      "image": "assets/resources/建筑UI/building-n.png",
+      "image": "建筑UI/building-n.png",
       "size": {
         "length": 2,
         "width": 2
@@ -278,7 +278,7 @@
     {
       "id": "building_20250904_175153_652",
       "name": "衡阳鲜货烧烤店",
-      "image": "assets/resources/建筑UI/building-t.png",
+      "image": "建筑UI/building-t.png",
       "size": {
         "length": 3,
         "width": 2
@@ -289,7 +289,7 @@
     {
       "id": "building_20250904_175209_469",
       "name": "土特产店",
-      "image": "assets/resources/建筑UI/building-f.png",
+      "image": "建筑UI/building-f.png",
       "size": {
         "length": 2,
         "width": 2
@@ -300,7 +300,7 @@
     {
       "id": "building_20250904_175230_996",
       "name": "雁峰馆文创店",
-      "image": "assets/resources/建筑UI/building-m.png",
+      "image": "建筑UI/building-m.png",
       "size": {
         "length": 4,
         "width": 4
@@ -311,7 +311,7 @@
     {
       "id": "building_20250904_175259_892",
       "name": "夫之楼茶社",
-      "image": "assets/resources/建筑UI/building-b.png",
+      "image": "建筑UI/building-b.png",
       "size": {
         "length": 3,
         "width": 2

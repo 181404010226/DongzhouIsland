@@ -480,9 +480,9 @@ export class BuildInfo extends Component {
         }
         
         return new Promise((resolve) => {
-            // 处理图片路径：添加/spriteFrame子资源路径（.png后缀已在BuildingsInterface中处理）
+            // 处理图片路径：BuildingsInterface已经去除了.png后缀，需要加载SpriteFrame子资源
             let imagePath = this.image;
-            // 不再处理.png后缀，因为BuildingsInterface已经处理过了
+            // 加载SpriteFrame子资源，路径格式为：资源路径/spriteFrame
             const resourcePath = `${imagePath}/spriteFrame`;
             
             resources.load(resourcePath, SpriteFrame, (err, spriteFrame) => {

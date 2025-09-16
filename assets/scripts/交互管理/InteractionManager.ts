@@ -1,6 +1,5 @@
 import { _decorator, Component, Node, Vec2, Vec3, EventTouch, EventMouse, Camera, view } from 'cc';
 import { TileSelectionManager } from '../地图生成/TileSelectionManager';
-import { PlayerOperationState, PlayerOperationType } from './PlayerOperationState';
 import { BuildingPlacer } from '../地图生成/BuildingPlacer';
 import { TileOccupancyManager } from '../地图生成/TileOccupancyManager';
 import { BuildInfo } from '../地图生成/BuildInfo';
@@ -42,7 +41,8 @@ export class InteractionManager extends Component {
     @property({ type: TileOccupancyManager, tooltip: '地块占用管理器' })
     tileOccupancyManager: TileOccupancyManager = null;
     
-    // 动态建筑栏管理器现在通过PlayerOperationState管理
+    // 建筑栏管理器引用，用于处理建造栏交互
+    private buildingBarManager: any = null;
     
     // InteractionControl引用，用于区域检测
     private interactionControl: any = null;
@@ -146,11 +146,11 @@ export class InteractionManager extends Component {
     
     /**
      * 设置操作状态监听器
+     * 注意：移除PlayerOperationState依赖后，状态管理现在由各组件独立处理
      */
     private setupOperationStateListener() {
-        PlayerOperationState.addListener('InteractionManager', (operation: PlayerOperationType) => {
-            console.log(`InteractionManager 收到操作状态变更: ${operation}`);
-        });
+        // 移除PlayerOperationState依赖，状态管理现在分布式处理
+        console.log('InteractionManager: 状态管理已改为分布式处理');
     }
     
     /**
@@ -178,7 +178,7 @@ export class InteractionManager extends Component {
         this.lastTouchPos.set(lastMousePos);
         
         // 处理地图拖拽
-        if (this.isMapDragging && this.camera && PlayerOperationState.isCameraDragAllowed()) {
+        if (this.isMapDragging && this.camera) {
             this.updateMapDrag(touchPos, lastMousePos);
         } else if (this.isBuildingDragging) {
             this.updateBuildingDrag(event);
@@ -212,10 +212,7 @@ export class InteractionManager extends Component {
      * 开始地图拖拽
      */
     startMapDrag() {
-        if (!PlayerOperationState.isCameraDragAllowed()) {
-            console.log('当前操作状态不允许地图拖拽');
-            return;
-        }
+        // 移除PlayerOperationState依赖，简化地图拖拽逻辑
         this.isMapDragging = true;
         console.log('开始地图拖拽');
     }
@@ -225,10 +222,7 @@ export class InteractionManager extends Component {
      */
     private stopMapDrag() {
         this.isMapDragging = false;
-        // 如果当前是相机拖拽状态，重置为空闲
-        if (PlayerOperationState.isOperation(PlayerOperationType.CAMERA_DRAG)) {
-            PlayerOperationState.resetToIdle();
-        }
+        // 移除PlayerOperationState依赖，状态管理简化
         console.log('停止地图拖拽');
     }
     
@@ -257,8 +251,7 @@ export class InteractionManager extends Component {
         this.isBuildingDragging = true;
         this.lastTouchPos = startPos.clone();
         
-        // 设置建筑放置状态
-        PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT);
+        // 移除PlayerOperationState依赖，状态管理简化
         
         // 这里可以添加建筑拖拽的初始化逻辑
         // 例如：检测起始位置是否有建筑，创建拖拽预览等
@@ -312,34 +305,11 @@ export class InteractionManager extends Component {
     handleTap(tapPos: Vec2) {
         console.log(`[InteractionManager] 处理点击事件，位置: (${tapPos.x}, ${tapPos.y})`);
         
-        // 检查当前操作状态
-        const currentState = PlayerOperationState.getCurrentOperation();
-        const canPlaceBuilding = PlayerOperationState.isBuildingPlacementAllowed();
-        const canSelectTile = PlayerOperationState.isTileSelectionAllowed();
+        // 简化状态检查，直接处理普通交互模式
+        console.log(`[InteractionManager] 处理普通交互模式点击`);
         
-        console.log(`[InteractionManager] 当前状态: ${currentState}, 可放置建筑: ${canPlaceBuilding}, 可选择地块: ${canSelectTile}`);
-        
-        // 根据操作状态处理点击
-        if (canPlaceBuilding) {
-            // 建筑放置模式
-            if (this.buildingPlacer) {
-                const tileInfo = this.getTileAtScreenPos(tapPos);
-                if (tileInfo) {
-                    console.log(`[InteractionManager] 尝试在地块 (${tileInfo.row}, ${tileInfo.col}) 放置建筑`);
-                    // 这里应该调用建筑放置逻辑
-                    // this.buildingPlacer.placeBuildingAt(tileInfo.row, tileInfo.col);
-                }
-            }
-        } else if (canSelectTile) {
-            // 地块选择模式
-            if (this.tileSelectionManager) {
-                const tileInfo = this.getTileAtScreenPos(tapPos);
-                if (tileInfo) {
-                    console.log(`[InteractionManager] 选择地块 (${tileInfo.row}, ${tileInfo.col})`);
-                    // this.tileSelectionManager.selectTile(tileInfo.row, tileInfo.col);
-                }
-            }
-        } else {
+        // 处理普通交互模式点击
+        {
             // 普通交互模式，首先检查是否在建筑栏区域内
             console.log('[InteractionManager] 普通交互模式，检查点击区域');
             
@@ -353,9 +323,8 @@ export class InteractionManager extends Component {
             if (isInBuildingBarArea) {
                 // 在建筑栏区域内，只处理建筑栏相关逻辑
                 console.log('[InteractionManager] 点击在建筑栏区域内，处理建筑栏触摸');
-                const dynamicBuildingBarManager = PlayerOperationState.getDynamicBuildingBarManager();
-                if (dynamicBuildingBarManager) {
-                    const handled = dynamicBuildingBarManager.handleBuildingBarTouch(tapPos);
+                if (this.buildingBarManager) {
+                    const handled = this.buildingBarManager.handleBuildingBarTouch(tapPos);
                     console.log(`[InteractionManager] 建筑栏处理结果: ${handled}`);
                 }
                 // 建筑栏区域内的点击不应该传递给地图处理
@@ -405,13 +374,7 @@ export class InteractionManager extends Component {
      * 触发地块框选模式
      */
     private triggerTileSelection(event: EventTouch) {
-        if (!PlayerOperationState.isTileSelectionAllowed()) {
-            console.log('当前操作状态不允许地块选择');
-            return;
-        }
-        
-        // 设置操作状态为地块选择
-        PlayerOperationState.setCurrentOperation(PlayerOperationType.TILE_SELECTION);
+        // 移除PlayerOperationState依赖，简化地块选择逻辑
         
         // 启用地块选择管理器
         if (this.tileSelectionManager) {
@@ -430,10 +393,7 @@ export class InteractionManager extends Component {
      * 触发建筑移除重放置模式
      */
     private triggerBuildingRemoveAndReplace(tileInfo: {row: number, col: number}, buildingInfo: any) {
-        if (!PlayerOperationState.isBuildingPlacementAllowed()) {
-            console.log('当前操作状态不允许建筑操作');
-            return;
-        }
+        // 简化状态检查，允许建筑操作
         
         console.log(`长按触发，移除建筑: ${buildingInfo.buildingType} 位置(${tileInfo.row}, ${tileInfo.col})`);
         
@@ -497,10 +457,7 @@ export class InteractionManager extends Component {
             buildInfo: buildInfo
         });
         
-        // 设置操作状态为建筑放置
-        PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
-            buildingType: buildingType
-        });
+        // 移除PlayerOperationState依赖，状态管理简化
         
         console.log(`开始重新放置建筑: ${buildingType}`);
     }
@@ -694,9 +651,8 @@ export class InteractionManager extends Component {
     checkBuildingAtPosition(screenPos: Vec2): boolean {
         console.log('检测方法触发，检查指定位置是否有建筑:', screenPos);
         // 1. 检查建筑栏区域是否有建筑，如果有则直接处理触摸
-        const dynamicBuildingBarManager = PlayerOperationState.getDynamicBuildingBarManager();
-        if (dynamicBuildingBarManager) {
-            const handled = dynamicBuildingBarManager.handleBuildingBarTouch(screenPos);
+        if (this.buildingBarManager) {
+            const handled = this.buildingBarManager.handleBuildingBarTouch(screenPos);
             if (handled) {
                 console.log('检测到建筑栏中的建筑点击，已处理触摸事件');
                 return true;
@@ -768,8 +724,46 @@ export class InteractionManager extends Component {
     
 
     
+    /**
+     * 设置建筑栏管理器
+     */
+    setBuildingBarManager(manager: any) {
+        this.buildingBarManager = manager;
+        console.log('[InteractionManager] 建筑栏管理器已设置');
+    }
+
+    /**
+     * 处理建造栏移动
+     */
+    handleBuildingBarMove(deltaX: number, deltaY: number, speed: number) {
+        if (this.buildingBarManager) {
+            this.buildingBarManager.handleBuildingBarMove(deltaX, deltaY, speed);
+        } else {
+            console.log('[InteractionManager] 建筑栏管理器未配置');
+        }
+    }
+
+    /**
+     * 处理建造栏滚动结束
+     */
+    handleBuildingBarEnd() {
+        if (this.buildingBarManager) {
+            this.buildingBarManager.handleBuildingBarEnd();
+        }
+    }
+
+    /**
+     * 强制重置所有交互状态
+     */
+    forceReset() {
+        this.isMapDragging = false;
+        this.isBuildingDragging = false;
+        this.stopEdgeScroll();
+        console.log('[InteractionManager] 强制重置交互状态完成');
+    }
+
     onDestroy() {
-        // 移除操作状态监听器
-        PlayerOperationState.removeListener('InteractionManager');
+        // 移除PlayerOperationState依赖，无需清理监听器
+        console.log('[InteractionManager] 组件销毁完成');
     }
 }

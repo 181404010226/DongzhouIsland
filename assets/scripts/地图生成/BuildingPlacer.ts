@@ -1,7 +1,6 @@
 import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, Color, Camera, Graphics, EventTarget, EventTouch } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { TileOccupancyManager } from './TileOccupancyManager';
-import { PlayerOperationState, PlayerOperationType } from '../交互管理/PlayerOperationState';
 const { ccclass, property } = _decorator;
 
 /**
@@ -272,7 +271,6 @@ export class BuildingPlacer extends Component {
         // 如果正在拖拽，结束拖拽
         if (this.isDragging) {
             this.isDragging = false;
-            PlayerOperationState.resetToIdle();
         }
         
         console.log('清除建筑信息');
@@ -284,17 +282,10 @@ export class BuildingPlacer extends Component {
     public startDrag() {
         this.isDragging = true;
         
-        // 设置操作状态为建筑放置
-        PlayerOperationState.setCurrentOperation(PlayerOperationType.BUILDING_PLACEMENT, {
-            buildingType: this.currentBuildInfo?.getType()
-        });
-        
         // 显示影响范围预览
         if (this.influenceRangePreviewNode) {
             this.influenceRangePreviewNode.active = true;
         }
-        
-
     }
     
     /**
@@ -434,9 +425,6 @@ export class BuildingPlacer extends Component {
     private endDrag(touchPos: Vec3) {
         this.isDragging = false;
         
-        // 重置操作状态为空闲
-        PlayerOperationState.resetToIdle();
-        
         // 隐藏预览节点（但不隐藏重新放置的节点）
         if (this.previewNode && this.previewNode !== this.replacementNode) {
             this.previewNode.active = false;
@@ -451,10 +439,6 @@ export class BuildingPlacer extends Component {
         
         // 尝试在地图上放置建筑
         this.tryPlaceBuilding(touchPos);
-        
-
-        
-
     }
     
     /**

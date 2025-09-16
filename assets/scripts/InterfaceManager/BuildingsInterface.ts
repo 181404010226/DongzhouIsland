@@ -92,13 +92,8 @@ export class BuildingsInterface extends Component {
         buildInfo.setUnlockPopularity(configData.unlockPopularity || 0); // unlockPopularity -> unlockPopularity
         buildInfo.setBuildingSize(configData.size.width, configData.size.length);
         
-        // 处理图片路径：去除assets/resources/前缀和.png后缀
+        // 处理图片路径：去除.png后缀
         let imagePath = configData.image;
-        
-        // 去除assets/resources/前缀（如果存在）
-        if (imagePath.startsWith('assets/resources/')) {
-            imagePath = imagePath.substring('assets/resources/'.length);
-        }
         
         // 去除.png后缀
         if (imagePath.endsWith('.png')) {
