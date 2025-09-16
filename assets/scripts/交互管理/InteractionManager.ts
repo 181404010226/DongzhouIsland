@@ -4,6 +4,7 @@ import { BuildingPlacer } from '../地图生成/BuildingPlacer';
 import { TileOccupancyManager } from '../地图生成/TileOccupancyManager';
 import { BuildInfo } from '../地图生成/BuildInfo';
 import { BuildingDetailButtonManager } from '../UI面板/BuildingDetailButtonManager';
+import { DynamicBuildingBarManager } from '../地图生成/BuildingBarManager';
 
 const { ccclass, property } = _decorator;
 
@@ -116,6 +117,9 @@ export class InteractionManager extends Component {
         if (!this.interactionControl) {
             console.log('[InteractionManager] 未找到InteractionControl组件');
         }
+        
+        // 查找并设置BuildingBarManager
+        this.findAndSetBuildingBarManager();
         
         console.log('InteractionManager 初始化完成');
     }
@@ -723,6 +727,20 @@ export class InteractionManager extends Component {
     }
     
 
+    
+    /**
+     * 查找并设置建筑栏管理器
+     */
+    private findAndSetBuildingBarManager() {
+        // 在场景中查找BuildingBarManager组件
+        const buildingBarManager = this.node.scene.getComponentInChildren(DynamicBuildingBarManager);
+        if (buildingBarManager) {
+            this.setBuildingBarManager(buildingBarManager);
+            console.log('[InteractionManager] 自动找到并设置建筑栏管理器');
+        } else {
+            console.warn('[InteractionManager] 未找到BuildingBarManager组件，建筑检测功能将无法正常工作');
+        }
+    }
     
     /**
      * 设置建筑栏管理器
