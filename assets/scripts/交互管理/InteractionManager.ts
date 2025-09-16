@@ -341,10 +341,34 @@ export class InteractionManager extends Component {
             if (tileInfo && this.tileOccupancyManager) {
                 const buildingInfo = this.tileOccupancyManager.getBuildingInfoAt(tileInfo.row, tileInfo.col);
                 if (buildingInfo) {
-                    console.log(`[InteractionManager] 点击了建筑: ${buildingInfo.buildingType} 在位置 (${tileInfo.row}, ${tileInfo.col})`);
-                    // 处理建筑点击逻辑
+                    console.log(`[InteractionManager] 点击了建筑: ${buildingInfo.buildingNode.name} 在位置 (${tileInfo.row}, ${tileInfo.col})`);
+                    // 处理建筑点击逻辑 - 调用BuildingDetailButtonManager
+                    if (this.buildingDetailButtonManager) {
+                        // 将屏幕坐标转换为世界坐标
+                        const worldPos = this.screenToWorldPos(tapPos);
+                        // 获取建筑信息用于详情面板
+                        const buildingNode = buildingInfo.buildingNode;
+                        const buildInfo = buildingNode ? buildingNode.getComponent(BuildInfo) : null;
+                        const detailInfo = buildInfo ? {
+                            buildingName: buildInfo.getBuildingName(),
+                            previewImage: buildInfo.getImage(),
+                            description: buildInfo.getDescription(),
+                            charmValue: buildInfo.getCharmValue(),
+                            decorationValue: buildInfo.getDecorationValue(),
+                            size: buildInfo.getSize()
+                        } : {
+                            buildingName: buildingInfo.buildingNode.name,
+                            description: '建筑详情'
+                        };
+                        
+                        this.buildingDetailButtonManager.onBuildingClicked(buildingNode, worldPos, detailInfo);
+                    }
                 } else {
                     console.log(`[InteractionManager] 点击了空地块 (${tileInfo.row}, ${tileInfo.col})`);
+                    // 点击空地块时，隐藏详情按钮
+                    if (this.buildingDetailButtonManager) {
+                        this.buildingDetailButtonManager.onBuildingClicked(null, new Vec3(tapPos.x, tapPos.y, 0));
+                    }
                 }
             }
         }
@@ -399,7 +423,7 @@ export class InteractionManager extends Component {
     private triggerBuildingRemoveAndReplace(tileInfo: {row: number, col: number}, buildingInfo: any) {
         // 简化状态检查，允许建筑操作
         
-        console.log(`长按触发，移除建筑: ${buildingInfo.buildingType} 位置(${tileInfo.row}, ${tileInfo.col})`);
+        console.log(`长按触发，移除建筑: ${buildingInfo.buildingNode.name} 位置(${tileInfo.row}, ${tileInfo.col})`);
         
         // 移除建筑但不销毁节点
         if (this.tileOccupancyManager) {
@@ -408,7 +432,7 @@ export class InteractionManager extends Component {
                 console.log('建筑取出成功，准备重新放置');
                 
                 // 启动建筑重新放置，传递原建筑节点（位置信息从BuildInfo中读取）
-                this.startBuildingReplacement(buildingInfo.buildingType, buildingNode);
+                this.startBuildingReplacement(buildingInfo.buildingNode.name, buildingNode);
             } else {
                 console.log('建筑取出失败');
             }
@@ -418,7 +442,7 @@ export class InteractionManager extends Component {
     /**
      * 开始建筑重新放置
      */
-    private startBuildingReplacement(buildingType: string, buildingNode?: Node) {
+    private startBuildingReplacement(buildingName: string, buildingNode?: Node) {
         if (!this.buildingPlacer) {
             console.warn('BuildingPlacer未设置，无法启动建筑重放置');
             return;
@@ -455,7 +479,7 @@ export class InteractionManager extends Component {
         
         // 传递BuildInfo给BuildingPlacer，并提供重新放置的节点和失败回调
         this.buildingPlacer.setBuildingInfo(buildInfo, () => {
-            console.log(`建筑重新放置完成: ${buildingType}`);
+            console.log(`建筑重新放置完成: ${buildingName}`);
         }, buildingNode, {
             originalTileInfo: positionToUse, // 使用从BuildInfo读取的位置
             buildInfo: buildInfo
@@ -463,7 +487,21 @@ export class InteractionManager extends Component {
         
         // 移除PlayerOperationState依赖，状态管理简化
         
-        console.log(`开始重新放置建筑: ${buildingType}`);
+        console.log(`开始重新放置建筑: ${buildingName}`);
+    }
+    
+    /**
+     * 将屏幕坐标转换为世界坐标
+     */
+    private screenToWorldPos(screenPos: Vec2): Vec3 {
+        if (!this.camera) {
+            return new Vec3(screenPos.x, screenPos.y, 0);
+        }
+        
+        // 将UI坐标转换为世界坐标
+        const worldPos = new Vec3();
+        this.camera.screenToWorld(worldPos, new Vec3(screenPos.x, screenPos.y, 0));
+        return worldPos;
     }
     
     /**
@@ -668,7 +706,7 @@ export class InteractionManager extends Component {
         if (tileInfo && this.tileOccupancyManager) {
             const buildingInfo = this.tileOccupancyManager.getBuildingInfoAt(tileInfo.row, tileInfo.col);
             if (buildingInfo) {
-                console.log('检测到地图上的建筑点击:', buildingInfo.buildingType);
+                console.log('检测到地图上的建筑点击:', buildingInfo.buildingNode.name);
                 return true;
             }
         }

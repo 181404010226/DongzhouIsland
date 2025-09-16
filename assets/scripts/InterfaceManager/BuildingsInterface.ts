@@ -189,9 +189,9 @@ export class BuildingsInterface extends Component {
     }
     
     /**
-     * 根据建筑类型查找配置
+     * 根据建筑类型查找建筑
      * @param buildingType 建筑类型
-     * @returns Promise<BuildInfo[]>
+     * @returns 匹配的建筑信息数组
      */
     public static async findBuildingsByType(buildingType: string): Promise<BuildInfo[]> {
         const config = await this.loadBuildingConfig();

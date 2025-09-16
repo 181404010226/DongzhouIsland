@@ -143,8 +143,8 @@ export class TileSelectionManager extends Component {
             return;
         }
         
-        // 获取UI坐标
-        const screenPos = event.getUILocation();
+        // 获取屏幕坐标
+        const screenPos = event.getLocation();
         console.log(`开始地块选择位置: (${screenPos.x}, ${screenPos.y})`);
         
         const tileInfo = this.getTileAtScreenPos(screenPos);
@@ -168,8 +168,8 @@ export class TileSelectionManager extends Component {
             return;
         }
         
-        // 获取UI坐标
-        const screenPos = event.getUILocation();
+        // 获取屏幕坐标
+        const screenPos = event.getLocation();
         const tileInfo = this.getTileAtScreenPos(screenPos);
         if (tileInfo) {
             this.endTile = tileInfo;

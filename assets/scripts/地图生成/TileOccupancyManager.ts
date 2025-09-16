@@ -466,25 +466,25 @@ export class TileOccupancyManager extends Component {
     
     
     /**
-     * 尝试在UI位置放置建筑（使用画线终点坐标）
+     * 尝试在屏幕位置放置建筑（使用画线终点坐标）
      */
-    public tryPlaceBuildingAtScreenPos(uiPos: Vec2, camera: Camera, buildInfo: BuildInfo, existingNode?: Node): boolean {
+    public tryPlaceBuildingAtScreenPos(screenPos: Vec2, camera: Camera, buildInfo: BuildInfo, existingNode?: Node): boolean {
         if (!camera || !this.mapGenerator) {
             console.warn('缺少必要组件，无法放置建筑');
             return false;
         }
         
-        // 直接使用传入的UI坐标
-        console.log('[TileOccupancyManager] 使用UI坐标:', uiPos);
+        // 直接使用传入的屏幕坐标
+        console.log('[TileOccupancyManager] 使用屏幕坐标:', screenPos);
         
-        // 直接使用UI坐标进行瓦片匹配
-        const tileInfo = this.getTileAtScreenPos(uiPos, camera);
+        // 直接使用屏幕坐标进行瓦片匹配
+        const tileInfo = this.getTileAtScreenPos(screenPos, camera);
         
         if (!tileInfo) {
             return false;
         }
         
-        console.log(`[TileOccupancyManager] 使用UI坐标 (${uiPos.x}, ${uiPos.y}) 匹配到地块 (${tileInfo.row}, ${tileInfo.col})`);
+        console.log(`[TileOccupancyManager] 使用屏幕坐标 (${screenPos.x}, ${screenPos.y}) 匹配到地块 (${tileInfo.row}, ${tileInfo.col})`);
         
         // 放置建筑（使用现有节点或创建新节点）
         if (existingNode) {
@@ -507,15 +507,15 @@ export class TileOccupancyManager extends Component {
     }
     
     /**
-     * 获取UI位置对应的地块索引
+     * 获取屏幕位置对应的地块索引
      */
-    private getTileAtScreenPos(uiPos: Vec2, camera: Camera): { row: number, col: number } | null {
+    private getTileAtScreenPos(screenPos: Vec2, camera: Camera): { row: number, col: number } | null {
         if (!camera || !this.mapGenerator) {
             return null;
         }
-        console.log('UI坐标:',uiPos);
-        // 使用UI坐标转换为世界坐标
-        const worldPos = this.screenToWorldPos(uiPos, camera);
+        console.log('屏幕坐标:',screenPos);
+        // 使用屏幕坐标转换为世界坐标
+        const worldPos = this.screenToWorldPos(screenPos, camera);
         const allTiles = this.mapGenerator.getAllTiles();
         console.log('世界坐标:',worldPos);
         console.log('世界坐标:',camera.node.name);
@@ -579,9 +579,9 @@ export class TileOccupancyManager extends Component {
     }
     
     /**
-     * UI坐标转世界坐标
+     * 屏幕坐标转世界坐标
      */
-    private screenToWorldPos(uiPos: Vec2, camera: Camera): Vec3 {
+    private screenToWorldPos(screenPos: Vec2, camera: Camera): Vec3 {
         if (!camera) {
             console.error('Camera not found for coordinate conversion');
             return new Vec3(0, 0, 0);
@@ -589,11 +589,11 @@ export class TileOccupancyManager extends Component {
         
         // 在编辑器环境下添加调试信息
         if (sys.platform === 'EDITOR_PAGE') {
-            console.log('编辑器环境 - 原始UI坐标:', uiPos.x, uiPos.y);
+            console.log('编辑器环境 - 原始屏幕坐标:', screenPos.x, screenPos.y);
         }
         
-        // 直接使用摄像机的screenToWorld方法转换UI坐标
-        const worldPos = camera.screenToWorld(new Vec3(uiPos.x, uiPos.y, 0));
+        // 直接使用摄像机的screenToWorld方法转换屏幕坐标
+        const worldPos = camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
         
         // 在编辑器环境下添加调试信息
         if (sys.platform === 'EDITOR_PAGE') {
@@ -707,7 +707,7 @@ export class TileOccupancyManager extends Component {
         // 通过BuildingManager转发建筑点击事件
         // 定义建筑信息接口结构（与BuildingDetailPanelManager中的IBuildingInfo保持一致）
         interface LocalBuildingInfo {
-            buildingType: string;
+            buildingName: string;
             previewImage?: any;
             description?: string;
             level?: number;
@@ -722,7 +722,7 @@ export class TileOccupancyManager extends Component {
             const buildInfo = buildingNode.getComponent(BuildInfo);
             if (buildInfo) {
                 buildingInfo = {
-                    buildingType: buildInfo.getBuildingName() || '未知建筑',
+                    buildingName: buildInfo.getBuildingName() || '未知建筑',
                     previewImage: buildInfo.getImage(),
                     description: buildInfo.getDescription() || '暂无描述',
                     level: 1, // 默认等级

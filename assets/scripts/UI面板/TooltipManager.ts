@@ -52,8 +52,8 @@ export class TooltipManager extends Component {
         BuildingPlacer.eventTarget.off('building-placement-failed', this.onBuildingPlacementFailed, this);
     }
     
-    private onBuildingPlacementFailed(eventData: { reason: string, buildingType: string }) {
-        const message = `${eventData.buildingType} 放置失败: ${eventData.reason}`;
+    private onBuildingPlacementFailed(eventData: { reason: string, buildingName: string }) {
+        const message = `${eventData.buildingName} 放置失败: ${eventData.reason}`;
         this.showTooltip(message);
     }
     

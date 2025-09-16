@@ -179,7 +179,7 @@ export class BuildingPlacer extends Component {
         }
         
         // 获取UI坐标
-        const uiPos = event.getUILocation();
+        const uiPos = event.getLocation();
         this.updatePreviewPosition(new Vec3(uiPos.x, uiPos.y, 0));
     }
     
@@ -192,7 +192,7 @@ export class BuildingPlacer extends Component {
         }
         
         // 获取UI坐标
-        const uiPos = event.getUILocation();
+        const uiPos = event.getLocation();
         this.endDrag(new Vec3(uiPos.x, uiPos.y, 0));
     }
     
@@ -297,9 +297,9 @@ export class BuildingPlacer extends Component {
             return;
         }
         
-        // 直接使用触摸位置作为UI坐标
-        const uiPos = new Vec2(touchPos.x, touchPos.y);
-        console.log('使用触摸UI位置:', uiPos);
+        // 直接使用触摸位置作为屏幕坐标
+        const screenPos = new Vec2(touchPos.x, touchPos.y);
+        console.log('[BuildingPlacer] 触摸位置:', screenPos);
         
         if (!this.currentBuildInfo) {
             return;
@@ -311,8 +311,8 @@ export class BuildingPlacer extends Component {
             this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1);
         }
         console.log('更新预览位置');
-        // 使用TileOccupancyManager的边界检查逻辑，传入UI坐标
-        const tileInfo = this.tileOccupancyManager['getTileAtScreenPos'](uiPos, this.mainCamera);
+        // 使用TileOccupancyManager的边界检查逻辑，传入屏幕坐标
+        const tileInfo = this.tileOccupancyManager['getTileAtScreenPos'](screenPos, this.mainCamera);
         
         if (tileInfo) {
             // 显示预览节点
@@ -343,7 +343,7 @@ export class BuildingPlacer extends Component {
             }
             
             // 同时更新影响范围预览位置
-            this.updateInfluenceRangePreviewPosition(uiPos, this.currentBuildInfo);
+            this.updateInfluenceRangePreviewPosition(screenPos, this.currentBuildInfo);
         } else {
             // 没有找到有效地块，隐藏预览
             this.previewNode.active = false;
@@ -458,9 +458,9 @@ export class BuildingPlacer extends Component {
         }
         
         // 委托给TileOccupancyManager处理建筑放置
-        // 使用UI坐标而不是屏幕坐标
-        const uiPos = new Vec2(touchPos.x, touchPos.y);
-        const success = this.tileOccupancyManager.tryPlaceBuildingAtScreenPos(uiPos, this.mainCamera, this.currentBuildInfo, this.replacementNode);
+        // 使用屏幕坐标
+        const screenPos = new Vec2(touchPos.x, touchPos.y);
+        const success = this.tileOccupancyManager.tryPlaceBuildingAtScreenPos(screenPos, this.mainCamera, this.currentBuildInfo, this.replacementNode);
         
         if (success) {
             this.onBuildingPlaced(this.currentBuildInfo);
@@ -602,7 +602,7 @@ export class BuildingPlacer extends Component {
         // 发射放置失败事件
         BuildingPlacer.eventTarget.emit('building-placement-failed', {
             reason: reason,
-            buildingType: this.currentBuildInfo?.getType() || '未知建筑'
+            buildingName: this.currentBuildInfo?.getBuildingName() || '未知建筑'
         });
         
         // 清空当前建筑信息
