@@ -243,9 +243,9 @@ export class InteractionControl extends Component {
                     // 发生了滑动，处理滚动结束
                     this.handleBuildingBarEnd(event, touchDuration);
                 } else {
-                    // 没有滑动，处理点击事件
+                    // 没有滑动，处理点击事件 - 传递事件对象而不是坐标
                     if (this.interactionManager) {
-                        this.interactionManager.handleTap(this.touchStartPos);
+                        this.interactionManager.handleTapEvent(event);
                         console.log('建造栏区域内点击事件');
                     }
                 }
@@ -259,7 +259,7 @@ export class InteractionControl extends Component {
                 break;
             default:
                 // 无锁状态，根据当前阶段和移动状态处理触摸结束
-                this.handleTouchEndByPhase();
+                this.handleTouchEndByPhase(event);
                 // 通知InteractionManager处理触摸结束
                 if (this.interactionManager) {
                     this.interactionManager.handleTouchEnd(event, this.currentPhase === TouchPhase.LONG_PRESS);
@@ -465,13 +465,13 @@ export class InteractionControl extends Component {
     /**
      * 根据阶段处理触摸结束
      */
-    private handleTouchEndByPhase() {
+    private handleTouchEndByPhase(event: EventTouch) {
         switch (this.currentPhase) {
             case TouchPhase.INITIAL:
             case TouchPhase.SHORT_PRESS:
                 if (!this.hasMovedBeyondThreshold) {
-                    // 短按点击
-                    this.handleTap();
+                    // 短按点击 - 传递事件对象
+                    this.handleTapEvent(event);
                 }
                 break;
             case TouchPhase.LONG_PRESS:
@@ -482,7 +482,17 @@ export class InteractionControl extends Component {
     }
     
     /**
-     * 处理点击
+     * 处理点击（传递事件对象）
+     */
+    private handleTapEvent(event: EventTouch) {
+        console.log('检测到点击操作');
+        if (this.interactionManager) {
+            this.interactionManager.handleTapEvent(event);
+        }
+    }
+    
+    /**
+     * 处理点击（兼容性保留）
      */
     private handleTap() {
         console.log('检测到点击操作');

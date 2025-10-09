@@ -304,7 +304,80 @@ export class InteractionManager extends Component {
     }
     
     /**
-     * 处理点击交互
+     * 处理点击交互（使用事件对象获取正确坐标）
+     */
+    handleTapEvent(event: EventTouch) {
+        // 使用event.getLocation()获取正确的屏幕坐标
+        const tapPos = event.getLocation();
+        console.log(`[InteractionManager] 处理点击事件，位置: (${tapPos.x}, ${tapPos.y})`);
+        
+        // 简化状态检查，直接处理普通交互模式
+        console.log(`[InteractionManager] 处理普通交互模式点击`);
+        
+        // 处理普通交互模式点击
+        {
+            // 普通交互模式，首先检查是否在建筑栏区域内
+            console.log('[InteractionManager] 普通交互模式，检查点击区域');
+            
+            // 检查是否在建筑栏区域内（通过InteractionControl检测）
+            let isInBuildingBarArea = false;
+            
+            if (this.interactionControl && typeof this.interactionControl.isPointInBuildingBar === 'function') {
+                isInBuildingBarArea = this.interactionControl.isPointInBuildingBar(tapPos);
+            }
+            
+            if (isInBuildingBarArea) {
+                // 在建筑栏区域内，只处理建筑栏相关逻辑
+                console.log('[InteractionManager] 点击在建筑栏区域内，处理建筑栏触摸');
+                if (this.buildingBarManager) {
+                    const handled = this.buildingBarManager.handleBuildingBarTouch(tapPos);
+                    console.log(`[InteractionManager] 建筑栏处理结果: ${handled}`);
+                }
+                // 建筑栏区域内的点击不应该传递给地图处理
+                return;
+            }
+            
+            // 不在建筑栏区域内，处理地图区域的点击
+            console.log('[InteractionManager] 点击不在建筑栏区域内，检查地图区域');
+            const tileInfo = this.getTileAtScreenPos(tapPos);
+            if (tileInfo && this.tileOccupancyManager) {
+                const buildingInfo = this.tileOccupancyManager.getBuildingInfoAt(tileInfo.row, tileInfo.col);
+                if (buildingInfo) {
+                    console.log(`[InteractionManager] 点击了建筑: ${buildingInfo.buildingNode.name} 在位置 (${tileInfo.row}, ${tileInfo.col})`);
+                    // 处理建筑点击逻辑 - 调用BuildingDetailButtonManager
+                    if (this.buildingDetailButtonManager) {
+                        // 将屏幕坐标转换为世界坐标
+                        const worldPos = this.screenToWorldPos(tapPos);
+                        // 获取建筑信息用于详情面板
+                        const buildingNode = buildingInfo.buildingNode;
+                        const buildInfo = buildingNode ? buildingNode.getComponent(BuildInfo) : null;
+                        const detailInfo = buildInfo ? {
+                            buildingName: buildInfo.getBuildingName(),
+                            previewImage: buildInfo.getImage(),
+                            description: buildInfo.getDescription(),
+                            charmValue: buildInfo.getCharmValue(),
+                            decorationValue: buildInfo.getDecorationValue(),
+                            size: buildInfo.getSize()
+                        } : {
+                            buildingName: buildingInfo.buildingNode.name,
+                            description: '建筑详情'
+                        };
+                        
+                        this.buildingDetailButtonManager.onBuildingClicked(buildingNode, worldPos, detailInfo);
+                    }
+                } else {
+                    console.log(`[InteractionManager] 点击了空地块 (${tileInfo.row}, ${tileInfo.col})`);
+                    // 点击空地块时，隐藏详情按钮
+                    if (this.buildingDetailButtonManager) {
+                        this.buildingDetailButtonManager.onBuildingClicked(null, new Vec3(tapPos.x, tapPos.y, 0));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 处理点击交互（兼容性保留）
      */
     handleTap(tapPos: Vec2) {
         console.log(`[InteractionManager] 处理点击事件，位置: (${tapPos.x}, ${tapPos.y})`);
