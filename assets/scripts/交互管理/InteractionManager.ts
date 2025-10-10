@@ -216,9 +216,8 @@ export class InteractionManager extends Component {
      * 开始地图拖拽
      */
     startMapDrag() {
-        // 移除PlayerOperationState依赖，简化地图拖拽逻辑
-        this.isMapDragging = true;
-        console.log('开始地图拖拽');
+        console.log('镜头移动功能已关闭，忽略地图拖拽请求');
+        this.isMapDragging = false;
     }
     
     /**
@@ -234,17 +233,8 @@ export class InteractionManager extends Component {
      * 更新地图拖拽
      */
     private updateMapDrag(currentPos: Vec2, lastPos: Vec2) {
-        const deltaX = currentPos.x - lastPos.x;
-        const deltaY = currentPos.y - lastPos.y;
-        
-        // 移动相机（注意方向相反，因为是拖动视图）
-        const cameraPos = this.cameraNode.position;
-        const newPos = new Vec3(
-            cameraPos.x - deltaX * this.cameraMoveSpeed,
-            cameraPos.y - deltaY * this.cameraMoveSpeed,
-            cameraPos.z
-        );
-        this.cameraNode.setPosition(newPos);
+        // 镜头移动功能已关闭
+        return;
     }
     
     /**
@@ -272,8 +262,7 @@ export class InteractionManager extends Component {
         // 更新触摸位置
         this.lastTouchPos = touchPos.clone();
         
-        // 检查边界自动移图
-        this.checkEdgeScroll(touchPos);
+        // 边界自动移图功能已关闭
         
         // 委托给BuildingPlacer处理建筑拖拽移动
         if (this.buildingPlacer) {
@@ -475,19 +464,8 @@ export class InteractionManager extends Component {
      * 触发地块框选模式
      */
     private triggerTileSelection(event: EventTouch) {
-        // 移除PlayerOperationState依赖，简化地块选择逻辑
-        
-        // 启用地块选择管理器
-        if (this.tileSelectionManager) {
-            this.tileSelectionManager.setEnabled(true);
-            
-            // 使用正确的方法启动地块选择
-            this.tileSelectionManager.startTileSelection(event);
-            
-            console.log('启动地块选择');
-        }
-        
-        console.log('长按触发，进入框选模式');
+        console.log('框选功能已关闭，忽略框选触发');
+        return;
     }
     
     /**

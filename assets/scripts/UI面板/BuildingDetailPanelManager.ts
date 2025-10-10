@@ -6,11 +6,26 @@ const { ccclass, property } = _decorator;
  */
 export interface IBuildingInfo {
     buildingType: string;
+    buildingName?: string;  // 建筑名称
+    name?: string;          // 通用名称字段
     previewImage?: SpriteFrame;
     description?: string;
     level?: number;
     population?: number;
     resources?: { [key: string]: number };
+}
+
+/**
+ * 类型守卫函数：检查对象是否符合 IBuildingInfo 接口
+ * @param obj 要检查的对象
+ * @returns 是否符合 IBuildingInfo 接口
+ */
+function isBuildingInfo(obj: any): obj is IBuildingInfo {
+    return obj && 
+           typeof obj === 'object' && 
+           (typeof obj.buildingType === 'string' || 
+            typeof obj.buildingName === 'string' || 
+            typeof obj.name === 'string');
 }
 
 /**
@@ -47,7 +62,7 @@ export class BuildingDetailPanelManager extends Component {
      * @param buildingInfo 建筑信息
      * @param onClose 关闭回调函数
      */
-    public showBuildingDetailPanel(buildingNode: Node, buildingInfo: any, onClose?: () => void): boolean {
+    public showBuildingDetailPanel(buildingNode: Node, buildingInfo: IBuildingInfo | any, onClose?: () => void): boolean {
         console.log('[BuildingDetailPanelManager] showBuildingDetailPanel 开始执行:', {
             hasBuildingNode: !!buildingNode,
             buildingNodeValid: buildingNode ? buildingNode.isValid : false,
@@ -176,29 +191,41 @@ export class BuildingDetailPanelManager extends Component {
      * 更新建筑信息显示
      * @param buildingInfo 建筑信息
      */
-    private updateBuildingInfo(buildingInfo: any) {
-        if (!buildingInfo) {
-            console.warn('建筑信息无效，无法更新建筑信息');
+    private updateBuildingInfo(buildingInfo: IBuildingInfo | any) {
+        // 使用类型守卫验证建筑信息
+        if (!isBuildingInfo(buildingInfo)) {
+            console.warn('建筑信息无效或格式不正确，无法更新建筑信息', buildingInfo);
             return;
         }
         
-        
         // 更新建筑名称
         if (this.buildingNameLabel) {
-            this.buildingNameLabel.string = buildingInfo.buildingType || '未知建筑';
-            console.log(`更新建筑名称: ${buildingInfo.buildingType}`);
+            // 支持多种字段名：buildingName, buildingType, name
+            const displayName = buildingInfo.buildingName || buildingInfo.buildingType || buildingInfo.name || '未知建筑';
+            this.buildingNameLabel.string = displayName;
+            console.log(`更新建筑名称: ${displayName}`);
         } else {
             console.warn('建筑名称标签组件未找到');
         }
         
         // 更新建筑图片
         if (this.buildingImageSprite) {
-            if (buildingInfo.previewImage) {
-                this.buildingImageSprite.spriteFrame = buildingInfo.previewImage;
-                console.log('更新建筑预览图片');
+            if (buildingInfo.previewImage && buildingInfo.previewImage.isValid) {
+                try {
+                    this.buildingImageSprite.spriteFrame = buildingInfo.previewImage;
+                    console.log('更新建筑预览图片');
+                } catch (error) {
+                    console.error('设置建筑预览图片失败:', error);
+                    // 清空 spriteFrame 以避免渲染错误
+                    this.buildingImageSprite.spriteFrame = null;
+                }
             } else {
-                console.warn('建筑预览图片不存在');
+                console.warn('建筑预览图片不存在或无效，清空显示');
+                // 清空 spriteFrame 以避免显示错误的图片
+                this.buildingImageSprite.spriteFrame = null;
             }
+        } else {
+            console.warn('建筑图片精灵组件未找到');
         }
     }
     

@@ -35,28 +35,43 @@ export class BuildingDetailButtonManager extends Component {
             hasBuildingInfo: !!buildingInfo,
             buildingInfo: buildingInfo
         });
-        
-        // 如果buildingNode为null（点击空白处），删除当前按钮
+    
+        // 若没有设置详情面板管理器，直接返回
+        if (!this.detailPanelManager) {
+            console.warn('[BuildingDetailButtonManager] 未配置 detailPanelManager，无法显示详情面板');
+            return;
+        }
+    
+        // 点击空白处：关闭详情面板并清理遗留按钮
         if (buildingNode === null) {
+            // 关闭当前详情面板
+            this.detailPanelManager.closeBuildingDetailPanel();
+            // 清理遗留按钮（兼容旧逻辑）
             if (this.currentButton) {
                 this.destroyCurrentButton();
             }
+            this.currentBuilding = null;
             return;
         }
-        
-        // 如果点击的是当前已显示按钮的建筑，删除按钮
-        if (this.currentBuilding === buildingNode && this.currentButton) {
-            this.destroyCurrentButton();
-            return;
-        }
-        
-        // 如果有其他按钮在显示，先删除
+    
+        // 点击建筑：直接打开详情面板，不再弹出按钮
+        // 如果未传入 buildingInfo，尝试从遗留按钮信息或保持为 undefined（由面板内部兜底）
+        const info = buildingInfo ?? (this.currentButton ? (this.currentButton as any)._buildingInfo : undefined);
+    
+        // 清理遗留按钮（兼容旧逻辑，避免界面残留）
         if (this.currentButton) {
             this.destroyCurrentButton();
         }
-        
-        // 在点击位置创建新按钮
-        this.createButtonAtPosition(buildingNode, clickPosition, buildingInfo);
+    
+        this.currentBuilding = buildingNode;
+    
+        console.log('[BuildingDetailButtonManager] 直接显示详情面板', {
+            buildingNodeName: buildingNode?.name,
+            hasInfo: !!info,
+            info
+        });
+    
+        this.detailPanelManager.showBuildingDetailPanel(buildingNode, info);
     }
     
 
