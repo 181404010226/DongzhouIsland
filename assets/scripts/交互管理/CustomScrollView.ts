@@ -1,11 +1,11 @@
-import { _decorator, Component, Node, Vec2, Vec3, ScrollView, UITransform, view } from 'cc';
+import { _decorator, Component, Node, Vec2, Vec3, ScrollView, UITransform, view, tween } from 'cc';
 
 const { ccclass, property } = _decorator;
 
 /**
- * 自定义滚动视图组件
- * 从BuildingBarManager中抽取的滚动逻辑
- * 可挂载到Layout节点上提供水平滚动功能
+ * 自定义循环滚动视图组件
+ * 实现无限循环滚动，中间节点正常大小，两边节点逐渐缩小
+ * 支持节点从一边消失后从另一边出现的循环效果
  */
 @ccclass('CustomScrollView')
 export class CustomScrollView extends Component {
@@ -14,6 +14,22 @@ export class CustomScrollView extends Component {
     
     @property({ type: Node, tooltip: 'Layout布局节点（动态获取宽度）' })
     layout: Node = null;
+    
+    // 循环滚动相关属性
+    @property({ tooltip: '是否启用循环滚动模式' })
+    enableLoopScroll: boolean = true;
+    
+    @property({ tooltip: '节点间距' })
+    itemSpacing: number = 150;
+    
+    @property({ tooltip: '中心节点缩放比例' })
+    centerScale: number = 1.0;
+    
+    @property({ tooltip: '边缘节点最小缩放比例' })
+    edgeScale: number = 0.6;
+    
+    @property({ tooltip: '缩放过渡距离（像素）' })
+    scaleTransitionDistance: number = 200;
     
     // 内部使用的content节点引用
     private content: Node = null;
@@ -43,15 +59,14 @@ export class CustomScrollView extends Component {
     private readonly MOVEMENT_FACTOR: number = 0.7;
     private readonly NUMBER_OF_GATHERED_TOUCHES_FOR_MOVE_SPEED: number = 5;
     
-    // 滚动状态变量
+    // 循环滚动状态变量
     private _autoScrolling: boolean = false;
     private _scrolling: boolean = false;
+    private _items: Node[] = [];
+    private _centerIndex: number = 0;
+    private _totalOffset: number = 0;
     
-    // 新的边界变量
-    private View_leftBoundary: number = 0;
-    private View_rightBoundary: number = 0;
-    private Lay_leftBoundary: number = 0;
-    private Lay_rightBoundary: number = 0;
+    // 惯性滚动相关
     private _touchMoveDisplacements: Vec2[] = [];
     private _touchMoveTimeDeltas: number[] = [];
     private _autoScrollTargetDelta: number = 0;
@@ -59,8 +74,6 @@ export class CustomScrollView extends Component {
     private _autoScrollStartPosition: number = 0;
     private _autoScrollTotalTime: number = 0;
     private _autoScrollAccumulatedTime: number = 0;
-    private _outOfBoundaryAmount: number = 0;
-    private _isBouncing: boolean = false;
     private _touchBeganPosition: Vec2 = new Vec2();
     private _touchMoved: boolean = false;
     
@@ -84,18 +97,129 @@ export class CustomScrollView extends Component {
             console.warn(`[CustomScrollView] ScrollView节点未设置，使用默认viewWidth: ${this.viewWidth}`);
         }
         
-        // 初始化边界计算
-        this._calculateBoundary();
+        // 初始化循环滚动
+        if (this.enableLoopScroll) {
+            this._initializeLoopScroll();
+        }
     }
     
     /**
-     * 更新滚动状态（惯性滚动和弹性回弹）
+     * 初始化循环滚动
+     */
+    private _initializeLoopScroll(): void {
+        if (!this.layout) {
+            console.warn('[CustomScrollView] Layout节点未设置，无法初始化循环滚动');
+            return;
+        }
+        
+        // 收集所有子节点
+        this._items = [];
+        for (let i = 0; i < this.layout.children.length; i++) {
+            const child = this.layout.children[i];
+            if (child.active) {
+                this._items.push(child);
+            }
+        }
+        
+        if (this._items.length === 0) {
+            console.warn('[CustomScrollView] 没有找到可用的子节点');
+            return;
+        }
+        
+        // 设置中心索引
+        this._centerIndex = Math.floor(this._items.length / 2);
+        
+        // 初始化节点位置
+        this._updateItemPositions();
+        
+        console.log(`[CustomScrollView] 循环滚动初始化完成，节点数量: ${this._items.length}, 中心索引: ${this._centerIndex}`);
+    }
+    
+    /**
+     * 更新所有节点的位置和缩放
+     */
+    private _updateItemPositions(): void {
+        if (!this._items || this._items.length === 0) return;
+        
+        const centerX = 0; // 中心位置
+        
+        for (let i = 0; i < this._items.length; i++) {
+            const item = this._items[i];
+            
+            // 计算相对于中心的偏移
+            let offsetFromCenter = (i - this._centerIndex) * this.itemSpacing + this._totalOffset;
+            
+            // 循环位置调整
+            const totalWidth = this._items.length * this.itemSpacing;
+            while (offsetFromCenter > totalWidth / 2) {
+                offsetFromCenter -= totalWidth;
+            }
+            while (offsetFromCenter < -totalWidth / 2) {
+                offsetFromCenter += totalWidth;
+            }
+            
+            // 设置位置
+            const targetX = centerX + offsetFromCenter;
+            item.setPosition(targetX, item.position.y, item.position.z);
+            
+            // 计算并应用缩放
+            const scale = this._calculateScale(Math.abs(offsetFromCenter));
+            item.setScale(scale, scale, 1);
+            
+            // 设置透明度（可选）
+            // const opacity = this._calculateOpacity(Math.abs(offsetFromCenter));
+            // const uiOpacity = item.getComponent('UIOpacity');
+            // if (uiOpacity) {
+            //     uiOpacity.opacity = opacity;
+            // }
+        }
+    }
+    
+    /**
+     * 根据距离中心的距离计算缩放比例
+     */
+    private _calculateScale(distanceFromCenter: number): number {
+        if (distanceFromCenter <= 0) {
+            return this.centerScale;
+        }
+        
+        if (distanceFromCenter >= this.scaleTransitionDistance) {
+            return this.edgeScale;
+        }
+        
+        // 线性插值
+        const ratio = distanceFromCenter / this.scaleTransitionDistance;
+        return this.centerScale + (this.edgeScale - this.centerScale) * ratio;
+    }
+    
+    /**
+     * 根据距离中心的距离计算透明度
+     */
+    private _calculateOpacity(distanceFromCenter: number): number {
+        if (distanceFromCenter <= 0) {
+            return 255;
+        }
+        
+        if (distanceFromCenter >= this.scaleTransitionDistance * 1.5) {
+            return 100;
+        }
+        
+        // 线性插值
+        const ratio = distanceFromCenter / (this.scaleTransitionDistance * 1.5);
+        return 255 - (155 * ratio);
+    }
+    
+    /**
+     * 更新滚动状态（惯性滚动）
      */
     update(deltaTime: number) {
-        if (this._isBouncing) {
-            this._updateBounceBack(deltaTime);
-        } else if (this._autoScrolling) {
+        if (this._autoScrolling) {
             this._updateAutoScroll(deltaTime);
+        }
+        
+        // 如果启用循环滚动，持续更新节点位置
+        if (this.enableLoopScroll) {
+            this._updateItemPositions();
         }
     }
     
@@ -103,34 +227,52 @@ export class CustomScrollView extends Component {
      * 处理滚动移动（由InteractionControl调用）
      */
     public handleScrollMove(deltaX: number, deltaY: number, speed: number) {
-        if (!this.layout) {
+        if (!this.enableLoopScroll || !this._items || this._items.length === 0) {
             return;
         }
         
-        // 获取当前位置
-        const currentX = this.layout.position.x;
-        
-        // 应用滚动敏感度并计算新位置
+        // 应用滚动敏感度
         const adjustedDeltaX = deltaX * this.scrollSensitivity;
-        let newX = currentX + adjustedDeltaX;
         
-        console.log(`[CustomScrollView] 滚动移动: 当前位置=${currentX.toFixed(1)}, 偏移=${adjustedDeltaX.toFixed(1)}, 新位置=${newX.toFixed(1)}`);
+        // 更新总偏移量
+        this._totalOffset += adjustedDeltaX;
         
-        // 直接设置新位置，实现实时跟随
-        this.layout.setPosition(newX, this.layout.position.y, this.layout.position.z);
+        // 检查是否需要循环调整
+        this._checkAndAdjustLoop();
+        
+        console.log(`[CustomScrollView] 循环滚动移动: 偏移=${adjustedDeltaX.toFixed(1)}, 总偏移=${this._totalOffset.toFixed(1)}`);
         
         // 记录触摸移动数据用于惯性滚动
         this._recordTouchMove(new Vec2(deltaX, deltaY), speed);
     }
     
     /**
+     * 检查并调整循环位置
+     */
+    private _checkAndAdjustLoop(): void {
+        if (!this._items || this._items.length === 0) return;
+        
+        const itemSpacing = this.itemSpacing;
+        
+        // // 当偏移量超过一个节点间距时，调整中心索引
+        // while (this._totalOffset >= itemSpacing) {
+        //     this._totalOffset -= itemSpacing;
+        //     this._centerIndex = (this._centerIndex + 1) % this._items.length;
+        //     console.log(`[CustomScrollView] 向右循环，新中心索引: ${this._centerIndex}`);
+        // }
+        
+        // while (this._totalOffset <= -itemSpacing) {
+        //     this._totalOffset += itemSpacing;
+        //     this._centerIndex = (this._centerIndex - 1 + this._items.length) % this._items.length;
+        //     console.log(`[CustomScrollView] 向左循环，新中心索引: ${this._centerIndex}`);
+        // }
+    }
+    
+    /**
      * 处理滚动结束（由InteractionControl调用）
      */
     public handleScrollEnd() {
-        // 检查是否需要边界回弹
-        if (this.elastic && this._isOutOfBoundary()) {
-            this._startBounceBackIfNeeded();
-        } else if (this.inertia) {
+        if (this.inertia && this.enableLoopScroll) {
             this._processInertiaScroll();
         }
         
@@ -140,46 +282,87 @@ export class CustomScrollView extends Component {
     }
     
     /**
-     * 滚动到指定百分比位置
-     * @param percent 滚动百分比 (0-1)
+     * 滚动到指定节点索引
+     * @param index 目标节点索引
      * @param animated 是否使用动画
      */
-    public scrollToPercent(percent: number, animated: boolean = false): void {
-        if (!this.layout) {
+    public scrollToIndex(index: number, animated: boolean = true): void {
+        if (!this.enableLoopScroll || !this._items || this._items.length === 0) {
             return;
         }
         
-        // 限制百分比在有效范围内
-        const clampedPercent = Math.max(0, Math.min(1, percent));
+        // 限制索引在有效范围内
+        const targetIndex = ((index % this._items.length) + this._items.length) % this._items.length;
         
-        // 计算边界
-        this._calculateBoundary();
+        // 计算需要移动的距离
+        let deltaSteps = targetIndex - this._centerIndex;
         
-        // 计算目标位置：基于新的边界逻辑
-        // 当percent=0时，Layout应该在最左边界位置
-        // 当percent=1时，Layout应该在最右边界位置
-        const contentWidth = this._calculateContentWidth();
-        const viewWidth = this.viewWidth;
-        
-        let targetX = this.layout.position.x;
-        if (contentWidth > viewWidth) {
-            // 可滚动范围：从View_rightBoundary - contentWidth 到 View_leftBoundary
-            const minX = this.View_rightBoundary - contentWidth;
-            const maxX = this.View_leftBoundary;
-            targetX = minX + (maxX - minX) * (1 - clampedPercent); // 注意这里是1-percent，因为向右滚动是负方向
+        // 选择最短路径
+        if (Math.abs(deltaSteps) > this._items.length / 2) {
+            if (deltaSteps > 0) {
+                deltaSteps -= this._items.length;
+            } else {
+                deltaSteps += this._items.length;
+            }
         }
+        
+        const targetOffset = deltaSteps * this.itemSpacing;
         
         if (animated) {
-            // 启动自动滚动到目标位置
-            const currentX = this.layout.position.x;
-            const deltaMove = targetX - currentX;
-            this._startAutoScroll(new Vec2(deltaMove, 0), 0.3, true);
+            this._startAutoScroll(targetOffset, 0.5, true);
         } else {
-            // 直接设置位置
-            this.layout.setPosition(targetX, this.layout.position.y, this.layout.position.z);
+            this._totalOffset += targetOffset;
+            this._checkAndAdjustLoop();
         }
         
-        console.log(`[CustomScrollView] 滚动到百分比: ${clampedPercent.toFixed(3)}, 目标位置: ${targetX.toFixed(1)}`);
+        console.log(`[CustomScrollView] 滚动到索引: ${targetIndex}, 移动步数: ${deltaSteps}`);
+    }
+    
+    /**
+     * 获取当前中心节点索引
+     */
+    public getCenterIndex(): number {
+        return this._centerIndex;
+    }
+    
+    /**
+     * 获取节点总数
+     */
+    public getItemCount(): number {
+        return this._items ? this._items.length : 0;
+    }
+
+    /**
+     * 重新初始化循环滚动（用于动态添加节点后）
+     */
+    public reinitializeLoopScroll(): void {
+        if (this.enableLoopScroll) {
+            this._initializeLoopScroll();
+            console.log('[CustomScrollView] 循环滚动重新初始化完成');
+        }
+    }
+    
+    /**
+     * 滚动到指定百分比位置（兼容性方法）
+     * @param percent 滚动百分比 (0-1)
+     * @param animated 是否使用动画
+     */
+    public scrollToPercent(percent: number, animated: boolean = true): void {
+        if (!this.enableLoopScroll || !this._items || this._items.length === 0) {
+            console.warn('[CustomScrollView] 循环滚动未启用或没有节点，无法滚动到百分比位置');
+            return;
+        }
+        
+        // 限制百分比在0-1范围内
+        const clampedPercent = Math.max(0, Math.min(1, percent));
+        
+        // 将百分比转换为节点索引
+        const targetIndex = Math.round(clampedPercent * (this._items.length - 1));
+        
+        // 使用scrollToIndex方法
+        this.scrollToIndex(targetIndex, animated);
+        
+        console.log(`[CustomScrollView] 滚动到百分比: ${clampedPercent.toFixed(3)} -> 节点索引: ${targetIndex}`);
     }
     
     /**
@@ -223,8 +406,8 @@ export class CustomScrollView extends Component {
     private _startAttenuatingAutoScroll(deltaMove: Vec2, initialVelocity: Vec2): void {
         const time = this._calculateAutoScrollTimeByInitialSpeed(initialVelocity.length());
         const targetDelta = deltaMove.clone();
-        targetDelta.multiplyScalar(time);
-        this._startAutoScroll(targetDelta, time, true);
+        targetDelta.multiplyScalar(time * this.scrollSensitivity);
+        this._startAutoScroll(targetDelta.x, time, true);
     }
     
     /**
@@ -241,117 +424,20 @@ export class CustomScrollView extends Component {
         return Math.sqrt(Math.sqrt(initalSpeed / 5));
     }
     
-    /**
-     * 获取当前滚动百分比
-     */
-    private _getCurrentScrollPercent(): number {
-        if (!this.layout) {
-            console.warn(`[CustomScrollView] layout节点为空，返回百分比0`);
-            return 0;
-        }
-        
-        this._calculateBoundary();
-        const currentX = this.layout.position.x;
-        const contentWidth = this._calculateContentWidth();
-        
-        // 避免除零错误
-        const totalScrollRange = contentWidth - this.viewWidth;
-        console.log(`[CustomScrollView] 百分比计算: currentX=${currentX}, contentWidth=${contentWidth}, viewWidth=${this.viewWidth}, totalScrollRange=${totalScrollRange}`);
-        
-        if (totalScrollRange <= 0) {
-            console.warn(`[CustomScrollView] 滚动范围无效(${totalScrollRange})，返回百分比0`);
-            return 0;
-        }
-        
-        // 计算当前位置相对于边界的百分比 (0表示最左边，1表示最右边)
-        const scrollPercent = -currentX / totalScrollRange;
-        const clampedPercent = Math.max(0, Math.min(1, scrollPercent));
-        console.log(`[CustomScrollView] 计算结果: scrollPercent=${scrollPercent}, clampedPercent=${clampedPercent}`);
-        return clampedPercent;
-    }
-    
-    /**
-     * 将位移偏量转换为滚动百分比变化量
-     */
-    private _convertOffsetToScrollPercent(offset: number): number {
-        this._calculateBoundary();
-        const contentWidth = this._calculateContentWidth();
-        
-        const totalScrollRange = contentWidth - this.viewWidth;
-        if (totalScrollRange <= 0) {
-            return 0;
-        }
-        
-        // 应用滚动敏感度并转换为百分比
-        const adjustedOffset = offset * this.scrollSensitivity;
-        return adjustedOffset / totalScrollRange;
-    }
-    
-    /**
-     * 限制滚动百分比在有效范围内，并检测是否到达边界
-     */
-    private _clampScrollPercent(percent: number): { clampedPercent: number, isAtBoundary: boolean } {
-        let clampedPercent = percent;
-        let isAtBoundary = false;
-        
-        if (percent < 0) {
-            clampedPercent = 0;
-            isAtBoundary = true;
-        } else if (percent > 1) {
-            clampedPercent = 1;
-            isAtBoundary = true;
-        }
-        
-        return { clampedPercent, isAtBoundary };
-    }
-    
-    /**
-     * 根据百分比滚动到指定位置
-     */
-    private _scrollToPercent(percent: number, animated: boolean = false): void {
-        if (!this.layout) {
-            return;
-        }
-        
-        this._calculateBoundary();
-        const contentWidth = this._calculateContentWidth();
-        
-        // 计算目标位置 (percent=0表示最左边，percent=1表示最右边)
-        const targetX = -(contentWidth - this.viewWidth) * percent;
-        
-        // 设置内容位置
-        this.layout.setPosition(targetX, this.layout.position.y, this.layout.position.z);
-    }
-    
-    /**
-     * 处理边界回弹
-     */
-    private _handleBoundaryBounce(originalPercent: number, clampedPercent: number): void {
-        if (!this.elastic) {
-            return;
-        }
-        
-        const outOfBoundaryAmount = Math.abs(originalPercent - clampedPercent);
-        this._outOfBoundaryAmount = outOfBoundaryAmount;
-        
-        if (outOfBoundaryAmount > this.EPSILON) {
-            this._startBounceBackIfNeeded();
-        }
-    }
+
     
     /**
      * 启动自动滚动
      */
-    private _startAutoScroll(deltaMove: Vec2, timeInSecond: number, attenuated: boolean = false): void {
-        const adjustedDeltaMove = deltaMove.clone();
-        adjustedDeltaMove.multiplyScalar(this.scrollSensitivity);
-        
+    private _startAutoScroll(deltaMove: number, timeInSecond: number, attenuated: boolean = false): void {
         this._autoScrolling = true;
-        this._autoScrollTargetDelta = adjustedDeltaMove.x;
+        this._autoScrollTargetDelta = deltaMove;
         this._autoScrollAttenuate = attenuated;
-        this._autoScrollStartPosition = this.layout ? this.layout.position.x : 0;
+        this._autoScrollStartPosition = this._totalOffset;
         this._autoScrollTotalTime = timeInSecond;
         this._autoScrollAccumulatedTime = 0;
+        
+        console.log(`[CustomScrollView] 启动自动滚动: 目标偏移=${deltaMove.toFixed(1)}, 时间=${timeInSecond.toFixed(2)}s`);
     }
     
     /**
@@ -362,63 +448,17 @@ export class CustomScrollView extends Component {
         this._autoScrollTargetDelta = 0;
         this._autoScrollAccumulatedTime = 0;
         this._autoScrollTotalTime = 0;
+        
+        console.log(`[CustomScrollView] 停止自动滚动`);
     }
     
-    /**
-     * 如果需要则启动回弹
-     */
-    private _startBounceBackIfNeeded(): boolean {
-        if (!this.elastic || !this.layout) {
-            return false;
-        }
-        
-        // 重新计算边界
-        this._calculateBoundary();
-        
-        const leftDiff = this.Lay_leftBoundary - this.View_leftBoundary;
-        const rightDiff = this.Lay_rightBoundary - this.View_rightBoundary;
-        
-        let targetPosition = this.layout.position.x;
-        let needBounce = false;
-        
-        // 如果Lay_leftBoundary-View_leftBoundary为正值，需要向右移动Layout
-        if (leftDiff > this.EPSILON) {
-            targetPosition = this.layout.position.x - leftDiff;
-            needBounce = true;
-            console.log(`[CustomScrollView] 左边界违规，需要向右移动: ${leftDiff}`);
-        }
-        // 如果Lay_rightBoundary-View_rightBoundary为负值，需要向左移动Layout
-        else if (rightDiff < -this.EPSILON) {
-            targetPosition = this.layout.position.x - rightDiff;
-            needBounce = true;
-            console.log(`[CustomScrollView] 右边界违规，需要向左移动: ${Math.abs(rightDiff)}`);
-        }
-        
-        if (needBounce) {
-            console.log(`[CustomScrollView] 启动回弹: 当前位置=${this.layout.position.x}, 目标位置=${targetPosition}`);
-            
-            this._isBouncing = true;
-            this._autoScrolling = false;
-            
-            const bounceBackAmount = Math.abs(targetPosition - this.layout.position.x);
-            const bounceBackTime = Math.sqrt(bounceBackAmount / 1000) * this.bounceDuration;
-            
-            this._autoScrollTotalTime = bounceBackTime;
-            this._autoScrollAccumulatedTime = 0;
-            this._autoScrollTargetDelta = targetPosition - this.layout.position.x;
-            this._autoScrollStartPosition = this.layout.position.x;
-            
-            return true;
-        }
-        
-        return false;
-    }
+
     
     /**
      * 更新自动滚动
      */
     private _updateAutoScroll(deltaTime: number): void {
-        if (!this._autoScrolling || !this.layout) {
+        if (!this._autoScrolling) {
             return;
         }
         
@@ -430,45 +470,19 @@ export class CustomScrollView extends Component {
             percentage = this.quintEaseOut(percentage);
         }
         
-        const newPosition = this._autoScrollStartPosition + this._autoScrollTargetDelta * percentage;
-        this.layout.setPosition(newPosition, this.layout.position.y, this.layout.position.z);
+        // 更新总偏移量
+        const newOffset = this._autoScrollStartPosition + this._autoScrollTargetDelta * percentage;
+        this._totalOffset = newOffset;
         
-        // 检查边界
-        if (this._isOutOfBoundary()) {
-            this._stopAutoScroll();
-            this._startBounceBackIfNeeded();
-            return;
-        }
+        // 检查循环调整
+        this._checkAndAdjustLoop();
         
         if (percentage >= 1) {
             this._stopAutoScroll();
         }
     }
     
-    /**
-     * 更新回弹
-     */
-    private _updateBounceBack(deltaTime: number): void {
-        if (!this._isBouncing || !this.layout) {
-            return;
-        }
-        
-        this._autoScrollAccumulatedTime += deltaTime;
-        
-        let percentage = Math.min(this._autoScrollAccumulatedTime / this._autoScrollTotalTime, 1);
-        percentage = this.quintEaseOut(percentage);
-        
-        const newPosition = this._autoScrollStartPosition + this._autoScrollTargetDelta * percentage;
-        this.layout.setPosition(newPosition, this.layout.position.y, this.layout.position.z);
-        
-        console.log(`[CustomScrollView] 回弹中: 进度=${(percentage * 100).toFixed(1)}%, 位置=${newPosition.toFixed(1)}`);
-        
-        if (percentage >= 1) {
-            this._isBouncing = false;
-            this._autoScrollAccumulatedTime = 0;
-            console.log(`[CustomScrollView] 回弹完成: 最终位置=${newPosition.toFixed(1)}`);
-        }
-    }
+
     
     /**
      * 五次方缓出函数
@@ -509,163 +523,10 @@ export class CustomScrollView extends Component {
         return new Vec2(totalDisplacement.x / totalTime, totalDisplacement.y / totalTime);
     }
     
-    /**
-     * 计算边界
-     */
-    private _calculateBoundary(): void {
-        if (!this.layout || !this.scrollView) {
-            this.View_leftBoundary = 0;
-            this.View_rightBoundary = 0;
-            this.Lay_leftBoundary = 0;
-            this.Lay_rightBoundary = 0;
-            return;
-        }
-        
-        // 获取ScrollView节点的边界（用户可见的视窗边界）
-        const scrollViewTransform = this.scrollView.getComponent(UITransform);
-        if (!scrollViewTransform) {
-            this.View_leftBoundary = 0;
-            this.View_rightBoundary = 0;
-            this.Lay_leftBoundary = 0;
-            this.Lay_rightBoundary = 0;
-            return;
-        }
-        
-        // 计算屏幕边界（屏幕的左右边界）
-        const screenWidth = view.getVisibleSize().width;
-        this.View_leftBoundary = -screenWidth / 2;
-        this.View_rightBoundary = screenWidth / 2;
-        
-        // 获取Layout节点的边界（最左和最右显示边缘）
-        const layoutTransform = this.layout.getComponent(UITransform);
-        if (!layoutTransform) {
-            this.Lay_leftBoundary = 0;
-            this.Lay_rightBoundary = 0;
-            return;
-        }
-        
-        // 计算Layout的实际内容宽度
-        const contentWidth = this._calculateContentWidth();
-        
-        // Layout锚点在最左侧(Anchor Point.x=0)，所以左边界就是Layout的position.x
-        this.Lay_leftBoundary = this.layout.position.x;
-        this.Lay_rightBoundary = this.layout.position.x + contentWidth;
-        
-        console.log(`[CustomScrollView] 边界计算: 内容宽度=${contentWidth}, 视图宽度=${scrollViewTransform.width}`);
-        console.log(`[CustomScrollView] View边界: 左=${this.View_leftBoundary}, 右=${this.View_rightBoundary}`);
-        console.log(`[CustomScrollView] Layout边界: 左=${this.Lay_leftBoundary}, 右=${this.Lay_rightBoundary}`);
-    }
-    
-    /**
-     * 计算内容总宽度
-     */
-    private _calculateContentWidth(): number {
-        if (!this.layout) {
-            return 0;
-        }
-        
-        // 遍历Layout的所有子节点计算总宽度
-        let maxRight = 0;
-        
-        for (const child of this.layout.children) {
-            if (!child.active) continue;
-            
-            const childTransform = child.getComponent(UITransform);
-            if (childTransform) {
-                // 由于Layout锚点在最左侧(Anchor Point.x=0)，子节点的右边界就是position.x + width/2
-                const childRight = child.position.x + childTransform.width / 2;
-                maxRight = Math.max(maxRight, childRight);
-            }
-        }
-        
-        return maxRight;
-    }
-    
-
-    
-    /**
-     * 获取超出边界的距离
-     */
-    private _getHowMuchOutOfBoundary(): number {
-        if (!this.layout) {
-            return 0;
-        }
-        
-        // 重新计算边界
-        this._calculateBoundary();
-        
-        // 检查边界条件
-        const leftDiff = this.Lay_leftBoundary - this.View_leftBoundary;
-        const rightDiff = this.Lay_rightBoundary - this.View_rightBoundary;
-        
-        // 如果Lay_leftBoundary-View_leftBoundary为正值，返回正的超出距离
-        if (leftDiff > this.EPSILON) {
-            return leftDiff;
-        }
-        
-        // 如果Lay_rightBoundary-View_rightBoundary为负值，返回负的超出距离
-        if (rightDiff < -this.EPSILON) {
-            return rightDiff;
-        }
-        
-        return 0;
-    }
-    
-    /**
-     * 检查是否超出边界
-     */
-    private _isOutOfBoundary(): boolean {
-        if (!this.layout) {
-            return false;
-        }
-        
-        // 重新计算边界
-        this._calculateBoundary();
-        
-        // 检查边界条件
-        const leftDiff = this.Lay_leftBoundary - this.View_leftBoundary;
-        const rightDiff = this.Lay_rightBoundary - this.View_rightBoundary;
-        
-        console.log(`[CustomScrollView] 检查边界: Lay_left=${this.Lay_leftBoundary}, View_left=${this.View_leftBoundary}, 差值=${leftDiff}`);
-        console.log(`[CustomScrollView] 检查边界: Lay_right=${this.Lay_rightBoundary}, View_right=${this.View_rightBoundary}, 差值=${rightDiff}`);
-        
-        // 如果Lay_leftBoundary-View_leftBoundary为正值，或者Lay_rightBoundary-View_rightBoundary为负值，则需要回弹
-        const needBounce = leftDiff > this.EPSILON || rightDiff < -this.EPSILON;
-        
-        if (needBounce) {
-            console.log(`[CustomScrollView] 启动回弹`);
-        }
-        
-        return needBounce;
-    }
-    
-    /**
-     * 重置到左边界
-     */
-    public resetToLeftBoundary(): void {
-        this.scrollToPercent(0);
-    }
-    
-    /**
-     * 获取当前滚动百分比（公共接口）
-     */
-    public getCurrentScrollPercent(): number {
-        return this._getCurrentScrollPercent();
-    }
-    
-    /**
-     * 获取当前滚动偏移量（公共接口）
-     * @returns 当前Layout节点的X轴偏移量
-     */
-    public getCurrentScrollOffset(): number {
-        if (!this.layout) {
-            return 0;
-        }
-        return this.layout.position.x;
-    }
-    
     onDestroy() {
-        this._stopAutoScroll();
-        this._isBouncing = false;
+        // 清理资源
+        this._touchMoveDisplacements.length = 0;
+        this._touchMoveTimeDeltas.length = 0;
+        this._items.length = 0;
     }
 }

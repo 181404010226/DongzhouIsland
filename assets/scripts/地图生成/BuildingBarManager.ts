@@ -53,6 +53,8 @@ export class DynamicBuildingBarManager extends Component {
         // 初始化自定义滚动视图
         if (this.customScrollView) {
             this.customScrollView.scrollView = this.buildingBarContainer;
+            this.customScrollView.layout = this.buildingBarContainer; // 设置layout为容器节点
+            console.log('[DynamicBuildingBarManager] CustomScrollView初始化完成');
         }
     }
     
@@ -145,6 +147,9 @@ export class DynamicBuildingBarManager extends Component {
             
             // 更新建筑栏布局
         this.updateBuildingBarLayout();
+        
+        // 重新初始化CustomScrollView的循环滚动
+        this.reinitializeCustomScrollView();
         
         // 重置到左边界对齐位置
         this.resetToLeftBoundary();
@@ -638,7 +643,22 @@ export class DynamicBuildingBarManager extends Component {
 
     
     /**
-     * 更新容器内容尺寸
+     * 重新初始化CustomScrollView的循环滚动
+     */
+    private reinitializeCustomScrollView() {
+        if (this.customScrollView) {
+            // 确保layout已设置
+            this.customScrollView.layout = this.buildingBarContainer;
+            
+            // 调用公开的重新初始化方法
+            this.customScrollView.reinitializeLoopScroll();
+            
+            console.log('[DynamicBuildingBarManager] CustomScrollView循环滚动重新初始化完成');
+        }
+    }
+
+    /**
+     * 更新容器内容尺寸以支持滚动
      */
     private updateContainerContentSize() {
         if (!this.buildingBarContainer) {
