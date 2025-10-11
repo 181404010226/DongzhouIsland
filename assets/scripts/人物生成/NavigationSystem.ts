@@ -12,6 +12,26 @@ export interface NavigationPointData {
 }
 
 /**
+ * A*算法节点数据结构
+ */
+interface AStarNode {
+    name: string;
+    gCost: number; // 从起点到当前节点的实际代价
+    hCost: number; // 从当前节点到终点的启发式代价
+    fCost: number; // gCost + hCost
+    parent: AStarNode | null; // 父节点，用于回溯路径
+}
+
+/**
+ * 路径查找结果
+ */
+export interface PathResult {
+    success: boolean;
+    path: string[]; // 路径节点名称数组
+    totalCost: number; // 总代价
+}
+
+/**
  * 导航解析系统
  * 接受JSON作为参数，解析导航数据并存储在数据结构中
  */
@@ -225,5 +245,172 @@ export class NavigationSystem extends Component {
         }
         
         return Vec3.distance(pos1, pos2);
+    }
+    
+    /**
+     * 使用A*算法查找从起点到终点的最优路径
+     * @param startPoint 起点名称
+     * @param endPoint 终点名称
+     * @returns 路径查找结果
+     */
+    findPathAStar(startPoint: string, endPoint: string): PathResult {
+        // 验证起点和终点是否存在
+        if (!this.hasNavigationPoint(startPoint) || !this.hasNavigationPoint(endPoint)) {
+            console.error(`A*路径查找失败: 起点 ${startPoint} 或终点 ${endPoint} 不存在`);
+            return { success: false, path: [], totalCost: 0 };
+        }
+        
+        // 如果起点就是终点，直接返回
+        if (startPoint === endPoint) {
+            return { success: true, path: [startPoint], totalCost: 0 };
+        }
+        
+        // 初始化开放列表和关闭列表
+        const openList: AStarNode[] = [];
+        const closedList: Set<string> = new Set();
+        const allNodes: Map<string, AStarNode> = new Map();
+        
+        // 创建起始节点
+        const startNode: AStarNode = {
+            name: startPoint,
+            gCost: 0,
+            hCost: this.calculateHeuristic(startPoint, endPoint),
+            fCost: 0,
+            parent: null
+        };
+        startNode.fCost = startNode.gCost + startNode.hCost;
+        
+        openList.push(startNode);
+        allNodes.set(startPoint, startNode);
+        
+        // A*主循环
+        while (openList.length > 0) {
+            // 找到fCost最小的节点
+            let currentNode = openList[0];
+            let currentIndex = 0;
+            
+            for (let i = 1; i < openList.length; i++) {
+                if (openList[i].fCost < currentNode.fCost || 
+                    (openList[i].fCost === currentNode.fCost && openList[i].hCost < currentNode.hCost)) {
+                    currentNode = openList[i];
+                    currentIndex = i;
+                }
+            }
+            
+            // 将当前节点从开放列表移到关闭列表
+            openList.splice(currentIndex, 1);
+            closedList.add(currentNode.name);
+            
+            // 如果到达终点，重构路径
+            if (currentNode.name === endPoint) {
+                return this.reconstructPath(currentNode);
+            }
+            
+            // 检查所有相邻节点
+            const adjacentPoints = this.getAdjacentPoints(currentNode.name);
+            for (const adjacentPointName of adjacentPoints) {
+                // 跳过已在关闭列表中的节点
+                if (closedList.has(adjacentPointName)) {
+                    continue;
+                }
+                
+                // 计算到相邻节点的代价
+                const moveCost = this.getMoveCost(currentNode.name, adjacentPointName);
+                const tentativeGCost = currentNode.gCost + moveCost;
+                
+                // 检查是否已在开放列表中
+                let adjacentNode = allNodes.get(adjacentPointName);
+                let isInOpenList = openList.some(node => node.name === adjacentPointName);
+                
+                if (!adjacentNode) {
+                    // 创建新节点
+                    adjacentNode = {
+                        name: adjacentPointName,
+                        gCost: tentativeGCost,
+                        hCost: this.calculateHeuristic(adjacentPointName, endPoint),
+                        fCost: 0,
+                        parent: currentNode
+                    };
+                    adjacentNode.fCost = adjacentNode.gCost + adjacentNode.hCost;
+                    allNodes.set(adjacentPointName, adjacentNode);
+                    openList.push(adjacentNode);
+                } else if (tentativeGCost < adjacentNode.gCost) {
+                    // 找到更好的路径，更新节点
+                    adjacentNode.gCost = tentativeGCost;
+                    adjacentNode.fCost = adjacentNode.gCost + adjacentNode.hCost;
+                    adjacentNode.parent = currentNode;
+                    
+                    // 如果不在开放列表中，添加进去
+                    if (!isInOpenList) {
+                        openList.push(adjacentNode);
+                    }
+                }
+            }
+        }
+        
+        // 没有找到路径
+        console.warn(`A*算法未找到从 ${startPoint} 到 ${endPoint} 的路径`);
+        return { success: false, path: [], totalCost: 0 };
+    }
+    
+    /**
+     * 计算启发式函数值（使用欧几里得距离）
+     * @param fromPoint 起点
+     * @param toPoint 终点
+     * @returns 启发式代价
+     */
+    private calculateHeuristic(fromPoint: string, toPoint: string): number {
+        return this.getDistanceBetweenPoints(fromPoint, toPoint);
+    }
+    
+    /**
+     * 计算从一个点移动到相邻点的代价
+     * @param fromPoint 起点
+     * @param toPoint 终点
+     * @returns 移动代价
+     */
+    private getMoveCost(fromPoint: string, toPoint: string): number {
+        // 基础距离代价
+        const distance = this.getDistanceBetweenPoints(fromPoint, toPoint);
+        
+        // 考虑目标点的权重
+        const toPointWeight = this.getNavigationPointWeight(toPoint);
+        
+        // 总代价 = 距离 + 权重影响
+        return distance + toPointWeight;
+    }
+    
+    /**
+     * 重构路径（从终点回溯到起点）
+     * @param endNode 终点节点
+     * @returns 路径结果
+     */
+    private reconstructPath(endNode: AStarNode): PathResult {
+        const path: string[] = [];
+        let currentNode: AStarNode | null = endNode;
+        let totalCost = endNode.gCost;
+        
+        // 从终点回溯到起点
+        while (currentNode !== null) {
+            path.unshift(currentNode.name); // 在数组开头插入
+            currentNode = currentNode.parent;
+        }
+        
+        return {
+            success: true,
+            path: path,
+            totalCost: totalCost
+        };
+    }
+    
+    /**
+     * 获取从起点到终点的路径节点名称数组（简化接口）
+     * @param startPoint 起点名称
+     * @param endPoint 终点名称
+     * @returns 路径节点名称数组，如果找不到路径则返回空数组
+     */
+    getPath(startPoint: string, endPoint: string): string[] {
+        const result = this.findPathAStar(startPoint, endPoint);
+        return result.success ? result.path : [];
     }
 }

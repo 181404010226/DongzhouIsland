@@ -47,6 +47,18 @@ export class TouristGenerator extends Component {
     maxTourists: number = 20;
     
     /**
+     * 游客生成节点数组（游客将在这些节点中随机选择起点和终点）
+     */
+    @property([Node])
+    spawnNodes: Node[] = [];
+    
+    /**
+     * 是否使用节点数组模式（如果为true，将使用spawnNodes数组；如果为false，使用导航系统的所有点）
+     */
+    @property
+    useNodeArrayMode: boolean = false;
+    
+    /**
      * 当前游客数量
      */
     private currentTouristCount: number = 0;
@@ -76,8 +88,9 @@ export class TouristGenerator extends Component {
      * 生成游客
      * @param startPointName 起点名称，如果不指定则随机选择
      * @param skinName 皮肤名称，如果不指定则随机选择
+     * @param targetPointName 目标点名称，如果不指定则随机选择
      */
-    generateTourist(startPointName?: string, skinName?: string): Node | null {
+    generateTourist(startPointName?: string, skinName?: string, targetPointName?: string): Node | null {
         if (!this.touristPrefab) {
             console.error('游客预制体未设置');
             return null;
@@ -89,15 +102,28 @@ export class TouristGenerator extends Component {
             return null;
         }
         
-        // 确定起点
         let finalStartPoint = startPointName;
-        if (!finalStartPoint) {
-            finalStartPoint = navigationSystem.getRandomNavigationPointName();
-        }
+        let finalTargetPoint = targetPointName;
         
-        if (!finalStartPoint || !navigationSystem.hasNavigationPoint(finalStartPoint)) {
-            console.error('无效的起点:', finalStartPoint);
-            return null;
+        // 根据模式选择起点和终点
+        if (this.useNodeArrayMode) {
+            const result = this.selectStartAndTargetFromNodes(finalStartPoint, finalTargetPoint);
+            if (!result) {
+                return null;
+            }
+            finalStartPoint = result.startPoint;
+            finalTargetPoint = result.targetPoint;
+            console.log(`[TouristGenerator] 生成游客: 起点=${finalStartPoint}, 终点=${finalTargetPoint}`);
+        } else {
+            // 使用原有的导航系统逻辑
+            if (!finalStartPoint) {
+                finalStartPoint = navigationSystem.getRandomNavigationPointName();
+            }
+            
+            if (!finalStartPoint || !navigationSystem.hasNavigationPoint(finalStartPoint)) {
+                console.error('无效的起点:', finalStartPoint);
+                return null;
+            }
         }
         
         // 实例化游客
@@ -111,7 +137,13 @@ export class TouristGenerator extends Component {
         touristNode.setParent(this.touristParent);
         
         // 设置起始位置
-        const startPosition = navigationSystem.getNavigationPointPosition(finalStartPoint);
+        let startPosition: Vec3;
+        if (this.useNodeArrayMode) {
+            startPosition = this.getNodePositionByName(finalStartPoint);
+        } else {
+            startPosition = navigationSystem.getNavigationPointPosition(finalStartPoint);
+        }
+        
         if (startPosition) {
             touristNode.setWorldPosition(startPosition);
         }
@@ -128,6 +160,11 @@ export class TouristGenerator extends Component {
         // 设置起点
         touristController.setCurrentPoint(finalStartPoint);
         
+        // 如果有目标点，设置目标点
+        if (finalTargetPoint) {
+            touristController.setTargetDestination(finalTargetPoint);
+        }
+        
         // 增加游客计数
         this.currentTouristCount++;
         
@@ -136,9 +173,78 @@ export class TouristGenerator extends Component {
             this.currentTouristCount--;
         });
         
-
-        
         return touristNode;
+    }
+    
+    /**
+     * 从节点数组中选择起点和终点
+     * @param preferredStart 首选起点
+     * @param preferredTarget 首选终点
+     * @returns 选择的起点和终点，如果失败返回null
+     */
+    private selectStartAndTargetFromNodes(preferredStart?: string, preferredTarget?: string): { startPoint: string, targetPoint: string } | null {
+        if (!this.spawnNodes || this.spawnNodes.length < 2) {
+            console.error('节点数组模式需要至少2个节点');
+            return null;
+        }
+        
+        // 获取所有有效节点名称
+        const validNodeNames = this.spawnNodes
+            .filter(node => node && node.isValid)
+            .map(node => node.name);
+            
+        if (validNodeNames.length < 2) {
+            console.error('有效节点数量不足，需要至少2个有效节点');
+            return null;
+        }
+        
+        let startPoint = preferredStart;
+        let targetPoint = preferredTarget;
+        
+        // 选择起点
+        if (!startPoint || !validNodeNames.includes(startPoint)) {
+            const randomStartIndex = Math.floor(Math.random() * validNodeNames.length);
+            startPoint = validNodeNames[randomStartIndex];
+        }
+        
+        // 选择终点（确保与起点不同）
+        if (!targetPoint || !validNodeNames.includes(targetPoint) || targetPoint === startPoint) {
+            const availableTargets = validNodeNames.filter(name => name !== startPoint);
+            if (availableTargets.length === 0) {
+                console.error('无法找到与起点不同的终点');
+                return null;
+            }
+            const randomTargetIndex = Math.floor(Math.random() * availableTargets.length);
+            targetPoint = availableTargets[randomTargetIndex];
+        }
+        
+        return { startPoint, targetPoint };
+    }
+    
+    /**
+     * 根据节点名称获取节点位置
+     * @param nodeName 节点名称
+     * @returns 节点的世界坐标，如果未找到返回null
+     */
+    private getNodePositionByName(nodeName: string): Vec3 | null {
+        const node = this.spawnNodes.find(n => n && n.isValid && n.name === nodeName);
+        if (node) {
+            return node.getWorldPosition();
+        }
+        return null;
+    }
+    
+    /**
+     * 获取所有有效的节点名称
+     * @returns 有效节点名称数组
+     */
+    getValidNodeNames(): string[] {
+        if (!this.spawnNodes) {
+            return [];
+        }
+        return this.spawnNodes
+            .filter(node => node && node.isValid)
+            .map(node => node.name);
     }
     
     /**
