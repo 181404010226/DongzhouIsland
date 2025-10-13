@@ -1,59 +1,104 @@
 {
   "buildings": [
     {
-      "id": "building_20250904_171834_949",
-      "name": "古樟树",
+      "id": "building_snack_shop",
+      "name": "小吃店",
       "image": "植被UI/hd_piece_2_4 (1).png",
+      "type": "commercial",
       "size": {
         "length": 1,
         "width": 1
       },
-      "createdAt": "2025-09-04T09:21:04.619Z",
-      "updatedAt": "2025-09-04T09:21:04.619Z"
+      "baseTrafficFlow": 2,
+      "baseConsumptionPrice": 10,
+      "basePrice": 100,
+      "priceIncrement": 20,
+      "effects": {
+        "generates_income": true,
+        "affected_by_decorations": true
+      },
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "updatedAt": "2025-01-13T00:00:00.000Z"
     },
     {
-      "id": "building_20250904_172115_628",
-      "name": "桃花树",
+      "id": "building_flower_shop",
+      "name": "花店",
       "image": "植被UI/hd_piece_3_5 (1).png",
+      "type": "commercial",
       "size": {
         "length": 1,
         "width": 1
       },
-      "createdAt": "2025-09-04T09:22:11.415Z",
-      "updatedAt": "2025-09-04T09:22:11.415Z"
+      "baseTrafficFlow": 2,
+      "baseConsumptionPrice": 20,
+      "basePrice": 150,
+      "priceIncrement": 30,
+      "effects": {
+        "generates_income": true,
+        "affected_by_flower_clusters": true
+      },
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "updatedAt": "2025-01-13T00:00:00.000Z"
     },
     {
-      "id": "building_20250904_172333_884",
-      "name": "松树",
+      "id": "building_table",
+      "name": "桌子",
       "image": "植被UI/hd_piece_1_5 (1).png",
+      "type": "decoration",
       "size": {
         "length": 1,
         "width": 1
       },
-      "createdAt": "2025-09-04T09:24:10.846Z",
-      "updatedAt": "2025-09-04T09:24:10.846Z"
+      "basePrice": 50,
+      "priceIncrement": 10,
+      "effects": {
+        "boosts_snack_shop_price": 10,
+        "range": 1
+      },
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "updatedAt": "2025-01-13T00:00:00.000Z"
     },
     {
-      "id": "building_20250904_172453_177",
-      "name": "垂柳",
+      "id": "building_tree",
+      "name": "树木",
       "image": "植被UI/hd_piece_3_2.png",
+      "type": "decoration",
       "size": {
         "length": 1,
         "width": 1
       },
-      "createdAt": "2025-09-04T09:25:08.518Z",
-      "updatedAt": "2025-09-04T09:25:08.518Z"
+      "basePrice": 80,
+      "priceIncrement": 15,
+      "effects": {
+        "boosts_traffic_flow": 1,
+        "range": 1
+      },
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "updatedAt": "2025-01-13T00:00:00.000Z"
     },
     {
-      "id": "building_20250904_172520_790",
-      "name": "银杏树",
+      "id": "building_flower_cluster",
+      "name": "花丛",
       "image": "植被UI/hd_piece_3_4 (1).png",
+      "type": "decoration",
       "size": {
         "length": 1,
         "width": 1
       },
-      "createdAt": "2025-09-04T09:25:54.416Z",
-      "updatedAt": "2025-09-04T09:25:54.417Z"
+      "basePrice": 60,
+      "priceIncrement": 12,
+      "effects": {
+        "boosts_traffic_flow": 1,
+        "boosts_flower_shop_price": 10,
+        "range": 1,
+        "special_upgrade": {
+          "condition": "3_or_more_flower_clusters_nearby",
+          "upgraded_name": "盛开的花丛",
+          "multiplier": 2
+        }
+      },
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "updatedAt": "2025-01-13T00:00:00.000Z"
     }
   ],
   "exportedAt": "2025-09-04T09:55:02.647Z",

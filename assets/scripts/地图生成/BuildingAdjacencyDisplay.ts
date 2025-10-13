@@ -1,4 +1,5 @@
 import { _decorator, Component, CCString, Color, Node, Label, Sprite, SpriteFrame, UITransform, Vec3 } from 'cc';
+import { BuildingTrafficPriceSystem, BuildingTrafficPriceInfo } from './BuildingTrafficPriceSystem';
 const { ccclass, property } = _decorator;
 
 /**
@@ -76,6 +77,49 @@ export class BuildingAdjacencyDisplay extends Component {
         displayName: '影响范围地块数'
     })
     private readonly influenceRangeCount: number = 0;
+    
+    // 客流量和单价信息（编辑器显示）
+    @property({ 
+        readonly: true, 
+        tooltip: '建筑基础客流量（人/秒）',
+        displayName: '基础客流量'
+    })
+    private readonly baseTrafficFlow: number = 0;
+    
+    @property({ 
+        readonly: true, 
+        tooltip: '建筑总客流量（人/秒）',
+        displayName: '总客流量'
+    })
+    private readonly totalTrafficFlow: number = 0;
+    
+    @property({ 
+        readonly: true, 
+        tooltip: '建筑基础单价',
+        displayName: '基础单价'
+    })
+    private readonly basePrice: number = 0;
+    
+    @property({ 
+        readonly: true, 
+        tooltip: '建筑总单价',
+        displayName: '总单价'
+    })
+    private readonly totalPrice: number = 0;
+    
+    @property({ 
+        readonly: true, 
+        tooltip: '建筑每秒收入',
+        displayName: '每秒收入'
+    })
+    private readonly incomePerSecond: number = 0;
+    
+    @property({ 
+        readonly: true, 
+        tooltip: '客流量和单价详细信息',
+        displayName: '收入详情'
+    })
+    private readonly trafficPriceDetails: string = '';
     
 
 
@@ -172,6 +216,9 @@ export class BuildingAdjacencyDisplay extends Component {
         (this as any).relationshipStats = '';
         
         this.detailedAdjacencyInfo = null;
+        
+        // 同时清空客流量和单价信息
+        this.clearTrafficPriceInfo();
     }
     
     /**
@@ -283,6 +330,129 @@ export class BuildingAdjacencyDisplay extends Component {
      */
     public setPositionInfo(positionInfo: string): void {
         (this as any).positionInfo = positionInfo;
+    }
+    
+    /**
+     * 更新建筑的客流量和单价信息
+     * @param trafficPriceInfo 客流量和单价信息
+     */
+    public updateTrafficPriceInfo(trafficPriceInfo: BuildingTrafficPriceInfo): void {
+        if (!trafficPriceInfo) {
+            this.clearTrafficPriceInfo();
+            return;
+        }
+        
+        // 更新基础数据
+        (this as any).baseTrafficFlow = trafficPriceInfo.baseTrafficFlow;
+        (this as any).totalTrafficFlow = trafficPriceInfo.totalTrafficFlow;
+        (this as any).basePrice = trafficPriceInfo.basePrice;
+        (this as any).totalPrice = trafficPriceInfo.totalPrice;
+        (this as any).incomePerSecond = trafficPriceInfo.incomePerSecond;
+        
+        // 生成详细信息字符串
+        this.updateTrafficPriceDetails(trafficPriceInfo);
+        
+        console.log(`[BuildingAdjacencyDisplay] 已更新建筑客流量单价显示: ${trafficPriceInfo.buildingId}`, {
+            客流量: `${trafficPriceInfo.baseTrafficFlow} → ${trafficPriceInfo.totalTrafficFlow}`,
+            单价: `${trafficPriceInfo.basePrice} → ${trafficPriceInfo.totalPrice}`,
+            每秒收入: trafficPriceInfo.incomePerSecond
+        });
+    }
+    
+    /**
+     * 根据建筑ID从系统中获取并更新客流量单价信息
+     * @param buildingId 建筑ID
+     */
+    public updateTrafficPriceInfoById(buildingId: string): void {
+        const trafficPriceInfo = BuildingTrafficPriceSystem.getBuildingTrafficPriceInfo(buildingId);
+        this.updateTrafficPriceInfo(trafficPriceInfo);
+    }
+    
+    /**
+     * 清空客流量和单价信息
+     */
+    public clearTrafficPriceInfo(): void {
+        (this as any).baseTrafficFlow = 0;
+        (this as any).totalTrafficFlow = 0;
+        (this as any).basePrice = 0;
+        (this as any).totalPrice = 0;
+        (this as any).incomePerSecond = 0;
+        (this as any).trafficPriceDetails = '';
+    }
+    
+    /**
+     * 更新客流量和单价详细信息字符串
+     * @param trafficPriceInfo 客流量和单价信息
+     */
+    private updateTrafficPriceDetails(trafficPriceInfo: BuildingTrafficPriceInfo): void {
+        let details = `建筑: ${trafficPriceInfo.buildingName}`;
+        
+        // 客流量信息
+        if (trafficPriceInfo.totalTrafficFlow !== trafficPriceInfo.baseTrafficFlow) {
+            details += ` | 客流: ${trafficPriceInfo.baseTrafficFlow}+${trafficPriceInfo.totalTrafficFlow - trafficPriceInfo.baseTrafficFlow}=${trafficPriceInfo.totalTrafficFlow}人/秒`;
+        } else {
+            details += ` | 客流: ${trafficPriceInfo.totalTrafficFlow}人/秒`;
+        }
+        
+        // 单价信息
+        if (trafficPriceInfo.totalPrice !== trafficPriceInfo.basePrice) {
+            details += ` | 单价: ${trafficPriceInfo.basePrice}+${trafficPriceInfo.totalPrice - trafficPriceInfo.basePrice}=${trafficPriceInfo.totalPrice}`;
+        } else {
+            details += ` | 单价: ${trafficPriceInfo.totalPrice}`;
+        }
+        
+        // 收入信息
+        details += ` | 收入: ${trafficPriceInfo.incomePerSecond}/秒`;
+        
+        // 位置信息
+        details += ` | 位置: (${trafficPriceInfo.position.row},${trafficPriceInfo.position.col})`;
+        
+        (this as any).trafficPriceDetails = details;
+    }
+    
+    /**
+     * 获取建筑的客流量信息
+     */
+    public getTrafficFlowInfo(): { base: number; total: number } {
+        return {
+            base: this.baseTrafficFlow,
+            total: this.totalTrafficFlow
+        };
+    }
+    
+    /**
+     * 获取建筑的单价信息
+     */
+    public getPriceInfo(): { base: number; total: number } {
+        return {
+            base: this.basePrice,
+            total: this.totalPrice
+        };
+    }
+    
+    /**
+     * 获取建筑的收入信息
+     */
+    public getIncomeInfo(): number {
+        return this.incomePerSecond;
+    }
+    
+    /**
+     * 检查建筑是否有客流量和单价数据
+     */
+    public hasTrafficPriceData(): boolean {
+        return this.totalTrafficFlow > 0 || this.totalPrice > 0;
+    }
+    
+    /**
+     * 获取客流量和单价摘要信息
+     */
+    public getTrafficPriceSummary(): string {
+        if (!this.hasTrafficPriceData()) {
+            return '无收入数据';
+        }
+        
+        return `客流: ${this.totalTrafficFlow}人/秒, 单价: ${this.totalPrice}, 收入: ${this.incomePerSecond}/秒`;
     }
       
 }

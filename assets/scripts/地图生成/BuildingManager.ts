@@ -1,5 +1,6 @@
 import { BuildingAdjacencyDisplay } from './BuildingAdjacencyDisplay';
 import { CharmCalculationSystem } from './CharmCalculationSystem';
+import { BuildingTrafficPriceSystem, BuildingType, BuildingTrafficPriceInfo } from './BuildingTrafficPriceSystem';
 import { BuildingDetailButtonManager} from '../UI面板/BuildingDetailButtonManager';
 import { NavigationSystem } from '../人物生成/NavigationSystem';
 import { Vec3, SpriteFrame, director } from 'cc';
@@ -545,5 +546,180 @@ export class BuildingManager {
                 buildingInfo: buildingInfo
             });
         }
+    }
+    
+    /**
+     * 转换相邻建筑信息为客流量单价系统所需的格式
+     * @param adjacencyResult 相邻建筑检测结果
+     * @returns 转换后的周边建筑列表
+     */
+    private static convertAdjacencyToNearbyBuildings(adjacencyResult: BuildingAdjacencyResult): Array<{ buildingType: BuildingType; buildingId: string }> {
+        const nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }> = [];
+        
+        // 处理被当前建筑覆盖的建筑
+        for (const building of adjacencyResult.coveredBuildings) {
+            const buildingType = BuildingTrafficPriceSystem.getBuildingTypeByName(building.buildingType);
+            if (buildingType) {
+                nearbyBuildings.push({
+                    buildingType: buildingType,
+                    buildingId: building.buildingId
+                });
+            }
+        }
+        
+        // 处理覆盖当前建筑的建筑
+        for (const building of adjacencyResult.coveringBuildings) {
+            const buildingType = BuildingTrafficPriceSystem.getBuildingTypeByName(building.buildingType);
+            if (buildingType) {
+                nearbyBuildings.push({
+                    buildingType: buildingType,
+                    buildingId: building.buildingId
+                });
+            }
+        }
+        
+        return nearbyBuildings;
+    }
+    
+    /**
+     * 接收并处理建筑客流量和单价数据
+     * 从TileOccupancyManager接收数据，调用客流量单价计算系统
+     * @param buildingNode 建筑节点
+     * @param trafficPriceData 客流量单价相关数据
+     */
+    public static updateBuildingTrafficPriceData(
+        buildingNode: any,
+        trafficPriceData: {
+            buildingId: string;
+            buildingName: string;
+            position: { row: number, col: number };
+            adjacencyResult: BuildingAdjacencyResult;
+        }
+    ): void {
+        if (!buildingNode || !buildingNode.isValid) {
+            console.warn('建筑节点无效，无法更新客流量单价数据');
+            return;
+        }
+        
+        try {
+            // 转换相邻建筑信息为客流量单价系统所需的格式
+            const nearbyBuildings = this.convertAdjacencyToNearbyBuildings(trafficPriceData.adjacencyResult);
+            
+            // 调用客流量单价计算系统计算单个建筑的信息
+            const trafficPriceInfo = BuildingTrafficPriceSystem.calculateBuildingTrafficPriceInfo(
+                trafficPriceData.buildingId,
+                trafficPriceData.buildingName,
+                trafficPriceData.position,
+                nearbyBuildings
+            );
+            
+            if (trafficPriceInfo) {
+                console.log(`[BuildingManager] 已更新建筑客流量单价数据: ${trafficPriceData.buildingName}`, {
+                    客流量: `${trafficPriceInfo.baseTrafficFlow} → ${trafficPriceInfo.totalTrafficFlow}`,
+                    单价: `${trafficPriceInfo.basePrice} → ${trafficPriceInfo.totalPrice}`,
+                    每秒收入: trafficPriceInfo.incomePerSecond
+                });
+                
+                // 让客流量单价计算系统负责计算总收入并更新UI显示
+                BuildingTrafficPriceSystem.updateTotalIncomeDisplay();
+            }
+            
+        } catch (error) {
+            console.error(`[BuildingManager] 处理建筑客流量单价数据时发生错误:`, error);
+        }
+    }
+    
+    /**
+     * 批量更新多个建筑的客流量和单价数据
+     * @param buildingDataList 建筑数据列表
+     */
+    public static updateMultipleBuildingsTrafficPriceData(
+        buildingDataList: Array<{
+            buildingNode: any;
+            buildingId: string;
+            buildingName: string;
+            position: { row: number, col: number };
+            adjacencyResult: BuildingAdjacencyResult;
+        }>
+    ): void {
+        const validBuildings: Array<{
+            buildingId: string;
+            buildingName: string;
+            position: { row: number, col: number };
+            nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>;
+        }> = [];
+        
+        // 转换所有建筑数据
+        for (const buildingData of buildingDataList) {
+            if (buildingData.buildingNode && buildingData.buildingNode.isValid) {
+                const nearbyBuildings = this.convertAdjacencyToNearbyBuildings(buildingData.adjacencyResult);
+                validBuildings.push({
+                    buildingId: buildingData.buildingId,
+                    buildingName: buildingData.buildingName,
+                    position: buildingData.position,
+                    nearbyBuildings: nearbyBuildings
+                });
+            }
+        }
+        
+        if (validBuildings.length > 0) {
+            try {
+                // 批量计算所有建筑的客流量和单价
+                const results = BuildingTrafficPriceSystem.calculateMultipleBuildingsTrafficPrice(validBuildings);
+                
+                console.log(`[BuildingManager] 已批量更新 ${results.length} 个建筑的客流量单价数据`);
+                
+                // 更新总收入显示
+                BuildingTrafficPriceSystem.updateTotalIncomeDisplay();
+                
+            } catch (error) {
+                console.error(`[BuildingManager] 批量处理建筑客流量单价数据时发生错误:`, error);
+            }
+        }
+    }
+    
+    /**
+     * 清除指定建筑的客流量和单价记录
+     * 作为TileOccupancyManager和BuildingTrafficPriceSystem之间的中介
+     * @param buildingId 建筑ID
+     */
+    public static removeBuildingTrafficPriceData(buildingId: string): void {
+        try {
+            // 调用客流量单价计算系统清除记录
+            BuildingTrafficPriceSystem.removeBuildingTrafficPriceInfo(buildingId);
+            
+            // 更新总收入显示
+            BuildingTrafficPriceSystem.updateTotalIncomeDisplay();
+            
+            console.log(`[BuildingManager] 已清除建筑客流量单价记录: ${buildingId}`);
+            
+        } catch (error) {
+            console.error(`[BuildingManager] 清除建筑客流量单价记录时发生错误:`, error);
+        }
+    }
+    
+    /**
+     * 获取建筑的客流量和单价信息
+     * @param buildingId 建筑ID
+     * @returns 建筑客流量和单价信息
+     */
+    public static getBuildingTrafficPriceInfo(buildingId: string): BuildingTrafficPriceInfo | null {
+        return BuildingTrafficPriceSystem.getBuildingTrafficPriceInfo(buildingId);
+    }
+    
+    /**
+     * 获取所有建筑的客流量和单价信息
+     * @returns 所有建筑的客流量和单价信息数组
+     */
+    public static getAllBuildingTrafficPriceInfo(): BuildingTrafficPriceInfo[] {
+        return BuildingTrafficPriceSystem.getAllBuildingTrafficPriceInfo();
+    }
+    
+    /**
+     * 计算并获取总收入
+     * @returns 所有建筑的总收入（每秒）
+     */
+    public static getTotalIncome(): number {
+        return BuildingTrafficPriceSystem.calculateTotalIncome();
     }
 }

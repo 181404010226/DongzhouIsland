@@ -1,14 +1,18 @@
-import { _decorator, Component, Node, Prefab, instantiate, Vec3, sp, CCString } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, Vec3, sp, CCString, tween } from 'cc';
 import { NavigationSystem } from './NavigationSystem';
 import { TouristController } from './TouristController';
+import { TopBarManager } from '../UI面板/TopBarManager';
 const { ccclass, property } = _decorator;
 
 /**
  * 游客生成系统
- * 接收人物预制体和起点名字，随机生成人物（修改预制体中spine骨骼组件的皮肤来生成不同的人物）
+ * 根据客流量数值生成对应数量的游客，实现游客到达终点后逐渐隐藏消失的功能
  */
 @ccclass('TouristGenerator')
 export class TouristGenerator extends Component {
+    
+    // 静态实例引用，方便其他系统调用
+    private static instance: TouristGenerator = null;
     
     /**
      * 人物预制体
@@ -29,22 +33,28 @@ export class TouristGenerator extends Component {
     touristParent: Node = null;
     
     /**
-     * 自动生成游客
+     * 自动生成游客（基于客流量）
      */
     @property
-    autoGenerate: boolean = false;
+    autoGenerate: boolean = true;
     
     /**
-     * 自动生成间隔（秒）
+     * 基础生成间隔（秒）- 客流量为1时的生成间隔
      */
     @property
-    generateInterval: number = 5.0;
+    baseGenerateInterval: number = 2.0;
     
     /**
      * 最大游客数量
      */
     @property
-    maxTourists: number = 20;
+    maxTourists: number = 50;
+    
+    /**
+     * 客流量倍率 - 每点客流量对应的游客生成速率倍数
+     */
+    @property
+    trafficFlowMultiplier: number = 1.0;
     
     /**
      * 游客生成节点数组（游客将在这些节点中随机选择起点和终点）
@@ -68,6 +78,18 @@ export class TouristGenerator extends Component {
      */
     private generateTimer: number = 0;
     
+    onLoad() {
+        // 设置静态实例引用
+        TouristGenerator.instance = this;
+    }
+    
+    onDestroy() {
+        // 清除静态实例引用
+        if (TouristGenerator.instance === this) {
+            TouristGenerator.instance = null;
+        }
+    }
+    
     start() {
         if (!this.touristParent) {
             this.touristParent = this.node;
@@ -77,11 +99,34 @@ export class TouristGenerator extends Component {
     update(deltaTime: number) {
         if (this.autoGenerate && this.currentTouristCount < this.maxTourists) {
             this.generateTimer += deltaTime;
-            if (this.generateTimer >= this.generateInterval) {
+            
+            // 获取当前客流量
+            const topBarManager = TopBarManager.getInstance();
+            const currentTrafficFlow = topBarManager ? topBarManager.getCurrentTrafficFlow() : 0;
+            
+            // 根据客流量计算生成间隔
+            const effectiveInterval = this.calculateGenerateInterval(currentTrafficFlow);
+            
+            if (this.generateTimer >= effectiveInterval && currentTrafficFlow > 0) {
                 this.generateTimer = 0;
                 this.generateRandomTourist();
             }
         }
+    }
+    
+    /**
+     * 根据客流量计算游客生成间隔
+     * @param trafficFlow 当前客流量
+     * @returns 生成间隔（秒）
+     */
+    private calculateGenerateInterval(trafficFlow: number): number {
+        if (trafficFlow <= 0) {
+            return Infinity; // 客流量为0时不生成游客
+        }
+        
+        // 客流量越高，生成间隔越短
+        const interval = this.baseGenerateInterval / (trafficFlow * this.trafficFlowMultiplier);
+        return Math.max(0.1, interval); // 最小间隔0.1秒
     }
     
     /**
@@ -160,9 +205,12 @@ export class TouristGenerator extends Component {
         // 设置起点
         touristController.setCurrentPoint(finalStartPoint);
         
-        // 如果有目标点，设置目标点
+        // 如果有目标点，设置目标点并添加到达回调
         if (finalTargetPoint) {
             touristController.setTargetDestination(finalTargetPoint);
+            
+            // 为游客控制器添加到达终点的回调
+            this.setupTouristArrivalCallback(touristController, touristNode);
         }
         
         // 增加游客计数
@@ -255,6 +303,70 @@ export class TouristGenerator extends Component {
     }
     
     /**
+     * 设置游客到达终点的回调
+     * @param touristController 游客控制器
+     * @param touristNode 游客节点
+     */
+    private setupTouristArrivalCallback(touristController: TouristController, touristNode: Node): void {
+        // 定期检查游客是否到达终点
+        const checkArrival = () => {
+            if (!touristNode.isValid) {
+                return;
+            }
+            
+            const currentPoint = touristController.getCurrentPoint();
+            const targetDestination = touristController.getTargetDestination();
+            
+            // 检查是否到达最终目标点且不在移动状态
+            if (currentPoint === targetDestination && 
+                !touristController.getIsMoving() && 
+                !touristController.getIsStaying()) {
+                
+                console.log(`游客到达终点: ${targetDestination}，开始隐藏消失`);
+                this.hideTouristGradually(touristNode);
+                return;
+            }
+            
+            // 如果还没到达，继续检查
+            this.scheduleOnce(checkArrival, 0.5);
+        };
+        
+        // 延迟开始检查，给游客一些时间开始移动
+        this.scheduleOnce(checkArrival, 1.0);
+    }
+    
+    /**
+     * 让游客逐渐隐藏并消失
+     * @param touristNode 游客节点
+     */
+    private hideTouristGradually(touristNode: Node): void {
+        if (!touristNode.isValid) {
+            return;
+        }
+        
+        // 创建渐隐动画
+        tween(touristNode)
+            .to(2.0, { 
+                scale: new Vec3(0.1, 0.1, 1),
+                position: new Vec3(
+                    touristNode.position.x,
+                    touristNode.position.y + 50, // 向上飘移
+                    touristNode.position.z
+                )
+            }, {
+                easing: 'sineOut'
+            })
+            .call(() => {
+                // 动画完成后销毁节点
+                if (touristNode.isValid) {
+                    touristNode.destroy();
+                }
+            })
+            .start();
+            
+    }
+    
+    /**
      * 设置游客皮肤
      * @param touristNode 游客节点
      * @param skinName 皮肤名称
@@ -322,11 +434,57 @@ export class TouristGenerator extends Component {
     }
     
     /**
-     * 设置生成间隔
+     * 设置基础生成间隔
      */
-    setGenerateInterval(interval: number): void {
-        this.generateInterval = interval;
+    setBaseGenerateInterval(interval: number): void {
+        this.baseGenerateInterval = interval;
     }
+    
+    /**
+     * 设置客流量倍率
+     */
+    setTrafficFlowMultiplier(multiplier: number): void {
+        this.trafficFlowMultiplier = multiplier;
+    }
+    
+    /**
+     * 获取当前有效的生成间隔
+     */
+    getCurrentGenerateInterval(): number {
+        const topBarManager = TopBarManager.getInstance();
+        const currentTrafficFlow = topBarManager ? topBarManager.getCurrentTrafficFlow() : 0;
+        return this.calculateGenerateInterval(currentTrafficFlow);
+    }
+    
+    /**
+     * 强制根据当前客流量生成一批游客
+     */
+    generateTouristsBasedOnTrafficFlow(): void {
+        const topBarManager = TopBarManager.getInstance();
+        const currentTrafficFlow = topBarManager ? topBarManager.getCurrentTrafficFlow() : 0;
+        
+        if (currentTrafficFlow > 0) {
+            const touristsToGenerate = Math.min(
+                Math.floor(currentTrafficFlow * this.trafficFlowMultiplier),
+                this.maxTourists - this.currentTouristCount
+            );
+            
+            for (let i = 0; i < touristsToGenerate; i++) {
+                this.generateRandomTourist();
+                // 稍微延迟每个游客的生成，避免同时生成太多
+                this.scheduleOnce(() => {}, i * 0.1);
+            }
+        }
+    }
+    
+    /**
+     * 静态方法：获取TouristGenerator实例
+     * @returns TouristGenerator实例，如果不存在则返回null
+     */
+    public static getInstance(): TouristGenerator | null {
+        return TouristGenerator.instance;
+    }
+    
     
     /**
      * 手动生成按钮（编辑器用）

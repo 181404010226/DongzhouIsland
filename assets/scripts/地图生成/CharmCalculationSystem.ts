@@ -260,7 +260,7 @@ export class CharmCalculationSystem extends Component {
             const buildingCount = this.buildingCharmValues.size;
             
             // 调用TopBarManager更新UI显示
-            TopBarManager.handleCalculationResult(totalCharmValue, buildingCount);
+            // TopBarManager.handleCalculationResult(totalCharmValue, buildingCount);
             
 
             

@@ -1,0 +1,452 @@
+import { _decorator, Component } from 'cc';
+import { TopBarManager } from '../UI面板/TopBarManager';
+const { ccclass, property } = _decorator;
+
+/**
+ * 建筑类型枚举
+ */
+export enum BuildingType {
+    SNACK_SHOP = 'snack_shop',      // 小吃店
+    FLOWER_SHOP = 'flower_shop',    // 花店
+    TABLE = 'table',                // 桌子
+    TREE = 'tree',                  // 树木
+    FLOWER_BED = 'flower_bed'       // 花丛
+}
+
+/**
+ * 建筑基础属性配置
+ */
+export interface BuildingBaseConfig {
+    /** 建筑类型 */
+    type: BuildingType;
+    /** 基础客流量（人/秒） */
+    baseTrafficFlow: number;
+    /** 基础消费单价 */
+    basePrice: number;
+    /** 是否产生收入 */
+    generateIncome: boolean;
+    /** 是否影响周边建筑 */
+    affectsNearby: boolean;
+}
+
+/**
+ * 建筑客流量和单价信息
+ */
+export interface BuildingTrafficPriceInfo {
+    /** 建筑ID */
+    buildingId: string;
+    /** 建筑类型 */
+    buildingType: BuildingType;
+    /** 建筑名称 */
+    buildingName: string;
+    /** 基础客流量 */
+    baseTrafficFlow: number;
+    /** 计算后的总客流量 */
+    totalTrafficFlow: number;
+    /** 基础单价 */
+    basePrice: number;
+    /** 计算后的总单价 */
+    totalPrice: number;
+    /** 每秒收入（客流量 × 单价） */
+    incomePerSecond: number;
+    /** 建筑位置 */
+    position: { row: number, col: number };
+    /** 影响此建筑的周边建筑列表 */
+    affectingBuildings: Array<{
+        buildingId: string;
+        buildingType: BuildingType;
+        effectType: 'traffic' | 'price';
+        effectValue: number;
+    }>;
+}
+
+/**
+ * 建筑客流量和单价计算系统
+ * 负责实时计算每个建筑的客流量、单价和收入
+ * 
+ * 计算规则：
+ * 1. 小吃店：初始客流量 2人/秒，消费单价 10
+ * 2. 花店：初始客流量 2人/秒，消费单价 20
+ * 3. 桌子：摆设后可提升小吃店单价 +10
+ * 4. 树木：提升周边建筑客流量 +1人/秒
+ * 5. 花丛：提升周边建筑客流量 +1人/秒，同时提升花店单价 +10
+ */
+@ccclass('BuildingTrafficPriceSystem')
+export class BuildingTrafficPriceSystem extends Component {
+    
+    // 建筑基础配置
+    private static readonly BUILDING_CONFIGS: Map<BuildingType, BuildingBaseConfig> = new Map([
+        [BuildingType.SNACK_SHOP, {
+            type: BuildingType.SNACK_SHOP,
+            baseTrafficFlow: 2,
+            basePrice: 10,
+            generateIncome: true,
+            affectsNearby: false
+        }],
+        [BuildingType.FLOWER_SHOP, {
+            type: BuildingType.FLOWER_SHOP,
+            baseTrafficFlow: 2,
+            basePrice: 20,
+            generateIncome: true,
+            affectsNearby: false
+        }],
+        [BuildingType.TABLE, {
+            type: BuildingType.TABLE,
+            baseTrafficFlow: 0,
+            basePrice: 0,
+            generateIncome: false,
+            affectsNearby: true
+        }],
+        [BuildingType.TREE, {
+            type: BuildingType.TREE,
+            baseTrafficFlow: 0,
+            basePrice: 0,
+            generateIncome: false,
+            affectsNearby: true
+        }],
+        [BuildingType.FLOWER_BED, {
+            type: BuildingType.FLOWER_BED,
+            baseTrafficFlow: 0,
+            basePrice: 0,
+            generateIncome: false,
+            affectsNearby: true
+        }]
+    ]);
+    
+    // 存储每个建筑的客流量和单价信息
+    private static buildingTrafficPriceMap: Map<string, BuildingTrafficPriceInfo> = new Map();
+    
+    /**
+     * 根据建筑名称获取建筑类型
+     * @param buildingName 建筑名称
+     * @returns 建筑类型，如果无法识别则返回null
+     */
+    public static getBuildingTypeByName(buildingName: string): BuildingType | null {
+        const lowerName = buildingName.toLowerCase();
+        
+        if (lowerName.includes('小吃') || lowerName.includes('snack')) {
+            return BuildingType.SNACK_SHOP;
+        } else if (lowerName.includes('花店') || lowerName.includes('flower_shop')) {
+            return BuildingType.FLOWER_SHOP;
+        } else if (lowerName.includes('桌子') || lowerName.includes('table')) {
+            return BuildingType.TABLE;
+        } else if (lowerName.includes('树') || lowerName.includes('tree')) {
+            return BuildingType.TREE;
+        } else if (lowerName.includes('花丛') || lowerName.includes('flower_bed')) {
+            return BuildingType.FLOWER_BED;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 获取建筑基础配置
+     * @param buildingType 建筑类型
+     * @returns 建筑基础配置
+     */
+    public static getBuildingBaseConfig(buildingType: BuildingType): BuildingBaseConfig | null {
+        return this.BUILDING_CONFIGS.get(buildingType) || null;
+    }
+    
+    /**
+     * 计算单个建筑的客流量
+     * @param buildingType 建筑类型
+     * @param nearbyBuildings 周边建筑列表
+     * @returns 计算后的客流量信息
+     */
+    public static calculateBuildingTrafficFlow(
+        buildingType: BuildingType,
+        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>
+    ): { baseTrafficFlow: number; totalTrafficFlow: number; affectingBuildings: Array<any> } {
+        const config = this.getBuildingBaseConfig(buildingType);
+        if (!config) {
+            return { baseTrafficFlow: 0, totalTrafficFlow: 0, affectingBuildings: [] };
+        }
+        
+        let totalTrafficFlow = config.baseTrafficFlow;
+        const affectingBuildings: Array<any> = [];
+        
+        // 只有产生收入的建筑才会受到客流量加成
+        if (config.generateIncome) {
+            for (const nearbyBuilding of nearbyBuildings) {
+                let trafficBonus = 0;
+                
+                // 树木提升周边建筑客流量 +1人/秒
+                if (nearbyBuilding.buildingType === BuildingType.TREE) {
+                    trafficBonus = 1;
+                }
+                // 花丛提升周边建筑客流量 +1人/秒
+                else if (nearbyBuilding.buildingType === BuildingType.FLOWER_BED) {
+                    trafficBonus = 1;
+                }
+                
+                if (trafficBonus > 0) {
+                    totalTrafficFlow += trafficBonus;
+                    affectingBuildings.push({
+                        buildingId: nearbyBuilding.buildingId,
+                        buildingType: nearbyBuilding.buildingType,
+                        effectType: 'traffic',
+                        effectValue: trafficBonus
+                    });
+                }
+            }
+        }
+        
+        return {
+            baseTrafficFlow: config.baseTrafficFlow,
+            totalTrafficFlow: totalTrafficFlow,
+            affectingBuildings: affectingBuildings
+        };
+    }
+    
+    /**
+     * 计算单个建筑的单价
+     * @param buildingType 建筑类型
+     * @param nearbyBuildings 周边建筑列表
+     * @returns 计算后的单价信息
+     */
+    public static calculateBuildingPrice(
+        buildingType: BuildingType,
+        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>
+    ): { basePrice: number; totalPrice: number; affectingBuildings: Array<any> } {
+        const config = this.getBuildingBaseConfig(buildingType);
+        if (!config) {
+            return { basePrice: 0, totalPrice: 0, affectingBuildings: [] };
+        }
+        
+        let totalPrice = config.basePrice;
+        const affectingBuildings: Array<any> = [];
+        
+        // 只有产生收入的建筑才会有单价计算
+        if (config.generateIncome) {
+            for (const nearbyBuilding of nearbyBuildings) {
+                let priceBonus = 0;
+                
+                // 桌子提升小吃店单价 +10
+                if (buildingType === BuildingType.SNACK_SHOP && nearbyBuilding.buildingType === BuildingType.TABLE) {
+                    priceBonus = 10;
+                }
+                // 花丛提升花店单价 +10
+                else if (buildingType === BuildingType.FLOWER_SHOP && nearbyBuilding.buildingType === BuildingType.FLOWER_BED) {
+                    priceBonus = 10;
+                }
+                
+                if (priceBonus > 0) {
+                    totalPrice += priceBonus;
+                    affectingBuildings.push({
+                        buildingId: nearbyBuilding.buildingId,
+                        buildingType: nearbyBuilding.buildingType,
+                        effectType: 'price',
+                        effectValue: priceBonus
+                    });
+                }
+            }
+        }
+        
+        return {
+            basePrice: config.basePrice,
+            totalPrice: totalPrice,
+            affectingBuildings: affectingBuildings
+        };
+    }
+    
+    /**
+     * 计算单个建筑的完整客流量和单价信息
+     * @param buildingId 建筑ID
+     * @param buildingName 建筑名称
+     * @param position 建筑位置
+     * @param nearbyBuildings 周边建筑列表
+     * @returns 建筑客流量和单价信息
+     */
+    public static calculateBuildingTrafficPriceInfo(
+        buildingId: string,
+        buildingName: string,
+        position: { row: number, col: number },
+        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>
+    ): BuildingTrafficPriceInfo | null {
+        const buildingType = this.getBuildingTypeByName(buildingName);
+        if (!buildingType) {
+            console.warn(`[客流量单价系统] 无法识别建筑类型: ${buildingName}`);
+            return null;
+        }
+        
+        const config = this.getBuildingBaseConfig(buildingType);
+        if (!config) {
+            console.warn(`[客流量单价系统] 无法获取建筑配置: ${buildingType}`);
+            return null;
+        }
+        
+        // 计算客流量
+        const trafficResult = this.calculateBuildingTrafficFlow(buildingType, nearbyBuildings);
+        
+        // 计算单价
+        const priceResult = this.calculateBuildingPrice(buildingType, nearbyBuildings);
+        
+        // 合并影响建筑列表
+        const allAffectingBuildings = [...trafficResult.affectingBuildings, ...priceResult.affectingBuildings];
+        
+        // 计算每秒收入
+        const incomePerSecond = config.generateIncome ? trafficResult.totalTrafficFlow * priceResult.totalPrice : 0;
+        
+        const buildingInfo: BuildingTrafficPriceInfo = {
+            buildingId: buildingId,
+            buildingType: buildingType,
+            buildingName: buildingName,
+            baseTrafficFlow: trafficResult.baseTrafficFlow,
+            totalTrafficFlow: trafficResult.totalTrafficFlow,
+            basePrice: priceResult.basePrice,
+            totalPrice: priceResult.totalPrice,
+            incomePerSecond: incomePerSecond,
+            position: position,
+            affectingBuildings: allAffectingBuildings
+        };
+        
+        // 存储到静态Map中
+        this.buildingTrafficPriceMap.set(buildingId, buildingInfo);
+        
+        console.log(`[客流量单价系统] 计算建筑信息: ${buildingName}`, {
+            客流量: `${trafficResult.baseTrafficFlow} → ${trafficResult.totalTrafficFlow}`,
+            单价: `${priceResult.basePrice} → ${priceResult.totalPrice}`,
+            每秒收入: incomePerSecond,
+            影响建筑数: allAffectingBuildings.length
+        });
+        
+        return buildingInfo;
+    }
+    
+    /**
+     * 批量计算多个建筑的客流量和单价信息
+     * @param buildingDataList 建筑数据列表
+     * @returns 所有建筑的客流量和单价信息
+     */
+    public static calculateMultipleBuildingsTrafficPrice(
+        buildingDataList: Array<{
+            buildingId: string;
+            buildingName: string;
+            position: { row: number, col: number };
+            nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>;
+        }>
+    ): BuildingTrafficPriceInfo[] {
+        const results: BuildingTrafficPriceInfo[] = [];
+        
+        for (const buildingData of buildingDataList) {
+            const result = this.calculateBuildingTrafficPriceInfo(
+                buildingData.buildingId,
+                buildingData.buildingName,
+                buildingData.position,
+                buildingData.nearbyBuildings
+            );
+            
+            if (result) {
+                results.push(result);
+            }
+        }
+        
+        return results;
+    }
+    
+    /**
+     * 获取建筑的客流量和单价信息
+     * @param buildingId 建筑ID
+     * @returns 建筑客流量和单价信息
+     */
+    public static getBuildingTrafficPriceInfo(buildingId: string): BuildingTrafficPriceInfo | null {
+        return this.buildingTrafficPriceMap.get(buildingId) || null;
+    }
+    
+    /**
+     * 获取所有建筑的客流量和单价信息
+     * @returns 所有建筑的客流量和单价信息数组
+     */
+    public static getAllBuildingTrafficPriceInfo(): BuildingTrafficPriceInfo[] {
+        return Array.from(this.buildingTrafficPriceMap.values());
+    }
+    
+    /**
+     * 计算总收入
+     * @returns 所有建筑的总收入（每秒）
+     */
+    public static calculateTotalIncome(): number {
+        let totalIncome = 0;
+        for (const info of this.buildingTrafficPriceMap.values()) {
+            totalIncome += info.incomePerSecond;
+        }
+        return totalIncome;
+    }
+    
+    /**
+     * 清除指定建筑的客流量和单价记录
+     * @param buildingId 建筑ID
+     */
+    public static removeBuildingTrafficPriceInfo(buildingId: string): void {
+        if (this.buildingTrafficPriceMap.has(buildingId)) {
+            this.buildingTrafficPriceMap.delete(buildingId);
+            console.log(`[客流量单价系统] 已清除建筑记录: ${buildingId}`);
+        }
+    }
+    
+    /**
+     * 清除所有建筑的客流量和单价记录
+     */
+    public static clearAllBuildingTrafficPriceInfo(): void {
+        this.buildingTrafficPriceMap.clear();
+        console.log(`[客流量单价系统] 已清除所有建筑记录`);
+    }
+    
+    /**
+     * 计算总客流量
+     * @returns 所有建筑的总客流量（人/秒）
+     */
+    public static calculateTotalTrafficFlow(): number {
+        let totalTrafficFlow = 0;
+        for (const info of this.buildingTrafficPriceMap.values()) {
+            // 只统计产生收入的建筑的客流量
+            if (info.incomePerSecond > 0) {
+                totalTrafficFlow += info.totalTrafficFlow;
+            }
+        }
+        return totalTrafficFlow;
+    }
+
+    /**
+     * 更新总收入显示
+     * 计算当前所有建筑的总客流量并通过TopBarManager更新UI显示
+     */
+    public static updateTotalIncomeDisplay(): void {
+        try {
+            const totalTrafficFlow = this.calculateTotalTrafficFlow();
+            const totalIncome = this.calculateTotalIncome();
+            const buildingCount = this.buildingTrafficPriceMap.size;
+            
+            console.log(`[客流量单价系统] 更新显示: 总客流量 ${totalTrafficFlow}/秒, 总收入 ${totalIncome}/秒, 建筑数: ${buildingCount}`);
+            
+            // 调用TopBarManager更新客流量显示（传递客流量而不是收入）
+            TopBarManager.setTrafficFlow(totalTrafficFlow);
+            
+        } catch (error) {
+            console.error(`[客流量单价系统] 更新总收入显示时发生错误:`, error);
+        }
+    }
+    
+    /**
+     * 格式化建筑客流量和单价信息为可读字符串
+     * @param info 建筑客流量和单价信息
+     * @returns 格式化的字符串
+     */
+    public static formatBuildingTrafficPriceInfo(info: BuildingTrafficPriceInfo): string {
+        let output = `建筑: ${info.buildingName} (${info.position.row}, ${info.position.col})\n`;
+        output += `类型: ${info.buildingType}\n`;
+        output += `客流量: ${info.baseTrafficFlow} → ${info.totalTrafficFlow} 人/秒\n`;
+        output += `单价: ${info.basePrice} → ${info.totalPrice}\n`;
+        output += `每秒收入: ${info.incomePerSecond}\n`;
+        
+        if (info.affectingBuildings.length > 0) {
+            output += `影响建筑:\n`;
+            for (const affecting of info.affectingBuildings) {
+                output += `  - ${affecting.buildingType}: ${affecting.effectType} +${affecting.effectValue}\n`;
+            }
+        }
+        
+        return output;
+    }
+}

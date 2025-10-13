@@ -123,12 +123,13 @@ export class TileOccupancyManager extends Component {
         buildingNode.setPosition(Vec3.ZERO);
         buildingNode.active = true;
         
-        // 标记地块为已占用
-        this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
-        
         // 为建筑节点添加BuildingAdjacencyDisplay组件
         BuildingManager.addAdjacencyDisplayToMapBuilding(buildingNode);
         
+        // 标记地块为已占用
+        this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
+        
+
         // 处理建筑放置时的导航点禁用
         BuildingManager.handleBuildingPlacement(row, col);
         
@@ -278,6 +279,17 @@ export class TileOccupancyManager extends Component {
                             position: { row: building.row, col: building.col }
                         }
                     );
+                    
+                    // 传递客流量和单价相关数据给BuildingManager，让BuildingManager调用客流量单价计算系统
+                    BuildingManager.updateBuildingTrafficPriceData(
+                        currentBuildingNode,
+                        {
+                            buildingId: building.buildingInfo.buildingId,
+                            buildingName: buildingName,
+                            position: { row: building.row, col: building.col },
+                            adjacencyResult: adjacencyResult
+                        }
+                    );
                 }
             }
         }
@@ -371,6 +383,9 @@ export class TileOccupancyManager extends Component {
             
             // 通过BuildingManager清除魅力值计算系统中的记录
             BuildingManager.removeBuildingCharmValue(occupancyInfo.buildingId);
+            
+            // 通过BuildingManager清除客流量和单价数据
+            BuildingManager.removeBuildingTrafficPriceData(occupancyInfo.buildingId);
             
             // 处理建筑移除时的导航点启用
             BuildingManager.handleBuildingRemoval(row, col);

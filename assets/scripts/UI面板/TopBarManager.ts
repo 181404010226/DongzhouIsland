@@ -3,35 +3,47 @@ const { ccclass, property } = _decorator;
 
 /**
  * 顶部面板管理系统
- * 负责接收魅力值计算系统的数据并更新UI显示
+ * 负责管理游戏的金币和客流量数据并更新UI显示
  * 
  * 功能职责：
- * 1. 接收来自魅力值计算系统的总魅力值
- * 2. 更新顶部面板的魅力值显示
+ * 1. 管理当前金币数量
+ * 2. 管理当前客流量数值
+ * 3. 更新顶部面板的金币和客流量显示
+ * 4. 通知游客生成系统根据客流量生成游客
  * 
  * 数据流向：
- * CharmCalculationSystem → TopBarManager → UI显示
+ * 建筑系统 → TopBarManager → UI显示 & TouristGenerator
  */
 @ccclass('TopBarManager')
 export class TopBarManager extends Component {
     
-    @property({ tooltip: '魅力值显示前缀文本' })
-    charmValuePrefix: string = '总魅力值: ';
+    @property({ tooltip: '金币显示前缀文本' })
+    coinsPrefix: string = '金币: ';
+    
+    @property({ tooltip: '客流量显示前缀文本' })
+    trafficFlowPrefix: string = '客流量: ';
     
     // 私有属性
-    private charmValueLabel: Label = null;
+    private coinsLabel: Label = null;
+    private trafficFlowLabel: Label = null;
     
     // 静态实例引用，方便其他系统调用
     private static instance: TopBarManager = null;
+    
+    // 游戏数据
+    private currentCoins: number = 1000; // 初始金币
+    private currentTrafficFlow: number = 0; // 当前客流量
     
     onLoad() {
         // 设置静态实例引用
         TopBarManager.instance = this;
         
-        // 查找魅力值显示节点
-        this.findCharmValueLabel();
+        // 查找UI显示节点
+        this.findUILabels();
         
-
+        // 初始化显示
+        this.updateCoinsDisplay();
+        this.updateTrafficFlowDisplay();
     }
     
     onDestroy() {
@@ -42,63 +54,152 @@ export class TopBarManager extends Component {
     }
     
     /**
-     * 查找魅力值显示Label组件
+     * 查找UI显示Label组件
      */
-    private findCharmValueLabel(): void {
+    private findUILabels(): void {
         try {
-            const charmValueNode = find('CanvasUI/TopBar/总魅力值');
-            if (charmValueNode) {
-                this.charmValueLabel = charmValueNode.getComponent(Label);
-                if (this.charmValueLabel) {
-
-                    // 设置初始显示
-                    this.updateCharmValueDisplay(0);
-                } else {
-                    console.error('[顶部面板管理器] 魅力值节点缺少Label组件');
+            // 查找金币显示节点
+            const coinsNode = find('CanvasUI/TopBar/金币');
+            if (coinsNode) {
+                this.coinsLabel = coinsNode.getComponent(Label);
+                if (!this.coinsLabel) {
+                    console.error('[顶部面板管理器] 金币节点缺少Label组件');
                 }
             } else {
-                console.error('[顶部面板管理器] 未找到魅力值显示节点: CanvasUI/TopBar/总魅力值');
+                console.error('[顶部面板管理器] 未找到金币显示节点: CanvasUI/TopBar/金币');
+            }
+            
+            // 查找客流量显示节点
+            const trafficFlowNode = find('CanvasUI/TopBar/客流量');
+            if (trafficFlowNode) {
+                this.trafficFlowLabel = trafficFlowNode.getComponent(Label);
+                if (!this.trafficFlowLabel) {
+                    console.error('[顶部面板管理器] 客流量节点缺少Label组件');
+                }
+            } else {
+                console.error('[顶部面板管理器] 未找到客流量显示节点: CanvasUI/TopBar/客流量');
             }
         } catch (error) {
-            console.error('[顶部面板管理器] 查找魅力值Label失败:', error);
+            console.error('[顶部面板管理器] 查找UI Label失败:', error);
         }
     }
     
     /**
-     * 更新魅力值显示
-     * @param charmValue 新的魅力值
+     * 更新金币显示
      */
-    public updateCharmValueDisplay(charmValue: number): void {
-        if (!this.charmValueLabel) {
-            console.error('[顶部面板管理器] Label组件不存在，无法更新显示');
+    private updateCoinsDisplay(): void {
+        if (!this.coinsLabel) {
+            console.error('[顶部面板管理器] 金币Label组件不存在，无法更新显示');
             return;
         }
         
-        const displayValue = Math.max(0, charmValue);
-        const displayText = `${this.charmValuePrefix}${displayValue}`;
-        
-        this.charmValueLabel.string = displayText;
-        
-
+        const displayText = `${this.coinsPrefix}${this.currentCoins}`;
+        this.coinsLabel.string = displayText;
     }
     
-
-    
     /**
-     * 处理魅力值计算结果
-     * @param totalCharmValue 总魅力值
-     * @param buildingCount 建筑数量
+     * 更新客流量显示
      */
-    public handleCharmCalculationResult(totalCharmValue: number, buildingCount: number): void {
-        if (totalCharmValue < 0) {
-            console.error('[顶部面板管理器] 魅力值计算结果无效');
+    private updateTrafficFlowDisplay(): void {
+        if (!this.trafficFlowLabel) {
+            console.error('[顶部面板管理器] 客流量Label组件不存在，无法更新显示');
             return;
         }
         
-
+        const displayText = `${this.trafficFlowPrefix}${this.currentTrafficFlow}`;
+        this.trafficFlowLabel.string = displayText;
+    }
+    
+    /**
+     * 设置金币数量
+     * @param coins 新的金币数量
+     */
+    public setCoins(coins: number): void {
+        this.currentCoins = Math.max(0, coins);
+        this.updateCoinsDisplay();
+    }
+    
+    /**
+     * 增加金币
+     * @param amount 增加的金币数量
+     */
+    public addCoins(amount: number): void {
+        this.currentCoins += amount;
+        this.updateCoinsDisplay();
+    }
+    
+    /**
+     * 扣除金币
+     * @param amount 扣除的金币数量
+     * @returns 是否扣除成功
+     */
+    public spendCoins(amount: number): boolean {
+        if (this.currentCoins >= amount) {
+            this.currentCoins -= amount;
+            this.updateCoinsDisplay();
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * 设置客流量
+     * @param trafficFlow 新的客流量数值
+     */
+    public setTrafficFlow(trafficFlow: number): void {
+        this.currentTrafficFlow = Math.max(0, trafficFlow);
+        this.updateTrafficFlowDisplay();
         
-        // 更新魅力值显示
-        this.updateCharmValueDisplay(totalCharmValue);
+        // 通知游客生成系统更新生成速率
+        this.notifyTouristGenerator();
+    }
+    
+    /**
+     * 通知游客生成系统根据客流量调整生成速率
+     */
+    private notifyTouristGenerator(): void {
+        // 获取TouristGenerator实例并通知更新
+        const touristGenerator = this.getTouristGeneratorInstance();
+        if (touristGenerator) {
+            // 可以调用TouristGenerator的相关方法来响应客流量变化
+            console.log(`[顶部面板管理器] 客流量更新为: ${this.currentTrafficFlow}，已通知游客生成系统`);
+        } else {
+            console.warn(`[顶部面板管理器] 客流量更新为: ${this.currentTrafficFlow}，但未找到游客生成系统实例`);
+        }
+    }
+    
+    /**
+     * 获取TouristGenerator实例（通过全局查找避免循环依赖）
+     */
+    private getTouristGeneratorInstance(): any {
+        try {
+            // 通过场景查找TouristGenerator组件
+            const scene = this.node.scene;
+            if (scene) {
+                const touristGeneratorNode = scene.getComponentInChildren('TouristGenerator');
+                return touristGeneratorNode;
+            }
+            return null;
+        } catch (error) {
+            console.error('[顶部面板管理器] 无法获取TouristGenerator实例:', error);
+            return null;
+        }
+    }
+    
+    /**
+     * 获取当前金币数量
+     * @returns 当前金币数量
+     */
+    public getCurrentCoins(): number {
+        return this.currentCoins;
+    }
+    
+    /**
+     * 获取当前客流量
+     * @returns 当前客流量数值
+     */
+    public getCurrentTrafficFlow(): number {
+        return this.currentTrafficFlow;
     }
     
     /**
@@ -110,16 +211,56 @@ export class TopBarManager extends Component {
     }
     
     /**
-     * 静态方法：处理魅力值计算结果（便捷调用）
-     * @param totalCharmValue 总魅力值
-     * @param buildingCount 建筑数量
+     * 静态方法：设置金币数量（便捷调用）
+     * @param coins 新的金币数量
      */
-    public static handleCalculationResult(totalCharmValue: number, buildingCount: number): void {
+    public static setCoins(coins: number): void {
         const instance = TopBarManager.getInstance();
         if (instance) {
-            instance.handleCharmCalculationResult(totalCharmValue, buildingCount);
+            instance.setCoins(coins);
         } else {
-            console.error('[顶部面板管理器] 实例不存在，无法处理计算结果');
+            console.error('[顶部面板管理器] 实例不存在，无法设置金币');
+        }
+    }
+    
+    /**
+     * 静态方法：设置客流量（便捷调用）
+     * @param trafficFlow 新的客流量数值
+     */
+    public static setTrafficFlow(trafficFlow: number): void {
+        const instance = TopBarManager.getInstance();
+        if (instance) {
+            instance.setTrafficFlow(trafficFlow);
+        } else {
+            console.error('[顶部面板管理器] 实例不存在，无法设置客流量');
+        }
+    }
+    
+    /**
+     * 静态方法：增加金币（便捷调用）
+     * @param amount 增加的金币数量
+     */
+    public static addCoins(amount: number): void {
+        const instance = TopBarManager.getInstance();
+        if (instance) {
+            instance.addCoins(amount);
+        } else {
+            console.error('[顶部面板管理器] 实例不存在，无法增加金币');
+        }
+    }
+    
+    /**
+     * 静态方法：扣除金币（便捷调用）
+     * @param amount 扣除的金币数量
+     * @returns 是否扣除成功
+     */
+    public static spendCoins(amount: number): boolean {
+        const instance = TopBarManager.getInstance();
+        if (instance) {
+            return instance.spendCoins(amount);
+        } else {
+            console.error('[顶部面板管理器] 实例不存在，无法扣除金币');
+            return false;
         }
     }
 }
