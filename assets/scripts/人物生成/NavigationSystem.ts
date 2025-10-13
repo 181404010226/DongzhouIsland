@@ -442,10 +442,11 @@ export class NavigationSystem extends Component {
             return { success: false, path: [], totalCost: 0 };
         }
         
-        if (this.isNavigationPointDisabled(startPoint) || this.isNavigationPointDisabled(endPoint)) {
-            console.error(`A*路径查找失败: 起点 ${startPoint} 或终点 ${endPoint} 已被禁用`);
-            return { success: false, path: [], totalCost: 0 };
-        }
+        // 起点和终点即使被禁用也要允许
+        // if (this.isNavigationPointDisabled(startPoint) || this.isNavigationPointDisabled(endPoint)) {
+        //     console.error(`A*路径查找失败: 起点 ${startPoint} 或终点 ${endPoint} 已被禁用`);
+        //     return { success: false, path: [], totalCost: 0 };
+        // }
         
         // 如果起点就是终点，直接返回
         if (startPoint === endPoint) {
