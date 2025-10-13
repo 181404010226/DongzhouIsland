@@ -1,6 +1,7 @@
 import { BuildingAdjacencyDisplay } from './BuildingAdjacencyDisplay';
 import { CharmCalculationSystem } from './CharmCalculationSystem';
 import { BuildingDetailButtonManager} from '../UI面板/BuildingDetailButtonManager';
+import { NavigationSystem } from '../人物生成/NavigationSystem';
 import { Vec3, SpriteFrame, director } from 'cc';
 
 /**
@@ -32,6 +33,48 @@ export interface BuildingAdjacencyResult {
  * 包含从BuildInfo.ts迁移的相邻关系管理功能
  */
 export class BuildingManager {
+    
+    /**
+     * 处理建筑放置时的导航点禁用
+     * @param buildingRow 建筑行坐标
+     * @param buildingCol 建筑列坐标
+     */
+    public static handleBuildingPlacement(buildingRow: number, buildingCol: number): void {
+        const navigationSystem = NavigationSystem.getInstance();
+        if (!navigationSystem) {
+            console.warn('NavigationSystem实例未初始化，无法处理导航点禁用');
+            return;
+        }
+        
+        // 计算对应的导航点坐标 (2i, 2j)
+        const navPointName = navigationSystem.getNavigationPointNameByBuildingPosition(buildingRow, buildingCol);
+        
+        console.log(`建筑放置在 (${buildingRow}, ${buildingCol})，禁用导航点: ${navPointName}`);
+        
+        // 禁用导航点
+        navigationSystem.disableNavigationPoint(navPointName);
+    }
+    
+    /**
+     * 处理建筑移除时的导航点启用
+     * @param buildingRow 建筑行坐标
+     * @param buildingCol 建筑列坐标
+     */
+    public static handleBuildingRemoval(buildingRow: number, buildingCol: number): void {
+        const navigationSystem = NavigationSystem.getInstance();
+        if (!navigationSystem) {
+            console.warn('NavigationSystem实例未初始化，无法处理导航点启用');
+            return;
+        }
+        
+        // 计算对应的导航点坐标 (2i, 2j)
+        const navPointName = navigationSystem.getNavigationPointNameByBuildingPosition(buildingRow, buildingCol);
+        
+        console.log(`建筑从 (${buildingRow}, ${buildingCol}) 移除，启用导航点: ${navPointName}`);
+        
+        // 启用导航点
+        navigationSystem.enableNavigationPoint(navPointName);
+    }
     
     /**
      * 根据建筑尺寸计算检测范围

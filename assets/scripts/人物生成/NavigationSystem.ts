@@ -45,6 +45,12 @@ export class NavigationSystem extends Component {
     navigationJsonAsset: JsonAsset = null;
     
     /**
+     * 被禁用的导航点列表（只读，用于编辑器可视化）
+     */
+    @property({ type: [String], readonly: true, displayName: "禁用的导航点" })
+    private _disabledPointsDisplay: string[] = [];
+    
+    /**
      * 导航点数据映射表
      */
     private navigationPoints: Map<string, NavigationPointData> = new Map();
@@ -53,6 +59,16 @@ export class NavigationSystem extends Component {
      * 导航点节点映射表
      */
     private navigationNodes: Map<string, Node> = new Map();
+    
+    /**
+     * 禁用的导航点集合
+     */
+    private disabledNavigationPoints: Set<string> = new Set();
+    
+    /**
+     * 注册的游客控制器映射表（导航点名称 -> 游客控制器数组）
+     */
+    private touristControllers: Map<string, any[]> = new Map();
     
     /**
      * 单例实例
@@ -73,6 +89,9 @@ export class NavigationSystem extends Component {
         if (this.navigationJsonAsset) {
             this.parseNavigationData(this.navigationJsonAsset.json);
         }
+        
+        // 初始化可视化显示
+        this.updateDisabledPointsDisplay();
     }
     
     /**
@@ -120,8 +139,6 @@ export class NavigationSystem extends Component {
             for (const pointData of data) {
                 this.navigationPoints.set(pointData.name, pointData);
             }
-            
-
             
         } catch (error) {
             console.error('解析导航数据失败:', error);
@@ -172,12 +189,17 @@ export class NavigationSystem extends Component {
     }
     
     /**
-     * 获取导航点的相邻点列表
+     * 获取导航点的相邻点列表（排除禁用的点）
      * @param pointName 导航点名称
      */
     getAdjacentPoints(pointName: string): string[] {
         const pointData = this.getNavigationPoint(pointName);
-        return pointData ? pointData.adjacentPoints : [];
+        if (!pointData) {
+            return [];
+        }
+        
+        // 过滤掉禁用的导航点
+        return pointData.adjacentPoints.filter(adjacentPoint => !this.isNavigationPointDisabled(adjacentPoint));
     }
     
     /**
@@ -197,10 +219,10 @@ export class NavigationSystem extends Component {
     }
     
     /**
-     * 获取随机导航点名称
+     * 获取随机导航点名称（排除禁用的点）
      */
     getRandomNavigationPointName(): string | null {
-        const names = this.getAllNavigationPointNames();
+        const names = this.getAllNavigationPointNames().filter(name => !this.isNavigationPointDisabled(name));
         if (names.length === 0) {
             return null;
         }
@@ -210,7 +232,7 @@ export class NavigationSystem extends Component {
     }
     
     /**
-     * 从相邻点中随机选择一个
+     * 从相邻点中随机选择一个（排除禁用的点）
      * @param pointName 当前导航点名称
      */
     getRandomAdjacentPoint(pointName: string): string | null {
@@ -232,6 +254,166 @@ export class NavigationSystem extends Component {
     }
     
     /**
+     * 禁用导航点
+     * @param pointName 导航点名称
+     */
+    disableNavigationPoint(pointName: string): void {
+        if (!this.hasNavigationPoint(pointName)) {
+            console.warn(`尝试禁用不存在的导航点: ${pointName}`);
+            return;
+        }
+        
+        this.disabledNavigationPoints.add(pointName);
+        console.log(`导航点 ${pointName} 已被禁用`);
+        
+        // 更新可视化显示
+        this.updateDisabledPointsDisplay();
+        
+        // 通知所有使用该导航点的游客重新计算路径
+        this.notifyTouristsToRecalculatePath(pointName);
+    }
+    
+    /**
+     * 启用导航点
+     * @param pointName 导航点名称
+     */
+    enableNavigationPoint(pointName: string): void {
+        if (this.disabledNavigationPoints.has(pointName)) {
+            this.disabledNavigationPoints.delete(pointName);
+            console.log(`导航点 ${pointName} 已被启用`);
+            
+            // 更新可视化显示
+            this.updateDisabledPointsDisplay();
+        }
+    }
+    
+    /**
+     * 检查导航点是否被禁用
+     * @param pointName 导航点名称
+     */
+    isNavigationPointDisabled(pointName: string): boolean {
+        return this.disabledNavigationPoints.has(pointName);
+    }
+    
+    /**
+     * 获取所有禁用的导航点
+     */
+    getDisabledNavigationPoints(): string[] {
+        return Array.from(this.disabledNavigationPoints);
+    }
+    
+    /**
+     * 注册游客控制器到导航点
+     * @param pointName 导航点名称
+     * @param touristController 游客控制器
+     */
+    registerTouristAtPoint(pointName: string, touristController: any): void {
+        if (!this.touristControllers.has(pointName)) {
+            this.touristControllers.set(pointName, []);
+        }
+        
+        const controllers = this.touristControllers.get(pointName);
+        if (!controllers.includes(touristController)) {
+            controllers.push(touristController);
+        }
+    }
+    
+    /**
+     * 从导航点注销游客控制器
+     * @param pointName 导航点名称
+     * @param touristController 游客控制器
+     */
+    unregisterTouristFromPoint(pointName: string, touristController: any): void {
+        const controllers = this.touristControllers.get(pointName);
+        if (controllers) {
+            const index = controllers.indexOf(touristController);
+            if (index !== -1) {
+                controllers.splice(index, 1);
+            }
+            
+            // 如果没有游客了，删除该导航点的记录
+            if (controllers.length === 0) {
+                this.touristControllers.delete(pointName);
+            }
+        }
+    }
+    
+    /**
+     * 获取在指定导航点的所有游客控制器
+     * @param pointName 导航点名称
+     */
+    getTouristsAtPoint(pointName: string): any[] {
+        return this.touristControllers.get(pointName) || [];
+    }
+    
+    /**
+     * 获取所有经过指定导航点的游客控制器（包括路径中包含该点的游客）
+     * @param pointName 导航点名称
+     */
+    getTouristsUsingPoint(pointName: string): any[] {
+        const tourists: any[] = [];
+        
+        // 获取当前在该点的游客
+        const touristsAtPoint = this.getTouristsAtPoint(pointName);
+        tourists.push(...touristsAtPoint);
+        
+        // 遍历所有注册的游客，检查其路径是否包含该点
+        for (const [_, controllers] of this.touristControllers) {
+            for (const controller of controllers) {
+                if (controller && typeof controller.isPathContainingPoint === 'function') {
+                    if (controller.isPathContainingPoint(pointName) && !tourists.includes(controller)) {
+                        tourists.push(controller);
+                    }
+                }
+            }
+        }
+        
+        return tourists;
+    }
+    
+    /**
+     * 通知所有使用指定导航点的游客重新计算路径
+     * @param pointName 导航点名称
+     */
+    private notifyTouristsToRecalculatePath(pointName: string): void {
+        const affectedTourists = this.getTouristsUsingPoint(pointName);
+        
+        console.log(`导航点 ${pointName} 被禁用，通知 ${affectedTourists.length} 个游客重新计算路径`);
+        
+        for (const tourist of affectedTourists) {
+            if (tourist && typeof tourist.forceRecalculatePath === 'function') {
+                tourist.forceRecalculatePath();
+            }
+        }
+    }
+    
+    /**
+     * 根据建筑位置计算对应的导航点名称
+     * @param buildingRow 建筑行位置
+     * @param buildingCol 建筑列位置
+     * @returns 对应的导航点名称，如果不存在则返回null
+     */
+    getNavigationPointNameByBuildingPosition(buildingRow: number, buildingCol: number): string | null {
+        // 计算对应的导航点位置 (2i, 2j)
+        const navRow = 2 * buildingRow;
+        const navCol = 2 * buildingCol;
+        
+        // 尝试不同的导航点命名格式
+        const possibleNames = [
+            `Tile_${navRow}_${navCol}`,
+        ];
+        
+        for (const name of possibleNames) {
+            if (this.hasNavigationPoint(name)) {
+                return name;
+            }
+        }
+        
+        console.warn(`未找到建筑位置 (${buildingRow}, ${buildingCol}) 对应的导航点 (${navRow}, ${navCol})`);
+        return null;
+    }
+    
+    /**
      * 计算两个导航点之间的距离
      * @param pointName1 第一个导航点
      * @param pointName2 第二个导航点
@@ -248,15 +430,20 @@ export class NavigationSystem extends Component {
     }
     
     /**
-     * 使用A*算法查找从起点到终点的最优路径
+     * 使用A*算法查找从起点到终点的最优路径（考虑禁用的导航点）
      * @param startPoint 起点名称
      * @param endPoint 终点名称
      * @returns 路径查找结果
      */
     findPathAStar(startPoint: string, endPoint: string): PathResult {
-        // 验证起点和终点是否存在
+        // 验证起点和终点是否存在且未被禁用
         if (!this.hasNavigationPoint(startPoint) || !this.hasNavigationPoint(endPoint)) {
             console.error(`A*路径查找失败: 起点 ${startPoint} 或终点 ${endPoint} 不存在`);
+            return { success: false, path: [], totalCost: 0 };
+        }
+        
+        if (this.isNavigationPointDisabled(startPoint) || this.isNavigationPointDisabled(endPoint)) {
+            console.error(`A*路径查找失败: 起点 ${startPoint} 或终点 ${endPoint} 已被禁用`);
             return { success: false, path: [], totalCost: 0 };
         }
         
@@ -306,11 +493,16 @@ export class NavigationSystem extends Component {
                 return this.reconstructPath(currentNode);
             }
             
-            // 检查所有相邻节点
+            // 检查所有相邻节点（getAdjacentPoints已经过滤了禁用的点）
             const adjacentPoints = this.getAdjacentPoints(currentNode.name);
             for (const adjacentPointName of adjacentPoints) {
                 // 跳过已在关闭列表中的节点
                 if (closedList.has(adjacentPointName)) {
+                    continue;
+                }
+                
+                // 跳过禁用的导航点（双重保险）
+                if (this.isNavigationPointDisabled(adjacentPointName)) {
                     continue;
                 }
                 
@@ -412,5 +604,13 @@ export class NavigationSystem extends Component {
     getPath(startPoint: string, endPoint: string): string[] {
         const result = this.findPathAStar(startPoint, endPoint);
         return result.success ? result.path : [];
+    }
+    
+    /**
+     * 更新禁用导航点的可视化显示
+     * @private
+     */
+    private updateDisabledPointsDisplay(): void {
+        this._disabledPointsDisplay = Array.from(this.disabledNavigationPoints).sort();
     }
 }

@@ -211,6 +211,11 @@ export class TouristController extends Component {
             this.findNearestNavigationPoint();
         }
         
+        // 在导航系统中注册当前游客
+        if (this._currentPoint) {
+            this.navigationSystem.registerTouristAtPoint(this._currentPoint, this);
+        }
+        
         // 初始化只读字段显示
         this.updateReadonlyFields();
     }
@@ -271,7 +276,18 @@ export class TouristController extends Component {
      * @param pointName 导航点名称
      */
     setCurrentPoint(pointName: string): void {
+        // 如果有之前的点，先注销
+        if (this._currentPoint && this.navigationSystem) {
+            this.navigationSystem.unregisterTouristFromPoint(this._currentPoint, this);
+        }
+        
         this._currentPoint = pointName;
+        
+        // 在新的点注册
+        if (this._currentPoint && this.navigationSystem) {
+            this.navigationSystem.registerTouristAtPoint(this._currentPoint, this);
+        }
+        
         this.updateReadonlyFields();
         
         // 如果有最终目标点且导航系统可用，开始导航
@@ -694,7 +710,58 @@ export class TouristController extends Component {
         this._currentPathIndex = 0;
     }
     
+    /**
+     * 强制重新计算路径（当导航点被禁用时调用）
+     */
+    forceRecalculatePath(): void {
+        console.log(`游客 ${this.node.name} 被要求重新计算路径`);
+        
+        // 如果没有最终目标点，无需重新计算
+        if (!this._finalDestination || !this.navigationSystem) {
+            console.log('没有最终目标点或导航系统不可用，跳过路径重新计算');
+            return;
+        }
+        
+        // 停止当前移动
+        this.stopMoving();
+        this.stopFollowingPath();
+        
+        // 重新计算路径
+        console.log(`重新计算从 ${this._currentPoint} 到 ${this._finalDestination} 的路径`);
+        this.navigateToDestination();
+    }
+    
+    /**
+     * 检查当前路径是否包含指定的导航点
+     * @param pointName 导航点名称
+     * @returns 如果路径包含该点则返回true
+     */
+    isPathContainingPoint(pointName: string): boolean {
+        return this._currentPath.includes(pointName);
+    }
+    
+    /**
+     * 获取当前路径的副本
+     * @returns 当前路径数组的副本
+     */
+    getCurrentPath(): string[] {
+        return [...this._currentPath];
+    }
+    
+    /**
+     * 检查游客是否正在跟随路径
+     * @returns 如果正在跟随路径则返回true
+     */
+    isFollowingPath(): boolean {
+        return this._isFollowingPath;
+    }
+    
     onDestroy() {
+        // 在销毁时从导航系统中注销
+        if (this._currentPoint && this.navigationSystem) {
+            this.navigationSystem.unregisterTouristFromPoint(this._currentPoint, this);
+        }
+        
         this.stopMoving();
     }
 }

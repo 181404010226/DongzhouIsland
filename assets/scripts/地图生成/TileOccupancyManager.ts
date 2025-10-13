@@ -115,21 +115,24 @@ export class TileOccupancyManager extends Component {
             }
         }
         
-        // 设置建筑当前位置信息
+        // 设置建筑的当前位置
         instanceBuildInfo.setCurrentPosition(row, col);
         
-        // 将建筑放置在地块上
-        buildingNode.parent = tile;// 将建筑放置在地块上对位置
-        // 只设置Z轴高度，让建筑保持在手指放置的位置
-        const currentPos = buildingNode.position;
-        buildingNode.setPosition(currentPos.x, currentPos.y, 1); // 稍微抬高一点
+        // 设置父节点和位置
+        buildingNode.parent = tile;
+        buildingNode.setPosition(Vec3.ZERO);
+        buildingNode.active = true;
         
-        // 提前添加BuildingAdjacencyDisplay组件，确保在相邻信息更新时组件已存在
-        // 遵循信息传递顺序：TileOccupancyManager → BuildingManager → BuildingAdjacencyDisplay
+        // 标记地块为已占用
+        this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
+        
+        // 为建筑节点添加BuildingAdjacencyDisplay组件
         BuildingManager.addAdjacencyDisplayToMapBuilding(buildingNode);
         
-        // 标记所有占用的地块（这会触发相邻信息更新）
-        this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
+        // 处理建筑放置时的导航点禁用
+        BuildingManager.handleBuildingPlacement(row, col);
+        
+        console.log(`成功放置建筑: ${buildInfo.getType()} 在地块 (${row}, ${col})`);
         return true;
     }
     
@@ -369,6 +372,9 @@ export class TileOccupancyManager extends Component {
             // 通过BuildingManager清除魅力值计算系统中的记录
             BuildingManager.removeBuildingCharmValue(occupancyInfo.buildingId);
             
+            // 处理建筑移除时的导航点启用
+            BuildingManager.handleBuildingRemoval(row, col);
+            
             // 清除所有相关的占用标记
             this.clearTileOccupancyByBuildingId(occupancyInfo.buildingId);
             
@@ -377,15 +383,11 @@ export class TileOccupancyManager extends Component {
                 console.log(`成功移除建筑: ${occupancyInfo.buildingType} (${occupancyInfo.width}x${occupancyInfo.height})`);
                 return null;
             } else {
-                // 从父节点移除但不销毁
-                buildingNode.removeFromParent();
+                console.log(`成功移除建筑: ${occupancyInfo.buildingType} (${occupancyInfo.width}x${occupancyInfo.height})，节点未销毁`);
                 return buildingNode;
             }
         }
         
-        // 如果建筑节点无效，清除占用记录
-        this.clearTileOccupancyByBuildingId(occupancyInfo.buildingId);
-        console.warn(`建筑节点无效，已清除占用记录`);
         return null;
     }
     
