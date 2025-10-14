@@ -149,42 +149,12 @@ export class TopBarManager extends Component {
     public setTrafficFlow(trafficFlow: number): void {
         this.currentTrafficFlow = Math.max(0, trafficFlow);
         this.updateTrafficFlowDisplay();
-        
-        // 通知游客生成系统更新生成速率
-        this.notifyTouristGenerator();
+
     }
     
-    /**
-     * 通知游客生成系统根据客流量调整生成速率
-     */
-    private notifyTouristGenerator(): void {
-        // 获取TouristGenerator实例并通知更新
-        const touristGenerator = this.getTouristGeneratorInstance();
-        if (touristGenerator) {
-            // 可以调用TouristGenerator的相关方法来响应客流量变化
-            console.log(`[顶部面板管理器] 客流量更新为: ${this.currentTrafficFlow}，已通知游客生成系统`);
-        } else {
-            console.warn(`[顶部面板管理器] 客流量更新为: ${this.currentTrafficFlow}，但未找到游客生成系统实例`);
-        }
-    }
+
     
-    /**
-     * 获取TouristGenerator实例（通过全局查找避免循环依赖）
-     */
-    private getTouristGeneratorInstance(): any {
-        try {
-            // 通过场景查找TouristGenerator组件
-            const scene = this.node.scene;
-            if (scene) {
-                const touristGeneratorNode = scene.getComponentInChildren('TouristGenerator');
-                return touristGeneratorNode;
-            }
-            return null;
-        } catch (error) {
-            console.error('[顶部面板管理器] 无法获取TouristGenerator实例:', error);
-            return null;
-        }
-    }
+  
     
     /**
      * 获取当前金币数量

@@ -618171,7 +618171,7 @@
       "__id__": 16615
     },
     "autoGenerate": true,
-    "baseGenerateInterval": 2,
+    "baseGenerateInterval": 5,
     "maxTourists": 20,
     "trafficFlowMultiplier": 1,
     "spawnNodes": [

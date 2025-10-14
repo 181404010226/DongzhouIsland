@@ -620,6 +620,12 @@ export class BuildingManager {
                     每秒收入: trafficPriceInfo.incomePerSecond
                 });
                 
+                // 更新建筑节点上的BuildingAdjacencyDisplay组件显示
+                const adjacencyDisplay = buildingNode.getComponent(BuildingAdjacencyDisplay);
+                if (adjacencyDisplay) {
+                    adjacencyDisplay.updateTrafficPriceInfoById(trafficPriceData.buildingId);
+                }
+                
                 // 让客流量单价计算系统负责计算总收入并更新UI显示
                 BuildingTrafficPriceSystem.updateTotalIncomeDisplay();
             }

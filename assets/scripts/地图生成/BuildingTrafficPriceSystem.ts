@@ -124,18 +124,26 @@ export class BuildingTrafficPriceSystem extends Component {
     public static getBuildingTypeByName(buildingName: string): BuildingType | null {
         const lowerName = buildingName.toLowerCase();
         
+        console.log(`[BuildingTrafficPriceSystem] 识别建筑类型: "${buildingName}" -> "${lowerName}"`);
+        
         if (lowerName.includes('小吃') || lowerName.includes('snack')) {
+            console.log(`[BuildingTrafficPriceSystem] 识别为小吃店: ${BuildingType.SNACK_SHOP}`);
             return BuildingType.SNACK_SHOP;
         } else if (lowerName.includes('花店') || lowerName.includes('flower_shop')) {
+            console.log(`[BuildingTrafficPriceSystem] 识别为花店: ${BuildingType.FLOWER_SHOP}`);
             return BuildingType.FLOWER_SHOP;
         } else if (lowerName.includes('桌子') || lowerName.includes('table')) {
+            console.log(`[BuildingTrafficPriceSystem] 识别为桌子: ${BuildingType.TABLE}`);
             return BuildingType.TABLE;
         } else if (lowerName.includes('树') || lowerName.includes('tree')) {
+            console.log(`[BuildingTrafficPriceSystem] 识别为树木: ${BuildingType.TREE}`);
             return BuildingType.TREE;
         } else if (lowerName.includes('花丛') || lowerName.includes('flower_bed')) {
+            console.log(`[BuildingTrafficPriceSystem] 识别为花丛: ${BuildingType.FLOWER_BED}`);
             return BuildingType.FLOWER_BED;
         }
         
+        console.warn(`[BuildingTrafficPriceSystem] 无法识别建筑类型: "${buildingName}"`);
         return null;
     }
     
@@ -163,21 +171,27 @@ export class BuildingTrafficPriceSystem extends Component {
             return { baseTrafficFlow: 0, totalTrafficFlow: 0, affectingBuildings: [] };
         }
         
+        console.log(`[BuildingTrafficPriceSystem] 计算客流量 - 建筑类型: ${buildingType}, 基础客流量: ${config.baseTrafficFlow}, 产生收入: ${config.generateIncome}`);
+        
         let totalTrafficFlow = config.baseTrafficFlow;
         const affectingBuildings: Array<any> = [];
         
         // 只有产生收入的建筑才会受到客流量加成
         if (config.generateIncome) {
+            console.log(`[BuildingTrafficPriceSystem] 检查客流量buff - 附近建筑数量: ${nearbyBuildings.length}`);
             for (const nearbyBuilding of nearbyBuildings) {
+                console.log(`[BuildingTrafficPriceSystem] 检查附近建筑: ${nearbyBuilding.buildingType} (ID: ${nearbyBuilding.buildingId})`);
                 let trafficBonus = 0;
                 
                 // 树木提升周边建筑客流量 +1人/秒
                 if (nearbyBuilding.buildingType === BuildingType.TREE) {
                     trafficBonus = 1;
+                    console.log(`[BuildingTrafficPriceSystem] 树木buff生效 +1客流量`);
                 }
                 // 花丛提升周边建筑客流量 +1人/秒
                 else if (nearbyBuilding.buildingType === BuildingType.FLOWER_BED) {
                     trafficBonus = 1;
+                    console.log(`[BuildingTrafficPriceSystem] 花丛buff生效 +1客流量`);
                 }
                 
                 if (trafficBonus > 0) {
@@ -190,8 +204,11 @@ export class BuildingTrafficPriceSystem extends Component {
                     });
                 }
             }
+        } else {
+            console.log(`[BuildingTrafficPriceSystem] 建筑不产生收入，跳过客流量buff计算`);
         }
         
+        console.log(`[BuildingTrafficPriceSystem] 客流量计算结果: ${config.baseTrafficFlow} → ${totalTrafficFlow}, 影响建筑数: ${affectingBuildings.length}`);
         return {
             baseTrafficFlow: config.baseTrafficFlow,
             totalTrafficFlow: totalTrafficFlow,
@@ -214,21 +231,27 @@ export class BuildingTrafficPriceSystem extends Component {
             return { basePrice: 0, totalPrice: 0, affectingBuildings: [] };
         }
         
+        console.log(`[BuildingTrafficPriceSystem] 计算单价 - 建筑类型: ${buildingType}, 基础单价: ${config.basePrice}, 产生收入: ${config.generateIncome}`);
+        
         let totalPrice = config.basePrice;
         const affectingBuildings: Array<any> = [];
         
         // 只有产生收入的建筑才会有单价计算
         if (config.generateIncome) {
+            console.log(`[BuildingTrafficPriceSystem] 检查单价buff - 附近建筑数量: ${nearbyBuildings.length}`);
             for (const nearbyBuilding of nearbyBuildings) {
+                console.log(`[BuildingTrafficPriceSystem] 检查附近建筑: ${nearbyBuilding.buildingType} (ID: ${nearbyBuilding.buildingId})`);
                 let priceBonus = 0;
                 
                 // 桌子提升小吃店单价 +10
                 if (buildingType === BuildingType.SNACK_SHOP && nearbyBuilding.buildingType === BuildingType.TABLE) {
                     priceBonus = 10;
+                    console.log(`[BuildingTrafficPriceSystem] 桌子buff生效 +10单价 (小吃店)`);
                 }
                 // 花丛提升花店单价 +10
                 else if (buildingType === BuildingType.FLOWER_SHOP && nearbyBuilding.buildingType === BuildingType.FLOWER_BED) {
                     priceBonus = 10;
+                    console.log(`[BuildingTrafficPriceSystem] 花丛buff生效 +10单价 (花店)`);
                 }
                 
                 if (priceBonus > 0) {
@@ -241,8 +264,11 @@ export class BuildingTrafficPriceSystem extends Component {
                     });
                 }
             }
+        } else {
+            console.log(`[BuildingTrafficPriceSystem] 建筑不产生收入，跳过单价buff计算`);
         }
         
+        console.log(`[BuildingTrafficPriceSystem] 单价计算结果: ${config.basePrice} → ${totalPrice}, 影响建筑数: ${affectingBuildings.length}`);
         return {
             basePrice: config.basePrice,
             totalPrice: totalPrice,
@@ -264,6 +290,14 @@ export class BuildingTrafficPriceSystem extends Component {
         position: { row: number, col: number },
         nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>
     ): BuildingTrafficPriceInfo | null {
+        console.log(`[BuildingTrafficPriceSystem] 开始计算建筑信息:`, {
+            buildingId,
+            buildingName,
+            position,
+            nearbyBuildingsCount: nearbyBuildings.length,
+            nearbyBuildings: nearbyBuildings.map(b => ({ type: b.buildingType, id: b.buildingId }))
+        });
+        
         const buildingType = this.getBuildingTypeByName(buildingName);
         if (!buildingType) {
             console.warn(`[客流量单价系统] 无法识别建筑类型: ${buildingName}`);
@@ -275,6 +309,14 @@ export class BuildingTrafficPriceSystem extends Component {
             console.warn(`[客流量单价系统] 无法获取建筑配置: ${buildingType}`);
             return null;
         }
+        
+        console.log(`[BuildingTrafficPriceSystem] 建筑基础配置:`, {
+            buildingType,
+            baseTrafficFlow: config.baseTrafficFlow,
+            basePrice: config.basePrice,
+            generateIncome: config.generateIncome,
+            affectsNearby: config.affectsNearby
+        });
         
         // 计算客流量
         const trafficResult = this.calculateBuildingTrafficFlow(buildingType, nearbyBuildings);

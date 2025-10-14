@@ -3,7 +3,7 @@
     {
       "id": "building_snack_shop",
       "name": "小吃店",
-      "image": "植被UI/hd_piece_2_4 (1).png",
+      "image": "建筑UI/building-b.png",
       "type": "commercial",
       "size": {
         "length": 1,
@@ -23,7 +23,7 @@
     {
       "id": "building_flower_shop",
       "name": "花店",
-      "image": "植被UI/hd_piece_3_5 (1).png",
+      "image": "建筑UI/building-t.png",
       "type": "commercial",
       "size": {
         "length": 1,
@@ -43,7 +43,7 @@
     {
       "id": "building_table",
       "name": "桌子",
-      "image": "植被UI/hd_piece_1_5 (1).png",
+      "image": "建筑UI/detail-tank.png",
       "type": "decoration",
       "size": {
         "length": 1,
@@ -61,7 +61,7 @@
     {
       "id": "building_tree",
       "name": "树木",
-      "image": "植被UI/hd_piece_3_2.png",
+      "image": "植被UI/hd_piece_4_3 (1).png",
       "type": "decoration",
       "size": {
         "length": 1,
@@ -79,7 +79,7 @@
     {
       "id": "building_flower_cluster",
       "name": "花丛",
-      "image": "植被UI/hd_piece_3_4 (1).png",
+      "image": "植被UI/hd_piece_3_5 (1).png",
       "type": "decoration",
       "size": {
         "length": 1,

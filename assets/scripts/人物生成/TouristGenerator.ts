@@ -97,19 +97,25 @@ export class TouristGenerator extends Component {
     }
     
     update(deltaTime: number) {
-        if (this.autoGenerate && this.currentTouristCount < this.maxTourists) {
-            this.generateTimer += deltaTime;
-            
+        if (this.autoGenerate) {
             // 获取当前客流量
             const topBarManager = TopBarManager.getInstance();
             const currentTrafficFlow = topBarManager ? topBarManager.getCurrentTrafficFlow() : 0;
             
-            // 根据客流量计算生成间隔
-            const effectiveInterval = this.calculateGenerateInterval(currentTrafficFlow);
+            // 计算目标游客数量（客流量就是目标游客数量）
+            const targetTouristCount = Math.min(currentTrafficFlow, this.maxTourists);
             
-            if (this.generateTimer >= effectiveInterval && currentTrafficFlow > 0) {
-                this.generateTimer = 0;
-                this.generateRandomTourist();
+            // 如果当前游客数量少于目标数量，生成新游客
+            if (this.currentTouristCount < targetTouristCount) {
+                this.generateTimer += deltaTime;
+                
+                // 使用较短的间隔来快速补充游客到目标数量
+                const quickGenerateInterval = this.baseGenerateInterval; // 2秒间隔快速生成
+                
+                if (this.generateTimer >= quickGenerateInterval) {
+                    this.generateTimer = 0;
+                    this.generateRandomTourist();
+                }
             }
         }
     }
@@ -322,8 +328,11 @@ export class TouristGenerator extends Component {
                 !touristController.getIsMoving() && 
                 !touristController.getIsStaying()) {
                 
-                console.log(`游客到达终点: ${targetDestination}，开始隐藏消失`);
-                this.hideTouristGradually(touristNode);
+                console.log(`游客到达终点: ${targetDestination}，重新选择新目标点`);
+                this.assignNewTargetToTourist(touristController);
+                
+                // 继续检查下一个目标点
+                this.scheduleOnce(checkArrival, 2.0); // 给游客一些时间开始移动到新目标
                 return;
             }
             
@@ -333,6 +342,45 @@ export class TouristGenerator extends Component {
         
         // 延迟开始检查，给游客一些时间开始移动
         this.scheduleOnce(checkArrival, 1.0);
+    }
+    
+    /**
+     * 为游客分配新的目标点
+     * @param touristController 游客控制器
+     */
+    private assignNewTargetToTourist(touristController: TouristController): void {
+        const currentPoint = touristController.getCurrentPoint();
+        let newTarget: string | null = null;
+        
+        if (this.useNodeArrayMode) {
+            // 使用节点数组模式选择新目标
+            const validNodeNames = this.getValidNodeNames();
+            const availableTargets = validNodeNames.filter(name => name !== currentPoint);
+            
+            if (availableTargets.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableTargets.length);
+                newTarget = availableTargets[randomIndex];
+            }
+        } else {
+            // 使用导航系统选择新目标
+            const navigationSystem = NavigationSystem.getInstance();
+            if (navigationSystem) {
+                const allPoints = navigationSystem.getAllNavigationPointNames();
+                const availableTargets = allPoints.filter(name => name !== currentPoint);
+                
+                if (availableTargets.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * availableTargets.length);
+                    newTarget = availableTargets[randomIndex];
+                }
+            }
+        }
+        
+        if (newTarget) {
+            console.log(`游客从 ${currentPoint} 前往新目标: ${newTarget}`);
+            touristController.setTargetDestination(newTarget);
+        } else {
+            console.warn(`无法为游客找到新的目标点，当前位置: ${currentPoint}`);
+        }
     }
     
     /**
@@ -456,26 +504,7 @@ export class TouristGenerator extends Component {
         return this.calculateGenerateInterval(currentTrafficFlow);
     }
     
-    /**
-     * 强制根据当前客流量生成一批游客
-     */
-    generateTouristsBasedOnTrafficFlow(): void {
-        const topBarManager = TopBarManager.getInstance();
-        const currentTrafficFlow = topBarManager ? topBarManager.getCurrentTrafficFlow() : 0;
-        
-        if (currentTrafficFlow > 0) {
-            const touristsToGenerate = Math.min(
-                Math.floor(currentTrafficFlow * this.trafficFlowMultiplier),
-                this.maxTourists - this.currentTouristCount
-            );
-            
-            for (let i = 0; i < touristsToGenerate; i++) {
-                this.generateRandomTourist();
-                // 稍微延迟每个游客的生成，避免同时生成太多
-                this.scheduleOnce(() => {}, i * 0.1);
-            }
-        }
-    }
+
     
     /**
      * 静态方法：获取TouristGenerator实例
