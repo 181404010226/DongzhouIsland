@@ -283,14 +283,7 @@ export class BuildInfo extends Component {
      * @returns 检测圈层数
      */
     public static calculateDetectionRadius(width: number, height: number): number {
-        const area = width * height;
-        if (area > 4) {
-            return 3; // 大型建筑
-        } else if (area >= 2) {
-            return 2; // 中型建筑
-        } else {
-            return 1; // 小型建筑
-        }
+        return 1; 
     }
     
     /**

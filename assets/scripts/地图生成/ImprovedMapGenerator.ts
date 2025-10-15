@@ -177,7 +177,7 @@ export class ImprovedMapGenerator extends Component {
             }
             
             // 生成当前行的地块
-            for (let col = 0; col < tilesInRow; col++) {
+            for (let col = tilesInRow-1; col >=0; col--) {
                 this.createTile(row, col);
             }
         }

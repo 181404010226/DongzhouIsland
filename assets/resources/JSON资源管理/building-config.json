@@ -26,8 +26,8 @@
       "image": "广告/广告/花店.png",
       "type": "commercial",
       "size": {
-        "length": 1,
-        "width": 1
+        "length": 2,
+        "width": 3
       },
       "baseTrafficFlow": 2,
       "baseConsumptionPrice": 20,
