@@ -1,7 +1,7 @@
 import { _decorator, Component, Node, Vec2, Vec3, EventTouch, EventMouse, Camera, view } from 'cc';
 import { TileSelectionManager } from '../地图生成/TileSelectionManager';
 import { BuildingPlacer } from '../地图生成/BuildingPlacer';
-import { TileOccupancyManager } from '../地图生成/TileOccupancyManager';
+import { NewTileOccupancyManager } from '../地图生成/NewTileOccupancyManager';
 import { BuildInfo } from '../地图生成/BuildInfo';
 import { BuildingDetailButtonManager } from '../UI面板/BuildingDetailButtonManager';
 import { DynamicBuildingBarManager } from '../地图生成/BuildingBarManager';
@@ -39,8 +39,8 @@ export class InteractionManager extends Component {
     @property({ type: BuildingPlacer, tooltip: '建筑放置器' })
     buildingPlacer: BuildingPlacer = null;
     
-    @property({ type: TileOccupancyManager, tooltip: '地块占用管理器' })
-    tileOccupancyManager: TileOccupancyManager = null;
+    @property({ type: NewTileOccupancyManager, tooltip: '地块占用管理器' })
+    tileOccupancyManager: NewTileOccupancyManager = null;
     
     // 建筑栏管理器引用，用于处理建造栏交互
     private buildingBarManager: any = null;
@@ -573,7 +573,7 @@ export class InteractionManager extends Component {
     /**
      * 设置地块占用管理器
      */
-    setTileOccupancyManager(manager: TileOccupancyManager) {
+    setTileOccupancyManager(manager: NewTileOccupancyManager) {
         this.tileOccupancyManager = manager;
     }
     

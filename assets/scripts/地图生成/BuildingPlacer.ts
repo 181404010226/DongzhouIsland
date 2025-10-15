@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, UITransform, Sprite, Vec3, Vec2, Color, Camera, Graphics, EventTarget, EventTouch } from 'cc';
 import { BuildInfo } from './BuildInfo';
-import { TileOccupancyManager } from './TileOccupancyManager';
+import { NewTileOccupancyManager } from './NewTileOccupancyManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -12,8 +12,8 @@ export class BuildingPlacer extends Component {
     @property({ type: Camera, tooltip: '主相机' })
     mainCamera: Camera = null;
 
-    @property({ type: TileOccupancyManager, tooltip: '地块占用管理器' })
-    tileOccupancyManager: TileOccupancyManager = null;
+    @property({ type: NewTileOccupancyManager, tooltip: '地块占用管理器' })
+    tileOccupancyManager: NewTileOccupancyManager = null;
     
     @property({ type: Node, tooltip: '图层根节点，用于管理预览和建筑图层' })
     layerRootNode: Node = null;
@@ -90,11 +90,15 @@ export class BuildingPlacer extends Component {
             // 立即以replacementNode原来所在tile位置更新预览节点位置
             if (this.replacementOriginalRow >= 0 && this.replacementOriginalCol >= 0 && this.tileOccupancyManager) {
                 const tileKey = `${this.replacementOriginalRow}_${this.replacementOriginalCol}`;
-                const originalTile = this.tileOccupancyManager['getTileByKey'](tileKey);
+                const originalTile = this.tileOccupancyManager.getTileByKey(tileKey);
                 if (originalTile) {
                     this.previewNode.setWorldPosition(originalTile.getWorldPosition());
-                    this.previewNode.setPosition(this.previewNode.position.x, 
-                        this.previewNode.position.y+this.tileOccupancyManager.mapGenerator.tileSize/2, 1);
+                    // 使用NewTileOccupancyManager的getTileSize方法获取瓦片尺寸
+                    const tileSize = this.tileOccupancyManager.getTileSize();
+                    if (tileSize) {
+                        this.previewNode.setPosition(this.previewNode.position.x, 
+                            this.previewNode.position.y + tileSize.height / 2, 1);
+                    }
                 }
             }
         
@@ -326,7 +330,7 @@ export class BuildingPlacer extends Component {
             
             // 获取地块节点并设置预览位置
             const tileKey = `${tileInfo.row}_${tileInfo.col}`;
-            const tile = this.tileOccupancyManager['getTileByKey'](tileKey);
+            const tile = this.tileOccupancyManager.getTileByKey(tileKey);
             if (tile) {
                 // 将预览节点定位到地块中心
                 this.previewNode.setWorldPosition(tile.getWorldPosition());
@@ -394,7 +398,14 @@ export class BuildingPlacer extends Component {
             graphics.clear();
             
             // 计算影响范围的尺寸（建筑占用地块数 + 影响范围扩展）
-            const tileSize = this.tileOccupancyManager.mapGenerator.tileSize / Math.sqrt(2); // 地块边长
+            // 使用NewTileOccupancyManager的getTileSize方法获取瓦片尺寸
+            const tileSizeInfo = this.tileOccupancyManager.getTileSize();
+            if (!tileSizeInfo) {
+                console.warn('[BuildingPlacer] 无法获取瓦片尺寸，跳过影响范围预览');
+                return;
+            }
+            
+            const tileSize = tileSizeInfo.width / Math.sqrt(2); // 地块边长
             const influenceRadius = BuildInfo.calculateDetectionRadius(buildInfo.getWidth(), buildInfo.getHeight()); 
             
             const totalWidth = (buildInfo.getWidth() + influenceRadius * 2) * tileSize;
@@ -540,7 +551,7 @@ export class BuildingPlacer extends Component {
     /**
      * 设置地块占用管理器
      */
-    public setTileOccupancyManager(manager: TileOccupancyManager) {
+    public setTileOccupancyManager(manager: NewTileOccupancyManager) {
         this.tileOccupancyManager = manager;
     }
     
@@ -570,7 +581,7 @@ export class BuildingPlacer extends Component {
         if (this.replacementNode && this.replacementOriginalRow >= 0 && this.replacementOriginalCol >= 0) {
             // 通过原始地块信息获取地块节点
             const tileKey = `${this.replacementOriginalRow}_${this.replacementOriginalCol}`;
-            const originalTile = this.tileOccupancyManager['getTileByKey'](tileKey);
+            const originalTile = this.tileOccupancyManager.getTileByKey(tileKey);
             
             if (originalTile) {
                 // 恢复到原始父节点

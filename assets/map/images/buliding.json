@@ -1,0 +1,111 @@
+{
+  "frames": {
+    "罗汉寺.png": {
+      "frame": {
+        "x": 1,
+        "y": 1,
+        "w": 903,
+        "h": 557
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 903,
+        "h": 557
+      },
+      "sourceSize": {
+        "w": 903,
+        "h": 557
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "嶙峋石峰.png": {
+      "frame": {
+        "x": 1,
+        "y": 560,
+        "w": 399,
+        "h": 275
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 399,
+        "h": 275
+      },
+      "sourceSize": {
+        "w": 399,
+        "h": 275
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "朝板-水上茶楼1.png": {
+      "frame": {
+        "x": 402,
+        "y": 560,
+        "w": 230,
+        "h": 201
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 230,
+        "h": 201
+      },
+      "sourceSize": {
+        "w": 230,
+        "h": 201
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "小筑-远山亭.png": {
+      "frame": {
+        "x": 634,
+        "y": 560,
+        "w": 138,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 138,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 138,
+        "h": 162
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.7",
+    "image": "buliding.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 905,
+      "h": 836
+    },
+    "scale": 1
+  }
+}

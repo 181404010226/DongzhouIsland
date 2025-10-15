@@ -28,8 +28,6 @@ export class TileOccupancyManager extends Component {
     @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
     mapGenerator: ImprovedMapGenerator = null;
     
-
-    
     // 编辑器只读字段：已放置建筑节点索引
     @property({ type: [Node], readonly: true, tooltip: '当前已放置的建筑节点列表（编辑器查看）' })
     private readonly placedBuildingNodes: Node[] = [];
