@@ -6,8 +6,8 @@
       "image": "广告/广告/便利店.png",
       "type": "commercial",
       "size": {
-        "length": 1,
-        "width": 1
+        "length": 2,
+        "width": 2
       },
       "baseTrafficFlow": 2,
       "baseConsumptionPrice": 10,

@@ -434,6 +434,7 @@ export class TileOccupancyManager extends Component {
         // 直接实例化建筑预制体作为预览节点
         const previewNode = instantiate(buildInfo.getBuildingPrefab());
         previewNode.name = 'BuildingPreview';
+     
         
         // 确保预览节点有BuildInfo组件并设置图片
         let previewBuildInfo = previewNode.getComponent(BuildInfo);
@@ -444,6 +445,8 @@ export class TileOccupancyManager extends Component {
         
         // 查找并设置Sprite组件引用，然后加载图片
         const spriteNode = previewNode.getChildByName('Sprite');
+
+
         if (spriteNode) {
             const spriteComponent = spriteNode.getComponent(Sprite);
             if (spriteComponent) {
