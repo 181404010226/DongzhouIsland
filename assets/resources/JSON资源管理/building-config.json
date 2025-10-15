@@ -3,7 +3,7 @@
     {
       "id": "building_snack_shop",
       "name": "小吃店",
-      "image": "建筑UI/building-b.png",
+      "image": "广告/广告/便利店.png",
       "type": "commercial",
       "size": {
         "length": 1,
@@ -23,7 +23,7 @@
     {
       "id": "building_flower_shop",
       "name": "花店",
-      "image": "建筑UI/building-t.png",
+      "image": "广告/广告/花店.png",
       "type": "commercial",
       "size": {
         "length": 1,
@@ -43,11 +43,11 @@
     {
       "id": "building_table",
       "name": "桌子",
-      "image": "建筑UI/detail-tank.png",
+      "image": "广告/广告/桌子.png",
       "type": "decoration",
       "size": {
         "length": 1,
-        "width": 1
+        "width": 2
       },
       "basePrice": 50,
       "priceIncrement": 10,
@@ -79,7 +79,7 @@
     {
       "id": "building_flower_cluster",
       "name": "花丛",
-      "image": "植被UI/hd_piece_3_5 (1).png",
+      "image": "广告/广告/花丛.png",
       "type": "decoration",
       "size": {
         "length": 1,

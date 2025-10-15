@@ -6,11 +6,11 @@ const { ccclass, property } = _decorator;
  * 建筑类型枚举
  */
 export enum BuildingType {
-    SNACK_SHOP = 'snack_shop',      // 小吃店
-    FLOWER_SHOP = 'flower_shop',    // 花店
-    TABLE = 'table',                // 桌子
-    TREE = 'tree',                  // 树木
-    FLOWER_BED = 'flower_bed'       // 花丛
+    SNACK_SHOP = 'building_snack_shop',      // 小吃店
+    FLOWER_SHOP = 'building_flower_shop',    // 花店
+    TABLE = 'building_table',                // 桌子
+    TREE = 'building_tree',                  // 树木
+    FLOWER_CLUSTER = 'building_flower_cluster' // 花丛
 }
 
 /**
@@ -104,8 +104,8 @@ export class BuildingTrafficPriceSystem extends Component {
             generateIncome: false,
             affectsNearby: true
         }],
-        [BuildingType.FLOWER_BED, {
-            type: BuildingType.FLOWER_BED,
+        [BuildingType.FLOWER_CLUSTER, {
+            type: BuildingType.FLOWER_CLUSTER,
             baseTrafficFlow: 0,
             basePrice: 0,
             generateIncome: false,
@@ -138,9 +138,9 @@ export class BuildingTrafficPriceSystem extends Component {
         } else if (lowerName.includes('树') || lowerName.includes('tree')) {
             console.log(`[BuildingTrafficPriceSystem] 识别为树木: ${BuildingType.TREE}`);
             return BuildingType.TREE;
-        } else if (lowerName.includes('花丛') || lowerName.includes('flower_bed')) {
-            console.log(`[BuildingTrafficPriceSystem] 识别为花丛: ${BuildingType.FLOWER_BED}`);
-            return BuildingType.FLOWER_BED;
+        } else if (lowerName.includes('花丛') || lowerName.includes('flower_cluster')) {
+            console.log(`[BuildingTrafficPriceSystem] 识别为花丛: ${BuildingType.FLOWER_CLUSTER}`);
+            return BuildingType.FLOWER_CLUSTER;
         }
         
         console.warn(`[BuildingTrafficPriceSystem] 无法识别建筑类型: "${buildingName}"`);
@@ -157,14 +157,58 @@ export class BuildingTrafficPriceSystem extends Component {
     }
     
     /**
+     * 检查花丛是否满足特殊升级条件（周围有3个及以上其他花丛）
+     * @param nearbyBuildings 周边建筑列表
+     * @returns 是否满足升级条件
+     */
+    public static checkFlowerClusterUpgrade(nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>): boolean {
+        const flowerClusterCount = nearbyBuildings.filter(building => 
+            building.buildingType === BuildingType.FLOWER_CLUSTER
+        ).length;
+        
+        const isUpgraded = flowerClusterCount >= 3;
+        console.log(`[BuildingTrafficPriceSystem] 花丛升级检查: 周围花丛数量=${flowerClusterCount}, 是否升级=${isUpgraded}`);
+        
+        return isUpgraded;
+    }
+    
+    /**
+     * 检查特定花丛是否满足升级条件
+     * @param flowerClusterId 花丛ID
+     * @param allBuildingsData 所有建筑的数据（包含位置和周边建筑信息）
+     * @returns 是否满足升级条件
+     */
+    public static checkSpecificFlowerClusterUpgrade(
+        flowerClusterId: string,
+        allBuildingsData: Array<{
+            buildingId: string;
+            buildingType: BuildingType;
+            nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>;
+        }>
+    ): boolean {
+        const flowerClusterData = allBuildingsData.find(data => data.buildingId === flowerClusterId);
+        if (!flowerClusterData || flowerClusterData.buildingType !== BuildingType.FLOWER_CLUSTER) {
+            return false;
+        }
+        
+        return this.checkFlowerClusterUpgrade(flowerClusterData.nearbyBuildings);
+    }
+    
+    /**
      * 计算单个建筑的客流量
      * @param buildingType 建筑类型
      * @param nearbyBuildings 周边建筑列表
+     * @param allBuildingsData 所有建筑数据（用于精确的花丛升级检测）
      * @returns 计算后的客流量信息
      */
     public static calculateBuildingTrafficFlow(
         buildingType: BuildingType,
-        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>
+        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>,
+        allBuildingsData?: Array<{
+            buildingId: string;
+            buildingType: BuildingType;
+            nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>;
+        }>
     ): { baseTrafficFlow: number; totalTrafficFlow: number; affectingBuildings: Array<any> } {
         const config = this.getBuildingBaseConfig(buildingType);
         if (!config) {
@@ -189,9 +233,24 @@ export class BuildingTrafficPriceSystem extends Component {
                     console.log(`[BuildingTrafficPriceSystem] 树木buff生效 +1客流量`);
                 }
                 // 花丛提升周边建筑客流量 +1人/秒
-                else if (nearbyBuilding.buildingType === BuildingType.FLOWER_BED) {
+                else if (nearbyBuilding.buildingType === BuildingType.FLOWER_CLUSTER) {
                     trafficBonus = 1;
-                    console.log(`[BuildingTrafficPriceSystem] 花丛buff生效 +1客流量`);
+                    
+                    // 检查该花丛是否满足特殊升级条件（周围有3个及以上其他花丛）
+                    let isUpgraded = false;
+                    if (allBuildingsData) {
+                        isUpgraded = this.checkSpecificFlowerClusterUpgrade(nearbyBuilding.buildingId, allBuildingsData);
+                    } else {
+                        // 回退到近似检测
+                        isUpgraded = this.checkFlowerClusterUpgrade(nearbyBuildings);
+                    }
+                    
+                    if (isUpgraded) {
+                        trafficBonus *= 2; // 效果翻倍
+                        console.log(`[BuildingTrafficPriceSystem] 盛开的花丛buff生效 +${trafficBonus}客流量 (翻倍)`);
+                    } else {
+                        console.log(`[BuildingTrafficPriceSystem] 花丛buff生效 +${trafficBonus}客流量`);
+                    }
                 }
                 
                 if (trafficBonus > 0) {
@@ -220,11 +279,17 @@ export class BuildingTrafficPriceSystem extends Component {
      * 计算单个建筑的单价
      * @param buildingType 建筑类型
      * @param nearbyBuildings 周边建筑列表
+     * @param allBuildingsData 所有建筑数据（用于精确的花丛升级检测）
      * @returns 计算后的单价信息
      */
     public static calculateBuildingPrice(
         buildingType: BuildingType,
-        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>
+        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>,
+        allBuildingsData?: Array<{
+            buildingId: string;
+            buildingType: BuildingType;
+            nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>;
+        }>
     ): { basePrice: number; totalPrice: number; affectingBuildings: Array<any> } {
         const config = this.getBuildingBaseConfig(buildingType);
         if (!config) {
@@ -249,9 +314,24 @@ export class BuildingTrafficPriceSystem extends Component {
                     console.log(`[BuildingTrafficPriceSystem] 桌子buff生效 +10单价 (小吃店)`);
                 }
                 // 花丛提升花店单价 +10
-                else if (buildingType === BuildingType.FLOWER_SHOP && nearbyBuilding.buildingType === BuildingType.FLOWER_BED) {
+                else if (buildingType === BuildingType.FLOWER_SHOP && nearbyBuilding.buildingType === BuildingType.FLOWER_CLUSTER) {
                     priceBonus = 10;
-                    console.log(`[BuildingTrafficPriceSystem] 花丛buff生效 +10单价 (花店)`);
+                    
+                    // 检查该花丛是否满足特殊升级条件（周围有3个及以上其他花丛）
+                    let isUpgraded = false;
+                    if (allBuildingsData) {
+                        isUpgraded = this.checkSpecificFlowerClusterUpgrade(nearbyBuilding.buildingId, allBuildingsData);
+                    } else {
+                        // 回退到近似检测
+                        isUpgraded = this.checkFlowerClusterUpgrade(nearbyBuildings);
+                    }
+                    
+                    if (isUpgraded) {
+                        priceBonus *= 2; // 效果翻倍
+                        console.log(`[BuildingTrafficPriceSystem] 盛开的花丛buff生效 +${priceBonus}单价 (花店, 翻倍)`);
+                    } else {
+                        console.log(`[BuildingTrafficPriceSystem] 花丛buff生效 +${priceBonus}单价 (花店)`);
+                    }
                 }
                 
                 if (priceBonus > 0) {
@@ -282,13 +362,19 @@ export class BuildingTrafficPriceSystem extends Component {
      * @param buildingName 建筑名称
      * @param position 建筑位置
      * @param nearbyBuildings 周边建筑列表
+     * @param allBuildingsData 所有建筑数据（用于精确的花丛升级检测）
      * @returns 建筑客流量和单价信息
      */
     public static calculateBuildingTrafficPriceInfo(
         buildingId: string,
         buildingName: string,
         position: { row: number, col: number },
-        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>
+        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>,
+        allBuildingsData?: Array<{
+            buildingId: string;
+            buildingType: BuildingType;
+            nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>;
+        }>
     ): BuildingTrafficPriceInfo | null {
         console.log(`[BuildingTrafficPriceSystem] 开始计算建筑信息:`, {
             buildingId,
@@ -319,10 +405,10 @@ export class BuildingTrafficPriceSystem extends Component {
         });
         
         // 计算客流量
-        const trafficResult = this.calculateBuildingTrafficFlow(buildingType, nearbyBuildings);
+        const trafficResult = this.calculateBuildingTrafficFlow(buildingType, nearbyBuildings, allBuildingsData);
         
         // 计算单价
-        const priceResult = this.calculateBuildingPrice(buildingType, nearbyBuildings);
+        const priceResult = this.calculateBuildingPrice(buildingType, nearbyBuildings, allBuildingsData);
         
         // 合并影响建筑列表
         const allAffectingBuildings = [...trafficResult.affectingBuildings, ...priceResult.affectingBuildings];
@@ -371,12 +457,20 @@ export class BuildingTrafficPriceSystem extends Component {
     ): BuildingTrafficPriceInfo[] {
         const results: BuildingTrafficPriceInfo[] = [];
         
+        // 准备所有建筑数据用于花丛升级检测
+        const allBuildingsData = buildingDataList.map(data => ({
+            buildingId: data.buildingId,
+            buildingType: this.getBuildingTypeByName(data.buildingName) || BuildingType.SNACK_SHOP,
+            nearbyBuildings: data.nearbyBuildings
+        }));
+        
         for (const buildingData of buildingDataList) {
             const result = this.calculateBuildingTrafficPriceInfo(
                 buildingData.buildingId,
                 buildingData.buildingName,
                 buildingData.position,
-                buildingData.nearbyBuildings
+                buildingData.nearbyBuildings,
+                allBuildingsData
             );
             
             if (result) {

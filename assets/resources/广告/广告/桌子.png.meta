@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "07996213-6814-4a57-aad1-8140edc9b73d",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "07996213-6814-4a57-aad1-8140edc9b73d@6c48a",
+      "displayName": "桌子",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "07996213-6814-4a57-aad1-8140edc9b73d",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "07996213-6814-4a57-aad1-8140edc9b73d@f9941",
+      "displayName": "桌子",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": -98.5,
+        "offsetY": -40.5,
+        "trimX": 689,
+        "trimY": 827,
+        "width": 473,
+        "height": 475,
+        "rawWidth": 2048,
+        "rawHeight": 2048,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -236.5,
+            -237.5,
+            0,
+            236.5,
+            -237.5,
+            0,
+            -236.5,
+            237.5,
+            0,
+            236.5,
+            237.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            689,
+            1221,
+            1162,
+            1221,
+            689,
+            746,
+            1162,
+            746
+          ],
+          "nuv": [
+            0.33642578125,
+            0.3642578125,
+            0.5673828125,
+            0.3642578125,
+            0.33642578125,
+            0.59619140625,
+            0.5673828125,
+            0.59619140625
+          ],
+          "minPos": [
+            -236.5,
+            -237.5,
+            0
+          ],
+          "maxPos": [
+            236.5,
+            237.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "07996213-6814-4a57-aad1-8140edc9b73d@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "07996213-6814-4a57-aad1-8140edc9b73d@6c48a"
+  }
+}

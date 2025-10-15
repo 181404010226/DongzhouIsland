@@ -3,6 +3,7 @@ import { CharmCalculationSystem } from './CharmCalculationSystem';
 import { BuildingTrafficPriceSystem, BuildingType, BuildingTrafficPriceInfo } from './BuildingTrafficPriceSystem';
 import { BuildingDetailButtonManager} from '../UI面板/BuildingDetailButtonManager';
 import { NavigationSystem } from '../人物生成/NavigationSystem';
+import { BuildInfo } from './BuildInfo';
 import { Vec3, SpriteFrame, director } from 'cc';
 
 /**
@@ -558,27 +559,53 @@ export class BuildingManager {
         
         // 处理被当前建筑覆盖的建筑
         for (const building of adjacencyResult.coveredBuildings) {
-            const buildingType = BuildingTrafficPriceSystem.getBuildingTypeByName(building.buildingType);
-            if (buildingType) {
-                nearbyBuildings.push({
-                    buildingType: buildingType,
-                    buildingId: building.buildingId
-                });
+            // 从建筑节点获取建筑名称
+            const buildingName = this.getBuildingNameFromNode(building.buildingNode);
+            if (buildingName) {
+                const buildingType = BuildingTrafficPriceSystem.getBuildingTypeByName(buildingName);
+                if (buildingType) {
+                    nearbyBuildings.push({
+                        buildingType: buildingType,
+                        buildingId: building.buildingId
+                    });
+                }
             }
         }
         
         // 处理覆盖当前建筑的建筑
         for (const building of adjacencyResult.coveringBuildings) {
-            const buildingType = BuildingTrafficPriceSystem.getBuildingTypeByName(building.buildingType);
-            if (buildingType) {
-                nearbyBuildings.push({
-                    buildingType: buildingType,
-                    buildingId: building.buildingId
-                });
+            // 从建筑节点获取建筑名称
+            const buildingName = this.getBuildingNameFromNode(building.buildingNode);
+            if (buildingName) {
+                const buildingType = BuildingTrafficPriceSystem.getBuildingTypeByName(buildingName);
+                if (buildingType) {
+                    nearbyBuildings.push({
+                        buildingType: buildingType,
+                        buildingId: building.buildingId
+                    });
+                }
             }
         }
         
         return nearbyBuildings;
+    }
+    
+    /**
+     * 从建筑节点获取建筑名称
+     * @param buildingNode 建筑节点
+     * @returns 建筑名称，如果无法获取则返回null
+     */
+    private static getBuildingNameFromNode(buildingNode: any): string | null {
+        if (!buildingNode || !buildingNode.isValid) {
+            return null;
+        }
+        
+        const buildInfo = buildingNode.getComponent('BuildInfo');
+        if (buildInfo && typeof buildInfo.getBuildingName === 'function') {
+            return buildInfo.getBuildingName();
+        }
+        
+        return null;
     }
     
     /**

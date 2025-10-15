@@ -515,10 +515,6 @@ export class TileOccupancyManager extends Component {
             
             const buildingInstance = instantiate(buildInfo.getBuildingPrefab());
             
-            // 查找Sprite子节点（预览图片功能已移除）
-            const spriteNode = buildingInstance.getChildByName('Sprite');
-            // 注意：getPreviewImage方法已被删除，使用默认预制体显示
-            
             return this.placeBuildingAtPosition(tileInfo.row, tileInfo.col, buildInfo, buildingInstance);
         }
     }
