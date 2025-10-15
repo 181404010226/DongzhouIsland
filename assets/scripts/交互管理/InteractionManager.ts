@@ -129,20 +129,33 @@ export class InteractionManager extends Component {
      */
     private initializeCamera() {
         if (this.cameraNode) {
+            // 使用手动配置的相机节点
             this.camera = this.cameraNode.getComponent(Camera);
-        } else {
-            // 自动查找相机
-            const cameraComponent = this.node.scene.getComponentInChildren(Camera);
-            if (cameraComponent) {
-                this.camera = cameraComponent;
-                this.cameraNode = this.camera.node;
+            if (this.camera) {
+                console.log('[InteractionManager] 使用手动配置的相机节点:', this.cameraNode.name);
+            } else {
+                console.error('[InteractionManager] 手动配置的节点没有Camera组件:', this.cameraNode.name);
+                // 手动配置的节点无效，尝试自动查找
+                this.cameraNode = null;
             }
         }
         
         if (!this.camera) {
-            console.error('未找到相机，交互功能可能无法正常工作');
+            // 自动查找相机
+            console.log('[InteractionManager] 开始自动查找相机...');
+            const cameraComponent = this.node.scene.getComponentInChildren(Camera);
+            if (cameraComponent) {
+                this.camera = cameraComponent;
+                this.cameraNode = this.camera.node;
+                console.log('[InteractionManager] 自动找到相机节点:', this.camera.node.name);
+            }
+        }
+        
+        if (!this.camera) {
+            console.error('[InteractionManager] 未找到相机，交互功能可能无法正常工作');
+            console.error('[InteractionManager] 请在编辑器中手动配置相机节点，或确保场景中存在Camera组件');
         } else {
-            console.log('相机初始化成功:', this.camera.node.name);
+            console.log('[InteractionManager] 相机初始化成功:', this.camera.node.name);
         }
     }
     
@@ -181,11 +194,17 @@ export class InteractionManager extends Component {
         const touchPos = event.getUILocation();
         this.lastTouchPos.set(lastMousePos);
         
+        console.log(`[InteractionManager] handleTouchMove: isMapDragging=${this.isMapDragging}, camera=${this.camera ? 'exists' : 'null'}`);
+        
         // 处理地图拖拽
         if (this.isMapDragging && this.camera) {
+            console.log('[InteractionManager] 调用 updateMapDrag');
             this.updateMapDrag(touchPos, lastMousePos);
         } else if (this.isBuildingDragging) {
+            console.log('[InteractionManager] 调用 updateBuildingDrag');
             this.updateBuildingDrag(event);
+        } else {
+            console.log(`[InteractionManager] 未满足拖拽条件: isMapDragging=${this.isMapDragging}, isBuildingDragging=${this.isBuildingDragging}, camera=${this.camera ? 'exists' : 'null'}`);
         }
     }
     
@@ -216,9 +235,14 @@ export class InteractionManager extends Component {
      * 开始地图拖拽
      */
     startMapDrag() {
+        // 确保相机已初始化
+        if (!this.camera) {
+            this.initializeCamera();
+        }
+        
         // 移除PlayerOperationState依赖，简化地图拖拽逻辑
         this.isMapDragging = true;
-        console.log('开始地图拖拽');
+        console.log(`[InteractionManager] 开始地图拖拽 - isMapDragging: ${this.isMapDragging}, camera: ${this.camera ? 'exists' : 'null'}, cameraNode: ${this.cameraNode ? this.cameraNode.name : 'null'}`);
     }
     
     /**
@@ -234,8 +258,18 @@ export class InteractionManager extends Component {
      * 更新地图拖拽
      */
     private updateMapDrag(currentPos: Vec2, lastPos: Vec2) {
+        console.log(`[InteractionManager] updateMapDrag 被调用: currentPos(${currentPos.x}, ${currentPos.y}), lastPos(${lastPos.x}, ${lastPos.y})`);
+        console.log(`[InteractionManager] cameraNode: ${this.cameraNode ? this.cameraNode.name : 'null'}, camera: ${this.camera ? 'exists' : 'null'}`);
+        
+        if (!this.cameraNode) {
+            console.error('[InteractionManager] cameraNode 为 null，无法移动相机');
+            return;
+        }
+        
         const deltaX = currentPos.x - lastPos.x;
         const deltaY = currentPos.y - lastPos.y;
+        
+        console.log(`[InteractionManager] 计算移动增量: deltaX=${deltaX}, deltaY=${deltaY}`);
         
         // 移动相机（注意方向相反，因为是拖动视图）
         const cameraPos = this.cameraNode.position;
@@ -244,6 +278,8 @@ export class InteractionManager extends Component {
             cameraPos.y - deltaY * this.cameraMoveSpeed,
             cameraPos.z
         );
+        
+        console.log(`[InteractionManager] 相机位置变化: 从(${cameraPos.x}, ${cameraPos.y}) 到 (${newPos.x}, ${newPos.y})`);
         this.cameraNode.setPosition(newPos);
     }
     
@@ -432,7 +468,7 @@ export class InteractionManager extends Component {
                 console.log('建筑取出成功，准备重新放置');
                 
                 // 启动建筑重新放置，传递原建筑节点（位置信息从BuildInfo中读取）
-                this.startBuildingReplacement(buildingInfo.buildingNode.name, buildingNode);
+                this.startBuildingReplacement(buildingInfo.buildingNode.name, buildingNode as Node);
             } else {
                 console.log('建筑取出失败');
             }
@@ -498,9 +534,9 @@ export class InteractionManager extends Component {
             return new Vec3(screenPos.x, screenPos.y, 0);
         }
         
-        // 将UI坐标转换为世界坐标
+        // 将屏幕坐标转换为世界坐标
         const worldPos = new Vec3();
-        this.camera.screenToWorld(worldPos, new Vec3(screenPos.x, screenPos.y, 0));
+        this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0), worldPos);
         return worldPos;
     }
     
@@ -512,13 +548,8 @@ export class InteractionManager extends Component {
             return null;
         }
         
-        // 使用TileOccupancyManager的私有方法（通过反射访问）
-        try {
-            return (this.tileOccupancyManager as any).getTileAtScreenPos(screenPos, this.camera);
-        } catch (error) {
-            console.warn('无法获取地块信息:', error);
-            return null;
-        }
+        // 使用NewTileOccupancyManager的getTileAtScreenPos方法
+        return this.tileOccupancyManager.getTileAtScreenPos(screenPos, this.camera);
     }
     
     /**
@@ -530,7 +561,7 @@ export class InteractionManager extends Component {
         }
         
         // 获取点击位置的地块坐标
-        const tilePos = this.tileOccupancyManager.getTileInfoAtScreenPos(screenPos, this.camera);
+        const tilePos = this.tileOccupancyManager.getTileAtScreenPos(screenPos, this.camera);
         if (!tilePos) {
             console.log('未找到对应的地块');
             return;
@@ -540,18 +571,37 @@ export class InteractionManager extends Component {
         const buildingInfo = this.tileOccupancyManager.getBuildingInfoAt(tilePos.row, tilePos.col);
         
         // 将屏幕坐标转换为世界坐标
-        const worldPos = this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+        const worldPos = this.screenToWorldPos(screenPos);
         
         if (buildingInfo && buildingInfo.buildingNode) {
             console.log('[InteractionManager] 点击了建筑:', buildingInfo.buildingNode.name);
             
-            // 调用TileOccupancyManager的handleBuildingClick方法
-            this.tileOccupancyManager.handleBuildingClick(buildingInfo.buildingNode, worldPos);
+            // 处理建筑点击逻辑
+            if (this.buildingDetailButtonManager) {
+                // 获取建筑信息用于详情面板
+                const buildingNode = buildingInfo.buildingNode;
+                const buildInfo = buildingNode ? buildingNode.getComponent(BuildInfo) : null;
+                const detailInfo = buildInfo ? {
+                    buildingName: buildInfo.getBuildingName(),
+                    previewImage: buildInfo.getImage(),
+                    description: buildInfo.getDescription(),
+                    charmValue: buildInfo.getCharmValue(),
+                    decorationValue: buildInfo.getDecorationValue(),
+                    size: buildInfo.getSize()
+                } : {
+                    buildingName: buildingInfo.buildingNode.name,
+                    description: '建筑详情'
+                };
+                
+                this.buildingDetailButtonManager.onBuildingClicked(buildingNode, worldPos, detailInfo);
+            }
         } else {
-            console.log('[InteractionManager] 点击的地块没有建筑');
+            console.log('[InteractionManager] 点击了空地块');
             
-            // 点击空白处，调用TileOccupancyManager的handleBuildingClick方法
-            this.tileOccupancyManager.handleBuildingClick(null, worldPos);
+            // 点击空地块时，隐藏详情按钮
+            if (this.buildingDetailButtonManager) {
+                this.buildingDetailButtonManager.onBuildingClicked(null, worldPos);
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, TiledMap, TiledLayer, Vec2, Vec3, Camera, Color, UITransform, Sprite, SpriteFrame, Texture2D, ImageAsset, CCString, instantiate, sys, TiledTile } from 'cc';
 import { BuildInfo } from '../地图生成/BuildInfo';
-import { ImprovedMapGenerator } from './ImprovedMapGenerator';
+import { BuildingAdjacencyDisplay } from './BuildingAdjacencyDisplay';
 
 const { ccclass, property } = _decorator;
 
@@ -51,9 +51,6 @@ export class NewTileOccupancyManager extends Component {
     
     @property({ type: TiledLayer, tooltip: '直接拖拽图块层节点到此' })
     tileLayer: TiledLayer = null;
-
-    @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
-    mapGenerator: ImprovedMapGenerator = null;
 
     // 格子显示配置
     @property({ tooltip: '是否显示格子网格' })
@@ -268,6 +265,9 @@ export class NewTileOccupancyManager extends Component {
                 if (layers && layers.length > 0) {
                     this.tileLayer = layers[0]; // 使用第一个图层
                     console.log('[NewTileOccupancyManager] 自动绑定到第一个图层');
+                } else {
+                    console.warn('[NewTileOccupancyManager] TiledMap没有可用图层');
+                    return false;
                 }
             }
 
@@ -281,7 +281,7 @@ export class NewTileOccupancyManager extends Component {
             const tileSize = this.tiledMap.getTileSize();
             
             if (!mapSize || !tileSize || mapSize.width <= 0 || mapSize.height <= 0) {
-                console.warn('[NewTileOccupancyManager] 地图尺寸无效');
+                console.warn('[NewTileOccupancyManager] 地图尺寸无效', { mapSize, tileSize });
                 return false;
             }
 
@@ -294,9 +294,14 @@ export class NewTileOccupancyManager extends Component {
             this.tileGrid = [];
             this.allTiles = [];
 
+            let validTileCount = 0;
+            let totalTileCount = 0;
+
             for (let row = 0; row < this.rows; row++) {
                 this.tileGrid[row] = [];
                 for (let col = 0; col < this.columns; col++) {
+                    totalTileCount++;
+                    
                     // 获取瓦片信息
                     const tiledTile = this.tileLayer.getTiledTileAt(col, row);
                     
@@ -319,16 +324,52 @@ export class NewTileOccupancyManager extends Component {
                     };
 
                     this.tileGrid[row][col] = tileInfo;
+                    validTileCount++;
                 }
             }
 
             console.log(`[NewTileOccupancyManager] 成功初始化 ${this.rows}x${this.columns} 瓦片网格`);
+            console.log(`[NewTileOccupancyManager] 有效瓦片数量: ${validTileCount}/${totalTileCount}`);
+            
+            // 验证瓦片网格完整性
+            let gridIntegrityCheck = true;
+            for (let row = 0; row < this.rows; row++) {
+                for (let col = 0; col < this.columns; col++) {
+                    if (!this.tileGrid[row] || !this.tileGrid[row][col]) {
+                        console.error(`[NewTileOccupancyManager] 瓦片网格不完整: (${row}, ${col}) 缺失`);
+                        gridIntegrityCheck = false;
+                    }
+                }
+            }
+            
+            if (gridIntegrityCheck) {
+                console.log('[NewTileOccupancyManager] 瓦片网格完整性检查通过');
+            } else {
+                console.error('[NewTileOccupancyManager] 瓦片网格完整性检查失败');
+                return false;
+            }
+            
             return true;
 
         } catch (error) {
             console.error('[NewTileOccupancyManager] 初始化瓦片网格时发生错误:', error);
             return false;
         }
+    }
+
+    /**
+     * 获取指定位置的瓦片网格信息
+     */
+    public getTileGridInfo(row: number, col: number): TileGridInfo | null {
+        if (row < 0 || row >= this.rows || col < 0 || col >= this.columns) {
+            return null;
+        }
+        
+        if (!this.tileGrid[row] || !this.tileGrid[row][col]) {
+            return null;
+        }
+        
+        return this.tileGrid[row][col];
     }
 
     /**
@@ -352,6 +393,7 @@ export class NewTileOccupancyManager extends Component {
      */
     public getTileAtScreenPos(screenPos: Vec2, camera: Camera): { row: number, col: number, worldPosition: Vec3 } | null {
         if (!camera || !this.tiledMap) {
+            console.warn('[NewTileOccupancyManager] 缺少Camera或TiledMap组件');
             return null;
         }
 
@@ -359,37 +401,54 @@ export class NewTileOccupancyManager extends Component {
             // 将屏幕坐标转换为世界坐标
             const worldPos = new Vec3();
             camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0), worldPos);
+            
+            console.log(`[NewTileOccupancyManager] 屏幕坐标: (${screenPos.x}, ${screenPos.y})`);
+            console.log(`[NewTileOccupancyManager] 世界坐标: (${worldPos.x}, ${worldPos.y}, ${worldPos.z})`);
 
             // 将世界坐标转换为TiledMap的本地坐标
             const localPos = new Vec3();
             this.tiledMap.node.getComponent(UITransform).convertToNodeSpaceAR(worldPos, localPos);
+            
+            console.log(`[NewTileOccupancyManager] TiledMap本地坐标: (${localPos.x}, ${localPos.y}, ${localPos.z})`);
 
             // 获取瓦片尺寸
             const tileSize = this.tiledMap.getTileSize();
             if (!tileSize || tileSize.width <= 0 || tileSize.height <= 0) {
+                console.warn('[NewTileOccupancyManager] 瓦片尺寸无效:', tileSize);
                 return null;
             }
+            
+            console.log(`[NewTileOccupancyManager] 瓦片尺寸: ${tileSize.width}x${tileSize.height}`);
 
-            // 计算瓦片坐标
-            const col = Math.floor(localPos.x / tileSize.width);
-            const row = this.rows - 1 - Math.floor(localPos.y / tileSize.height);
+            // 计算瓦片坐标 - 改进计算逻辑
+            let col = Math.floor(localPos.x / tileSize.width);
+            let row = Math.floor((this.rows * tileSize.height - localPos.y) / tileSize.height);
+            
+            // 处理边界情况
+            col = Math.max(0, Math.min(col, this.columns - 1));
+            row = Math.max(0, Math.min(row, this.rows - 1));
+            
+            console.log(`[NewTileOccupancyManager] 计算得到瓦片坐标: (${row}, ${col})`);
+            console.log(`[NewTileOccupancyManager] 地图范围: ${this.rows}x${this.columns}`);
 
             // 检查坐标是否在有效范围内
             if (row < 0 || row >= this.rows || col < 0 || col >= this.columns) {
+                console.warn(`[NewTileOccupancyManager] 瓦片坐标超出范围: (${row}, ${col}), 地图大小: ${this.rows}x${this.columns}`);
                 return null;
             }
 
-            // 获取瓦片的世界坐标
-            const tileWorldPos = new Vec3();
-            this.tiledMap.node.getComponent(UITransform).convertToWorldSpaceAR(
-                new Vec3(col * tileSize.width + tileSize.width / 2, 
-                        (this.rows - row - 1) * tileSize.height + tileSize.height / 2, 0),
-                tileWorldPos
-            );
-
-            if (sys.isNative) {
-                console.log(`[NewTileOccupancyManager] 屏幕坐标 (${screenPos.x}, ${screenPos.y}) -> 瓦片 (${row}, ${col})`);
+            // 检查瓦片网格是否已初始化
+            if (!this.tileGrid[row] || !this.tileGrid[row][col]) {
+                console.warn(`[NewTileOccupancyManager] 瓦片网格未初始化: (${row}, ${col})`);
+                return null;
             }
+
+            // 获取瓦片的世界坐标 - 使用已存储的世界坐标
+            const tileInfo = this.tileGrid[row][col];
+            const tileWorldPos = tileInfo.worldPosition.clone();
+
+            console.log(`[NewTileOccupancyManager] 瓦片世界坐标: (${tileWorldPos.x}, ${tileWorldPos.y}, ${tileWorldPos.z})`);
+            console.log(`[NewTileOccupancyManager] 成功匹配到瓦片: (${row}, ${col})`);
 
             return {
                 row: row,
@@ -420,6 +479,9 @@ export class NewTileOccupancyManager extends Component {
 
         // 检查区域是否可用
         const buildingSize = buildInfo.getSize();
+        console.log(`[NewTileOccupancyManager] 建筑尺寸: ${buildingSize.width}x${buildingSize.height}`);
+        console.log(`[NewTileOccupancyManager] 建筑名称: ${buildInfo.getBuildingName()}`);
+        
         if (!this.canPlaceBuildingAt(row, col, buildingSize.width, buildingSize.height)) {
             console.warn(`[NewTileOccupancyManager] 位置 (${row}, ${col}) 不可放置建筑`);
             return false;
@@ -433,8 +495,51 @@ export class NewTileOccupancyManager extends Component {
                 return false;
             }
 
+            // 设置建筑的父级为TiledMap节点，确保建筑在正确的层级结构中
+            if (this.tiledMap && this.tiledMap.node) {
+                buildingNode.parent = this.tiledMap.node;
+                console.log(`[NewTileOccupancyManager] 设置建筑父级为TiledMap节点: ${this.tiledMap.node.name}`);
+            } else {
+                console.warn(`[NewTileOccupancyManager] TiledMap节点不存在，建筑可能无法正确显示`);
+            }
+
             // 设置建筑位置
             buildingNode.setWorldPosition(tileInfo.worldPosition);
+            
+            // 设置建筑的Z轴位置，确保建筑显示在地图上方
+            const currentPos = buildingNode.position;
+            buildingNode.setPosition(currentPos.x, currentPos.y, 1);
+
+            // 添加BuildInfo组件并设置当前位置信息
+            let instanceBuildInfo = buildingNode.getComponent(BuildInfo);
+            if (!instanceBuildInfo) {
+                instanceBuildInfo = buildingNode.addComponent(BuildInfo);
+                instanceBuildInfo.copyFrom(buildInfo);
+            }
+            instanceBuildInfo.setCurrentPosition(row, col);
+
+            // 查找并设置Sprite组件引用，加载建筑图片
+            const spriteNode = buildingNode.getChildByName('Sprite');
+            if (spriteNode) {
+                const spriteComponent = spriteNode.getComponent(Sprite);
+                if (spriteComponent) {
+                    instanceBuildInfo.buildingSprite = spriteComponent;
+                    // 加载并设置建筑图片
+                    instanceBuildInfo.loadAndSetImage(buildingNode).then((success) => {
+                        if (success) {
+                            console.log(`[NewTileOccupancyManager] 成功加载建筑图片: ${buildInfo.getBuildingName()}`);
+                        } else {
+                            console.warn(`[NewTileOccupancyManager] 建筑图片加载失败: ${buildInfo.getBuildingName()}`);
+                        }
+                    });
+                }
+            }
+
+            // 添加BuildingAdjacencyDisplay组件，确保在相邻信息更新时组件已存在
+            if (!buildingNode.getComponent(BuildingAdjacencyDisplay)) {
+                const adjacencyDisplay = buildingNode.addComponent(BuildingAdjacencyDisplay);
+                console.log(`[NewTileOccupancyManager] 添加BuildingAdjacencyDisplay组件到建筑: ${buildInfo.getBuildingName()}`);
+            }
 
             // 标记占用区域
             this.markTilesAsOccupied(row, col, buildingSize.width, buildingSize.height, buildInfo, buildingNode);
@@ -455,8 +560,21 @@ export class NewTileOccupancyManager extends Component {
      * 检查指定区域是否可以放置建筑
      */
     public canPlaceBuildingAt(row: number, col: number, width: number, height: number): boolean {
+        console.log(`[NewTileOccupancyManager] 检查建筑放置: 位置(${row}, ${col}), 尺寸${width}x${height}`);
+        console.log(`[NewTileOccupancyManager] 地图尺寸: ${this.columns}x${this.rows}`);
+        
         // 检查边界
-        if (row < 0 || col < 0 || row + height > this.rows || col + width > this.columns) {
+        const rowBoundary = row + height > this.rows;
+        const colBoundary = col + width > this.columns;
+        const negativeRow = row < 0;
+        const negativeCol = col < 0;
+        
+        if (negativeRow || negativeCol || rowBoundary || colBoundary) {
+            console.log(`[NewTileOccupancyManager] 边界检查失败:`);
+            console.log(`  - 行坐标 < 0: ${negativeRow} (${row})`);
+            console.log(`  - 列坐标 < 0: ${negativeCol} (${col})`);
+            console.log(`  - 行边界溢出: ${rowBoundary} (${row} + ${height} = ${row + height} > ${this.rows})`);
+            console.log(`  - 列边界溢出: ${colBoundary} (${col} + ${width} = ${col + width} > ${this.columns})`);
             return false;
         }
 
@@ -465,11 +583,14 @@ export class NewTileOccupancyManager extends Component {
             for (let c = col; c < col + width; c++) {
                 const key = `${r}_${c}`;
                 if (this.tileOccupancyMap.has(key)) {
+                    const occupancyInfo = this.tileOccupancyMap.get(key);
+                    console.log(`[NewTileOccupancyManager] 瓦片占用冲突: (${r}, ${c}) 已被 ${occupancyInfo.buildingType} 占用`);
                     return false; // 已被占用
                 }
             }
         }
 
+        console.log(`[NewTileOccupancyManager] 位置 (${row}, ${col}) 可以放置建筑`);
         return true;
     }
 
@@ -867,8 +988,108 @@ export class NewTileOccupancyManager extends Component {
                 }
             }
         }
+    }
 
+    /**
+     * 创建建筑预览节点（公共方法）
+     */
+    public createBuildingPreviewNode(buildInfo: BuildInfo): Node | null {
+        if (!buildInfo || !buildInfo.getBuildingPrefab()) {
+            return null;
         }
+        
+        // 直接实例化建筑预制体作为预览节点
+        const previewNode = instantiate(buildInfo.getBuildingPrefab());
+        previewNode.name = 'BuildingPreview';
+        
+        // 确保预览节点有BuildInfo组件并设置图片
+        let previewBuildInfo = previewNode.getComponent(BuildInfo);
+        if (!previewBuildInfo) {
+            previewBuildInfo = previewNode.addComponent(BuildInfo);
+        }
+        previewBuildInfo.copyFrom(buildInfo);
+        
+        // 查找并设置Sprite组件引用，然后加载图片
+        const spriteNode = previewNode.getChildByName('Sprite');
+        if (spriteNode) {
+            const spriteComponent = spriteNode.getComponent(Sprite);
+            if (spriteComponent) {
+                previewBuildInfo.buildingSprite = spriteComponent;
+                // 异步加载图片
+                previewBuildInfo.loadAndSetImage(previewNode).then((success) => {
+                    if (success) {
+                        console.log(`预览节点图片加载成功: ${buildInfo.getBuildingName()}`);
+                    } else {
+                        console.warn(`预览节点图片加载失败: ${buildInfo.getBuildingName()}`);
+                    }
+                });
+            }
+        }
+        
+        // 设置预览节点的透明度（递归设置所有Sprite组件）
+        this.setNodeOpacity(previewNode, 150);
+        
+        return previewNode;
+    }
+
+    /**
+     * 递归设置节点及其子节点的透明度
+     */
+    private setNodeOpacity(node: Node, opacity: number) {
+        // 设置当前节点的Sprite组件透明度
+        const sprite = node.getComponent(Sprite);
+        if (sprite) {
+            const color = sprite.color.clone();
+            color.a = opacity;
+            sprite.color = color;
+        }
+        
+        // 递归设置子节点透明度
+        for (let i = 0; i < node.children.length; i++) {
+            this.setNodeOpacity(node.children[i], opacity);
+        }
+    }
+
+    /**
+     * 清除所有建筑
+     */
+    public clearAllBuildings(): void {
+        // 清除占用信息
+        this.tileOccupancyMap.clear();
+        
+        // 销毁所有已放置的建筑节点
+        for (const buildingNode of this.placedBuildingNodes) {
+            if (buildingNode && buildingNode.isValid) {
+                buildingNode.destroy();
+            }
+        }
+        this.placedBuildingNodes.length = 0;
+        
+        // 更新编辑器显示
+        this.updateEditorDisplay();
+    }
+
+    /**
+     * 重新注册建筑在指定位置
+     */
+    public reregisterBuildingAtPosition(row: number, col: number, buildInfo: BuildInfo, buildingNode: Node): boolean {
+        if (!this.canPlaceBuildingAt(row, col, buildInfo.getSize().width, buildInfo.getSize().height)) {
+            return false;
+        }
+        
+        // 标记地块为占用状态
+        this.markTilesAsOccupied(row, col, buildInfo.getSize().width, buildInfo.getSize().height, buildInfo, buildingNode);
+        
+        return true;
+    }
+
+    /**
+     * 获取指定位置的建筑信息
+     */
+    public getBuildingInfoAt(row: number, col: number): TileOccupancyInfo | null {
+        const key = `${row}_${col}`;
+        return this.tileOccupancyMap.get(key) || null;
+    }
 
     /**
      * 获取所有已放置的建筑节点
@@ -878,37 +1099,68 @@ export class NewTileOccupancyManager extends Component {
     }
 
     /**
-     * 移除建筑
+     * 移除建筑（支持多个参数的重载）
      */
-    public removeBuilding(buildingNode: Node): boolean {
-        const buildingId = buildingNode.uuid;
-        
-        // 查找并移除占用信息
-        const keysToRemove: string[] = [];
-        for (const [key, info] of this.tileOccupancyMap.entries()) {
-            if (info.buildingId === buildingId) {
-                keysToRemove.push(key);
+    public removeBuilding(row: number, col: number, destroyNode?: boolean): Node | null;
+    public removeBuilding(buildingNode: Node): boolean;
+    public removeBuilding(rowOrNode: number | Node, col?: number, destroyNode: boolean = true): Node | boolean | null {
+        if (typeof rowOrNode === 'number') {
+            // 按位置移除建筑
+            const row = rowOrNode;
+            const buildingInfo = this.getBuildingInfoAt(row, col!);
+            if (!buildingInfo) {
+                return null;
             }
-        }
-        
-        // 移除占用标记
-        for (const key of keysToRemove) {
-            this.tileOccupancyMap.delete(key);
-            const [row, col] = key.split('_').map(Number);
-            if (this.tileGrid[row] && this.tileGrid[row][col]) {
-                this.tileGrid[row][col].state = TileState.NORMAL;
+            
+            // 清除占用信息
+            const { width, height } = buildingInfo;
+            for (let r = row; r < row + height; r++) {
+                for (let c = col!; c < col! + width; c++) {
+                    const key = `${r}_${c}`;
+                    this.tileOccupancyMap.delete(key);
+                }
             }
-        }
-        
-        // 从已放置建筑列表中移除
-        const index = this.placedBuildingNodes.indexOf(buildingNode);
-        if (index >= 0) {
+            
+            // 从已放置建筑列表中移除
+            const index = this.placedBuildingNodes.indexOf(buildingInfo.buildingNode);
+            if (index !== -1) {
+                this.placedBuildingNodes.splice(index, 1);
+            }
+            
+            // 销毁或返回节点
+            if (destroyNode && buildingInfo.buildingNode.isValid) {
+                buildingInfo.buildingNode.destroy();
+                this.updateEditorDisplay();
+                return null;
+            } else {
+                this.updateEditorDisplay();
+                return buildingInfo.buildingNode;
+            }
+        } else {
+            // 按节点移除建筑
+            const buildingNode = rowOrNode;
+            const index = this.placedBuildingNodes.indexOf(buildingNode);
+            if (index === -1) {
+                return false;
+            }
+            
+            // 查找并清除占用信息
+            for (const [key, info] of this.tileOccupancyMap.entries()) {
+                if (info.buildingNode === buildingNode) {
+                    this.tileOccupancyMap.delete(key);
+                }
+            }
+            
+            // 从已放置建筑列表中移除
             this.placedBuildingNodes.splice(index, 1);
+            
+            // 销毁节点
+            if (buildingNode.isValid) {
+                buildingNode.destroy();
+            }
+            
+            this.updateEditorDisplay();
+            return true;
         }
-        
-        // 更新编辑器显示
-        this.updateEditorDisplay();
-        
-        return keysToRemove.length > 0;
     }
 }

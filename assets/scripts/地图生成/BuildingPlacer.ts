@@ -89,16 +89,13 @@ export class BuildingPlacer extends Component {
             this.previewNode.setRotationFromEuler(0, 0, 45);
             // 立即以replacementNode原来所在tile位置更新预览节点位置
             if (this.replacementOriginalRow >= 0 && this.replacementOriginalCol >= 0 && this.tileOccupancyManager) {
-                const tileKey = `${this.replacementOriginalRow}_${this.replacementOriginalCol}`;
-                const originalTile = this.tileOccupancyManager.getTileByKey(tileKey);
-                if (originalTile) {
-                    this.previewNode.setWorldPosition(originalTile.getWorldPosition());
-                    // 使用NewTileOccupancyManager的getTileSize方法获取瓦片尺寸
-                    const tileSize = this.tileOccupancyManager.getTileSize();
-                    if (tileSize) {
-                        this.previewNode.setPosition(this.previewNode.position.x, 
-                            this.previewNode.position.y + tileSize.height / 2, 1);
-                    }
+                // 使用NewTileOccupancyManager的瓦片网格获取位置信息
+                const tileGridInfo = this.tileOccupancyManager.getTileGridInfo(this.replacementOriginalRow, this.replacementOriginalCol);
+                if (tileGridInfo) {
+                    this.previewNode.setWorldPosition(tileGridInfo.worldPosition);
+                    // 调整Z坐标确保预览节点在上层显示
+                    const currentPos = this.previewNode.position;
+                    this.previewNode.setPosition(currentPos.x, currentPos.y, 1);
                 }
             }
         
@@ -106,7 +103,7 @@ export class BuildingPlacer extends Component {
         } else {
             // 委托给TileOccupancyManager创建预览节点
             if (this.tileOccupancyManager) {
-                this.previewNode = this.tileOccupancyManager.createPreviewNode(this.currentBuildInfo);
+                this.previewNode = this.tileOccupancyManager.createBuildingPreviewNode(this.currentBuildInfo);
                 if (this.previewNode) {
                     this.previewNode.active = false;
                     
@@ -296,12 +293,11 @@ export class BuildingPlacer extends Component {
      * 更新预览位置
      */
     private updatePreviewPosition(touchPos: Vec3) {
-        console.log('预览位置');
         if (!this.previewNode || !this.mainCamera || !this.tileOccupancyManager) {
             return;
         }
         
-        // 直接使用触摸位置作为屏幕坐标
+        // 使用触摸位置作为屏幕坐标
         const screenPos = new Vec2(touchPos.x, touchPos.y);
         console.log('[BuildingPlacer] 触摸位置:', screenPos);
         
@@ -314,28 +310,26 @@ export class BuildingPlacer extends Component {
             this.previewNode.parent = this.layerRootNode;
             this.previewNode.setSiblingIndex(this.layerRootNode.children.length - 1);
         }
-        console.log('更新预览位置');
-        // 使用TileOccupancyManager的边界检查逻辑，传入屏幕坐标
-        const tileInfo = this.tileOccupancyManager['getTileAtScreenPos'](screenPos, this.mainCamera);
+        
+        // 使用NewTileOccupancyManager的getTileAtScreenPos方法获取瓦片信息
+        const tileInfo = this.tileOccupancyManager.getTileAtScreenPos(screenPos, this.mainCamera);
         
         if (tileInfo) {
             // 显示预览节点
             this.previewNode.active = true;
             
             // 检查是否可以放置建筑
+            const buildingSize = this.currentBuildInfo.getSize();
             const canPlace = this.tileOccupancyManager.canPlaceBuildingAt(
                 tileInfo.row, tileInfo.col, 
-                this.currentBuildInfo.getWidth(), this.currentBuildInfo.getHeight()
+                buildingSize.width, buildingSize.height
             );
             
-            // 获取地块节点并设置预览位置
-            const tileKey = `${tileInfo.row}_${tileInfo.col}`;
-            const tile = this.tileOccupancyManager.getTileByKey(tileKey);
-            if (tile) {
-                // 将预览节点定位到地块中心
-                this.previewNode.setWorldPosition(tile.getWorldPosition());
-                this.previewNode.setPosition(this.previewNode.position.x, this.previewNode.position.y, 1);
-            }
+            // 直接使用tileInfo中的世界坐标设置预览位置
+            this.previewNode.setWorldPosition(tileInfo.worldPosition);
+            // 调整Z坐标确保预览节点在上层显示
+            const currentPos = this.previewNode.position;
+            this.previewNode.setPosition(currentPos.x, currentPos.y, 1);
             
             // 根据是否可以放置设置颜色
             if (canPlace) {
@@ -468,10 +462,14 @@ export class BuildingPlacer extends Component {
             return;
         }
         
-        // 委托给TileOccupancyManager处理建筑放置
-        // 使用屏幕坐标
+        // 使用NewTileOccupancyManager的tryPlaceBuildingAtScreenPos方法
         const screenPos = new Vec2(touchPos.x, touchPos.y);
-        const success = this.tileOccupancyManager.tryPlaceBuildingAtScreenPos(screenPos, this.mainCamera, this.currentBuildInfo, this.replacementNode);
+        const success = this.tileOccupancyManager.tryPlaceBuildingAtScreenPos(
+            screenPos, 
+            this.mainCamera, 
+            this.currentBuildInfo, 
+            this.replacementNode
+        );
         
         if (success) {
             this.onBuildingPlaced(this.currentBuildInfo);
@@ -578,16 +576,15 @@ export class BuildingPlacer extends Component {
         console.warn(`建筑放置失败: ${reason}`);
         
         // 如果是重新放置的节点，恢复到原始位置和父节点
-        if (this.replacementNode && this.replacementOriginalRow >= 0 && this.replacementOriginalCol >= 0) {
-            // 通过原始地块信息获取地块节点
-            const tileKey = `${this.replacementOriginalRow}_${this.replacementOriginalCol}`;
-            const originalTile = this.tileOccupancyManager.getTileByKey(tileKey);
+        if (this.replacementNode && this.replacementOriginalRow !== -1 && this.replacementOriginalCol !== -1) {
+            // 使用NewTileOccupancyManager获取原始地块的世界位置
+            const tileGridInfo = this.tileOccupancyManager.getTileGridInfo(this.replacementOriginalRow, this.replacementOriginalCol);
             
-            if (originalTile) {
-                // 恢复到原始父节点
-                this.replacementNode.parent = originalTile;
-                // 恢复到原始本地位置（使用默认位置）
-                this.replacementNode.setPosition(Vec3.ZERO);
+            if (tileGridInfo) {
+                // 恢复到原始父节点（地图根节点）
+                this.replacementNode.parent = this.layerRootNode;
+                // 恢复到原始世界位置
+                this.replacementNode.setWorldPosition(tileGridInfo.worldPosition);
                 this.replacementNode.active = true;
                 
                 // 通过TileOccupancyManager重新注册该建筑在原始位置的占用信息

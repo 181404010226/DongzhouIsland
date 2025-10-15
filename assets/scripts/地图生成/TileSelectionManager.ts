@@ -235,8 +235,9 @@ export class TileSelectionManager extends Component {
             return new Vec3(0, 0, 0);
         }
         
-        // 直接使用摄像机的screenToWorld方法转换屏幕坐标
-        const worldPos = this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+        // 使用正确的参数顺序进行坐标转换
+        const worldPos = new Vec3();
+        this.camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0), worldPos);
         // console.log(`屏幕坐标: (${screenPos.x}, ${screenPos.y}) -> 世界坐标: (${worldPos.x}, ${worldPos.y})`);
         
         return worldPos;

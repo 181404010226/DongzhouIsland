@@ -37,6 +37,13 @@ export class CameraController extends Component {
 
     lateUpdate(deltaTime: number) {
         this.camera.orthoHeight = this.OrthoHeight;
+        
+        // 检查player节点是否存在
+        if (!this.player) {
+            // 如果player节点不存在，不执行相机跟随逻辑
+            return;
+        }
+        
         this.playerPos = this.player.getPosition();
         const x = this.playerPos.x;
         const y = this.playerPos.y;
