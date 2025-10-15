@@ -592,15 +592,100 @@ export class TileOccupancyManager extends Component {
             console.log('编辑器环境 - 原始屏幕坐标:', screenPos.x, screenPos.y);
         }
         
-        // 直接使用摄像机的screenToWorld方法转换屏幕坐标
-        const worldPos = camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+        // 检查相机是否有倾斜角，如果有则使用射线投射方法
+        const cameraRotation = camera.node.eulerAngles;
+        if (Math.abs(cameraRotation.x) > 0.1 || Math.abs(cameraRotation.y) > 0.1) {
+            // 相机有倾斜角，使用射线投射方法
+            return this.screenToWorldPosWithRotation(screenPos, camera);
+        } else {
+            // 相机没有倾斜角，使用原有方法
+            const worldPos = camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+            
+            // 在编辑器环境下添加调试信息
+            if (sys.platform === 'EDITOR_PAGE') {
+                console.log('编辑器环境 - 转换后世界坐标:', worldPos.x, worldPos.y, worldPos.z);
+            }
+            
+            return worldPos;
+        }
+    }
+    
+    /**
+     * 处理倾斜相机的屏幕坐标到世界坐标转换
+     * 通过射线投射到地面平面来计算正确的世界坐标
+     */
+    private screenToWorldPosWithRotation(screenPos: Vec2, camera: Camera): Vec3 {
+        // 获取相机的世界位置和旋转
+        const cameraWorldPos = camera.node.getWorldPosition();
+        const cameraRotation = camera.node.eulerAngles;
         
-        // 在编辑器环境下添加调试信息
-        if (sys.platform === 'EDITOR_PAGE') {
-            console.log('编辑器环境 - 转换后世界坐标:', worldPos.x, worldPos.y, worldPos.z);
+        // 将屏幕坐标转换为相机空间的射线方向
+        // 对于正交相机，射线方向是平行的
+        const nearPoint = camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, camera.near));
+        const farPoint = camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, camera.far));
+        
+        // 计算射线方向
+        const rayDirection = new Vec3();
+        Vec3.subtract(rayDirection, farPoint, nearPoint);
+        Vec3.normalize(rayDirection, rayDirection);
+        
+        // 定义地面平面 (z = 0)
+        const groundPlaneNormal = new Vec3(0, 0, 1);
+        const groundPlanePoint = new Vec3(0, 0, 0);
+        
+        // 计算射线与地面平面的交点
+        const intersection = this.rayPlaneIntersection(
+            nearPoint,
+            rayDirection,
+            groundPlanePoint,
+            groundPlaneNormal
+        );
+        
+        if (intersection) {
+            console.log('screenPos', screenPos, 'worldPos (with rotation)', intersection);
+            return intersection;
+        } else {
+            // 如果没有交点，回退到原方法
+            console.warn('射线与地面平面无交点，使用回退方法');
+            const fallbackPos = camera.screenToWorld(new Vec3(screenPos.x, screenPos.y, 0));
+            return fallbackPos;
+        }
+    }
+    
+    /**
+     * 计算射线与平面的交点
+     * @param rayOrigin 射线起点
+     * @param rayDirection 射线方向（已归一化）
+     * @param planePoint 平面上的一点
+     * @param planeNormal 平面法向量（已归一化）
+     * @returns 交点坐标，如果没有交点返回null
+     */
+    private rayPlaneIntersection(
+        rayOrigin: Vec3, 
+        rayDirection: Vec3, 
+        planePoint: Vec3, 
+        planeNormal: Vec3
+    ): Vec3 | null {
+        // 计算射线方向与平面法向量的点积
+        const denominator = Vec3.dot(rayDirection, planeNormal);
+        
+        // 如果点积接近0，说明射线与平面平行
+        if (Math.abs(denominator) < 1e-6) {
+            return null;
         }
         
-        return worldPos;
+        // 计算从射线起点到平面的向量
+        const rayToPlane = new Vec3();
+        Vec3.subtract(rayToPlane, planePoint, rayOrigin);
+        
+        // 计算参数t
+        const t = Vec3.dot(rayToPlane, planeNormal) / denominator;
+        
+        // 计算交点
+        const intersection = new Vec3();
+        Vec3.scaleAndAdd(intersection, rayOrigin, rayDirection, t);
+        
+        return intersection;
     }
     
     /**
