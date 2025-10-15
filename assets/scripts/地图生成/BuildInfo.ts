@@ -439,6 +439,9 @@ export class BuildInfo extends Component {
      * 从另一个BuildInfo复制所有数据
      */
     public copyFrom(other: BuildInfo) {
+        // 保存当前的buildingSprite引用，避免被覆盖
+        const currentBuildingSprite = this.buildingSprite;
+        
         this.buildingPrefab = other.buildingPrefab;
         this.type = other.type;
         this.buildingName = other.buildingName;
@@ -462,6 +465,11 @@ export class BuildInfo extends Component {
         this.previousAnchorRow = other.previousAnchorRow;
         this.previousAnchorCol = other.previousAnchorCol;
         this.isPlaced = other.isPlaced;
+        
+        // 恢复buildingSprite引用，确保不被覆盖
+        if (currentBuildingSprite) {
+            this.buildingSprite = currentBuildingSprite;
+        }
     }
     
     /**
@@ -482,57 +490,23 @@ export class BuildInfo extends Component {
         return new Promise((resolve) => {
             // 处理图片路径：BuildingsInterface已经去除了.png后缀，需要加载SpriteFrame子资源
             let imagePath = this.image;
-            
-            // 处理包含特殊字符的文件名，对路径进行URL编码
-            // 但是保留路径分隔符 '/'
-            const pathParts = imagePath.split('/');
-            const encodedParts = pathParts.map(part => {
-                // 对每个路径部分进行编码，但保留常见的文件名字符
-                return part.replace(/[()]/g, match => {
-                    return match === '(' ? '%28' : '%29';
-                }).replace(/ /g, '%20');
-            });
-            const encodedImagePath = encodedParts.join('/');
-            
             // 加载SpriteFrame子资源，路径格式为：资源路径/spriteFrame
-            const resourcePath = `${encodedImagePath}/spriteFrame`;
-            
-            console.log(`[BuildInfo] 尝试加载图片资源: ${resourcePath} (原路径: ${imagePath})`);
+            const resourcePath = `${imagePath}/spriteFrame`;
             
             resources.load(resourcePath, SpriteFrame, (err, spriteFrame) => {
                 if (err) {
-                    console.warn(`[BuildInfo] 加载建筑图片失败: ${resourcePath}`, err);
-                    
-                    // 如果编码路径失败，尝试原始路径
-                    const fallbackResourcePath = `${imagePath}/spriteFrame`;
-                    console.log(`[BuildInfo] 尝试备用路径: ${fallbackResourcePath}`);
-                    
-                    resources.load(fallbackResourcePath, SpriteFrame, (fallbackErr, fallbackSpriteFrame) => {
-                        if (fallbackErr) {
-                            console.warn(`[BuildInfo] 备用路径也失败: ${fallbackResourcePath}`, fallbackErr);
-                            resolve(false);
-                            return;
-                        }
-                        
-                        if (this.buildingSprite && fallbackSpriteFrame) {
-                            this.buildingSprite.spriteFrame = fallbackSpriteFrame;
-                            console.log(`[BuildInfo] 使用备用路径成功设置建筑图片: ${imagePath} -> ${this.buildingName}`);
-                            resolve(true);
-                        } else {
-                            console.warn(`[BuildInfo] buildingSprite为空或SpriteFrame为空: ${this.buildingName}`);
-                            resolve(false);
-                        }
-                    });
+                    console.warn(`加载建筑图片失败: ${resourcePath}`, err);
+                    resolve(false);
                     return;
                 }
                 
                 // 直接使用装饰器引用的Sprite组件设置图片
                 if (this.buildingSprite && spriteFrame) {
                     this.buildingSprite.spriteFrame = spriteFrame;
-                    console.log(`[BuildInfo] 设置建筑图片: ${imagePath} -> ${this.buildingName}`);
+                    console.log(`设置建筑图片: ${imagePath} -> ${this.buildingName}`);
                     resolve(true);
                 } else {
-                    console.warn(`[BuildInfo] buildingSprite为空或SpriteFrame为空: ${this.buildingName}`);
+                    console.warn(`buildingSprite为空或SpriteFrame为空: ${this.buildingName}`);
                     resolve(false);
                 }
             });

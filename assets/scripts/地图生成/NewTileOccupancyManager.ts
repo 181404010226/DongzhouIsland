@@ -510,12 +510,43 @@ export class NewTileOccupancyManager extends Component {
             const currentPos = buildingNode.position;
             buildingNode.setPosition(currentPos.x, currentPos.y, 1);
 
+            // 调试信息：检查传入的buildInfo参数
+            console.log(`[NewTileOccupancyManager] 传入的buildInfo参数:`, {
+                name: buildInfo ? buildInfo.getBuildingName() : 'null',
+                image: buildInfo ? buildInfo.getImage() : 'null',
+                type: buildInfo ? buildInfo.getType() : 'null',
+                isNull: buildInfo === null || buildInfo === undefined
+            });
+
             // 添加BuildInfo组件并设置当前位置信息
             let instanceBuildInfo = buildingNode.getComponent(BuildInfo);
             if (!instanceBuildInfo) {
                 instanceBuildInfo = buildingNode.addComponent(BuildInfo);
-                instanceBuildInfo.copyFrom(buildInfo);
+                console.log(`[NewTileOccupancyManager] 创建新的BuildInfo组件`);
+            } else {
+                console.log(`[NewTileOccupancyManager] 使用现有的BuildInfo组件:`, {
+                    name: instanceBuildInfo.getBuildingName(),
+                    image: instanceBuildInfo.getImage(),
+                    type: instanceBuildInfo.getType()
+                });
             }
+            
+            // 无论是新创建还是现有的BuildInfo组件，都需要复制数据
+            // 调试信息：拷贝前的状态
+            console.log(`[NewTileOccupancyManager] 拷贝前instanceBuildInfo:`, {
+                name: instanceBuildInfo.getBuildingName(),
+                image: instanceBuildInfo.getImage(),
+                type: instanceBuildInfo.getType()
+            });
+            
+            instanceBuildInfo.copyFrom(buildInfo);
+            
+            // 调试信息：拷贝后的状态
+            console.log(`[NewTileOccupancyManager] 拷贝后instanceBuildInfo:`, {
+                name: instanceBuildInfo.getBuildingName(),
+                image: instanceBuildInfo.getImage(),
+                type: instanceBuildInfo.getType()
+            });
             instanceBuildInfo.setCurrentPosition(row, col);
 
             // 查找并设置Sprite组件引用，加载建筑图片
@@ -524,15 +555,23 @@ export class NewTileOccupancyManager extends Component {
                 const spriteComponent = spriteNode.getComponent(Sprite);
                 if (spriteComponent) {
                     instanceBuildInfo.buildingSprite = spriteComponent;
+                    
+                    // 调试信息：显示图片路径
+                    console.log(`[NewTileOccupancyManager] 准备加载建筑图片: ${instanceBuildInfo.getBuildingName()}, 图片路径: ${instanceBuildInfo.getImage()}`);
+                    
                     // 加载并设置建筑图片
                     instanceBuildInfo.loadAndSetImage(buildingNode).then((success) => {
                         if (success) {
-                            console.log(`[NewTileOccupancyManager] 成功加载建筑图片: ${buildInfo.getBuildingName()}`);
+                            console.log(`[NewTileOccupancyManager] 成功加载建筑图片: ${instanceBuildInfo.getBuildingName()}`);
                         } else {
-                            console.warn(`[NewTileOccupancyManager] 建筑图片加载失败: ${buildInfo.getBuildingName()}`);
+                            console.warn(`[NewTileOccupancyManager] 建筑图片加载失败: ${instanceBuildInfo.getBuildingName()}, 图片路径: ${instanceBuildInfo.getImage()}`);
                         }
                     });
+                } else {
+                    console.warn(`[NewTileOccupancyManager] 找不到Sprite组件: ${buildInfo.getBuildingName()}`);
                 }
+            } else {
+                console.warn(`[NewTileOccupancyManager] 找不到Sprite子节点: ${buildInfo.getBuildingName()}`);
             }
 
             // 添加BuildingAdjacencyDisplay组件，确保在相邻信息更新时组件已存在
@@ -887,6 +926,16 @@ export class NewTileOccupancyManager extends Component {
             this.clearPreview();
             return false;
         }
+
+        // 调试：检查拖拽节点的BuildInfo内容
+        console.log('[NewTileOccupancyManager] 拖拽节点BuildInfo内容:', {
+            buildingName: buildInfo.getBuildingName(),
+            image: buildInfo.getImage(),
+            type: buildInfo.getType(),
+            width: buildInfo.getWidth(),
+            height: buildInfo.getHeight(),
+            buildingPrefab: buildInfo.getBuildingPrefab()
+        });
 
         // 尝试放置建筑
         const success = this.tryPlaceBuildingAtScreenPos(screenPos, camera, buildInfo, buildingNode);
