@@ -14,6 +14,7 @@ interface BuildingConfigData {
         length: number;
     };
     image: string;
+    prefabPath?: string; // 新增：预制体路径
     decorationValue?: number;
     decorationRange?: number;
     charmValue?: number;
@@ -91,17 +92,16 @@ export class BuildingsInterface extends Component {
         buildInfo.setType(configData.type || 'unknown');          // type -> type
         buildInfo.setUnlockPopularity(configData.unlockPopularity || 0); // unlockPopularity -> unlockPopularity
         buildInfo.setBuildingSize(configData.size.width, configData.size.length);
-        
-        // 处理图片路径：去除.png后缀
+        // 图片路径处理
         let imagePath = configData.image;
-        
-        // 去除.png后缀
         if (imagePath.endsWith('.png')) {
             imagePath = imagePath.substring(0, imagePath.length - 4);
         }
-        
-        buildInfo.setImage(imagePath);        // image -> image
-        
+        buildInfo.setImage(imagePath);
+        // 新增：映射预制体路径
+        if (configData.prefabPath) {
+            buildInfo.setPrefabPath(configData.prefabPath);
+        }
         // 可选字段映射
         if (configData.decorationValue !== undefined) {
             buildInfo.setDecorationValue(configData.decorationValue);

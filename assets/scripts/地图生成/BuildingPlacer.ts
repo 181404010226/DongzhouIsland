@@ -211,26 +211,39 @@ export class BuildingPlacer extends Component {
         this.replacementNode = replacementNode || null;
         this.onBuildingPlacedCallback = onPlacedCallback || null;
         
-        // 如果是重新放置节点，记录其原始位置信息
         if (this.replacementNode && originalInfo) {
-
             if (originalInfo.originalTileInfo) {
                 this.replacementOriginalRow = originalInfo.originalTileInfo.row;
                 this.replacementOriginalCol = originalInfo.originalTileInfo.col;
             }
             this.replacementBuildInfo = originalInfo.buildInfo;
-        } 
+        }
         
-        // 销毁旧的预览节点并创建新的（但不销毁replacementNode）
         if (this.previewNode && this.previewNode !== this.replacementNode) {
             this.previewNode.destroy();
         }
         this.previewNode = null;
         
-        // 销毁旧的影响范围预览节点
         if (this.influenceRangePreviewNode) {
             this.influenceRangePreviewNode.destroy();
             this.influenceRangePreviewNode = null;
+        }
+        
+        // 如果不是重新放置，并且配置了预制体路径，则优先按路径加载预制体
+        if (!this.replacementNode && buildInfo.getPrefabPath && buildInfo.getPrefabPath()) {
+            const path = buildInfo.getPrefabPath();
+            console.log(`[BuildingPlacer] 优先使用配置预制体路径: ${path}`);
+            buildInfo.loadPrefab().then((ok) => {
+                if (ok) {
+                    this.createPreviewNode();
+                    this.startDrag();
+                } else {
+                    console.warn(`[BuildingPlacer] 预制体加载失败: ${path}，将尝试使用现有预制体`);
+                    this.createPreviewNode();
+                    this.startDrag();
+                }
+            });
+            return; // 等待异步加载完成后再开始拖拽
         }
         
         this.createPreviewNode();

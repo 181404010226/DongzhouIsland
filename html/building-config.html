@@ -514,16 +514,21 @@
                         if (buildingData) {
                             const existingIndex = this.buildings.findIndex(b => b.id === buildingData.id);
                             if (existingIndex >= 0) {
-                                // 更新现有建筑，保留已配置的数据
+                                // 更新现有建筑：保留原始JSON字段（如 size、prefabPath），并保留已配置数据
                                 this.buildings[existingIndex] = {
-                                    ...buildingData,
+                                    ...item,
                                     ...this.buildings[existingIndex],
+                                    ...buildingData,
                                     id: buildingData.id,
                                     name: buildingData.name
                                 };
                                 updatedCount++;
                             } else {
-                                this.buildings.push(buildingData);
+                                // 新增建筑：保留原始JSON字段（如 size、prefabPath）
+                                this.buildings.push({
+                                    ...item,
+                                    ...buildingData
+                                });
                                 importedCount++;
                             }
                         }
@@ -712,6 +717,8 @@
                                     类型: ${this.getBuildingTypeText(building.type)} | 
                                     状态: <span style="color: ${statusClass === 'success' ? '#28a745' : '#ffc107'}">${statusText}</span>
                                     ${building.configured ? `| 魅力值: ${building.attractiveness} | 使用费: ${building.usageFee}` : ''}
+                                    | 尺寸: ${building.size ? `${building.size.width}x${building.size.length}` : '未知'}
+                                    | 预制体: ${building.prefabPath || '未设置'}
                                 </div>
                             </div>
                             <div class="building-actions">

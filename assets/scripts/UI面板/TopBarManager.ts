@@ -33,6 +33,7 @@ export class TopBarManager extends Component {
     // 游戏数据
     private currentCoins: number = 1000; // 初始金币
     private currentTrafficFlow: number = 0; // 当前客流量
+    private coinsPerSecond: number = 0; // 每秒增加的金币总量
     
     onLoad() {
         // 设置静态实例引用
@@ -44,6 +45,22 @@ export class TopBarManager extends Component {
         // 初始化显示
         this.updateCoinsDisplay();
         this.updateTrafficFlowDisplay();
+
+        // 每秒递增金币
+        try {
+            this.schedule(() => {
+                // 使用最新的每秒收入进行增加
+                if (this.coinsPerSecond > 0) {
+                    this.currentCoins += this.coinsPerSecond;
+                    this.updateCoinsDisplay();
+                } else {
+                    // 即使为0，也维持显示格式的一致性
+                    this.updateCoinsDisplay();
+                }
+            }, 1);
+        } catch (error) {
+            console.error('[顶部面板管理器] 启动每秒递增失败:', error);
+        }
     }
     
     onDestroy() {
@@ -93,7 +110,7 @@ export class TopBarManager extends Component {
             return;
         }
         
-        const displayText = `${this.coinsPrefix}${this.currentCoins}`;
+        const displayText = `${this.coinsPrefix}${this.currentCoins} +${this.coinsPerSecond}/秒`;
         this.coinsLabel.string = displayText;
     }
     
@@ -140,6 +157,17 @@ export class TopBarManager extends Component {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 设置每秒增加的金币总量
+     * @param amount 每秒金币（总收入）
+     */
+    public setCoinsPerSecond(amount: number): void {
+        // 只接受非负整数，保证显示一致
+        const val = Math.max(0, Math.floor(amount));
+        this.coinsPerSecond = val;
+        this.updateCoinsDisplay();
     }
     
     /**
@@ -203,6 +231,19 @@ export class TopBarManager extends Component {
             instance.setTrafficFlow(trafficFlow);
         } else {
             console.error('[顶部面板管理器] 实例不存在，无法设置客流量');
+        }
+    }
+
+    /**
+     * 静态方法：设置每秒金币（便捷调用）
+     * @param amount 每秒金币（总收入）
+     */
+    public static setCoinsPerSecond(amount: number): void {
+        const instance = TopBarManager.getInstance();
+        if (instance) {
+            instance.setCoinsPerSecond(amount);
+        } else {
+            console.error('[顶部面板管理器] 实例不存在，无法设置每秒金币');
         }
     }
     

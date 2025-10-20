@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Tile_1-1",
+    "_name": "Tile_1-1-tree",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Tile_1-1",
+    "_name": "Tile_1-1-tree",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -133,7 +133,7 @@
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0.5
+      "y": 0
     },
     "_id": ""
   },
@@ -248,6 +248,7 @@
     "height": 1,
     "unlockPopularity": 0,
     "image": "",
+    "prefabPath": "",
     "decorationValue": 0,
     "decorationRange": 0,
     "charmValue": 0,

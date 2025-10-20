@@ -115,6 +115,40 @@ export class BuildingTrafficPriceSystem extends Component {
     
     // 存储每个建筑的客流量和单价信息
     private static buildingTrafficPriceMap: Map<string, BuildingTrafficPriceInfo> = new Map();
+
+    /**
+     * 获取所有建筑的每秒总收入
+     */
+    public static getTotalIncomePerSecond(): number {
+        let total = 0;
+        for (const info of this.buildingTrafficPriceMap.values()) {
+            total += info.incomePerSecond || 0;
+        }
+        return total;
+    }
+
+    /**
+     * 同步总每秒收入到顶部面板显示
+     */
+    public static updateTopBarIncomePerSecond(): void {
+        const totalIncome = this.getTotalIncomePerSecond();
+        try {
+            TopBarManager.setCoinsPerSecond(totalIncome);
+            console.log(`[BuildingTrafficPriceSystem] 已同步每秒总收入到TopBar: +${totalIncome}/秒`);
+        } catch (error) {
+            console.error('[BuildingTrafficPriceSystem] 同步TopBar每秒收入失败:', error);
+        }
+    }
+
+    /**
+     * 从系统中移除某建筑的收入记录并刷新TopBar
+     */
+    public static removeBuildingTrafficPriceInfo(buildingId: string): void {
+        if (this.buildingTrafficPriceMap.delete(buildingId)) {
+            this.updateTopBarIncomePerSecond();
+            console.log(`[BuildingTrafficPriceSystem] 已移除建筑收入记录并刷新TopBar: ${buildingId}`);
+        }
+    }
     
     /**
      * 根据建筑名称获取建筑类型
@@ -154,6 +188,26 @@ export class BuildingTrafficPriceSystem extends Component {
      */
     public static getBuildingBaseConfig(buildingType: BuildingType): BuildingBaseConfig | null {
         return this.BUILDING_CONFIGS.get(buildingType) || null;
+    }
+    
+    /**
+     * 对附近建筑列表按 buildingId 去重，避免重复buff
+     */
+    private static dedupeNearbyBuildings(
+        nearbyBuildings: Array<{ buildingType: BuildingType; buildingId: string }>
+    ): Array<{ buildingType: BuildingType; buildingId: string }> {
+        const seenIds = new Set<string>();
+        const unique: Array<{ buildingType: BuildingType; buildingId: string }> = [];
+        for (const b of nearbyBuildings) {
+            if (!b) continue;
+            const id = b.buildingId;
+            if (!id) continue;
+            if (!seenIds.has(id)) {
+                seenIds.add(id);
+                unique.push(b);
+            }
+        }
+        return unique;
     }
     
     /**
@@ -222,8 +276,9 @@ export class BuildingTrafficPriceSystem extends Component {
         
         // 只有产生收入的建筑才会受到客流量加成
         if (config.generateIncome) {
-            console.log(`[BuildingTrafficPriceSystem] 检查客流量buff - 附近建筑数量: ${nearbyBuildings.length}`);
-            for (const nearbyBuilding of nearbyBuildings) {
+            const uniqueNearbyBuildings = this.dedupeNearbyBuildings(nearbyBuildings);
+            console.log(`[BuildingTrafficPriceSystem] 检查客流量buff - 附近建筑数量: ${nearbyBuildings.length} (唯一: ${uniqueNearbyBuildings.length})`);
+            for (const nearbyBuilding of uniqueNearbyBuildings) {
                 console.log(`[BuildingTrafficPriceSystem] 检查附近建筑: ${nearbyBuilding.buildingType} (ID: ${nearbyBuilding.buildingId})`);
                 let trafficBonus = 0;
                 
@@ -241,8 +296,8 @@ export class BuildingTrafficPriceSystem extends Component {
                     if (allBuildingsData) {
                         isUpgraded = this.checkSpecificFlowerClusterUpgrade(nearbyBuilding.buildingId, allBuildingsData);
                     } else {
-                        // 回退到近似检测
-                        isUpgraded = this.checkFlowerClusterUpgrade(nearbyBuildings);
+                        // 回退到近似检测（去重后的列表）
+                        isUpgraded = this.checkFlowerClusterUpgrade(uniqueNearbyBuildings);
                     }
                     
                     if (isUpgraded) {
@@ -303,8 +358,9 @@ export class BuildingTrafficPriceSystem extends Component {
         
         // 只有产生收入的建筑才会有单价计算
         if (config.generateIncome) {
-            console.log(`[BuildingTrafficPriceSystem] 检查单价buff - 附近建筑数量: ${nearbyBuildings.length}`);
-            for (const nearbyBuilding of nearbyBuildings) {
+            const uniqueNearbyBuildings = this.dedupeNearbyBuildings(nearbyBuildings);
+            console.log(`[BuildingTrafficPriceSystem] 检查单价buff - 附近建筑数量: ${nearbyBuildings.length} (唯一: ${uniqueNearbyBuildings.length})`);
+            for (const nearbyBuilding of uniqueNearbyBuildings) {
                 console.log(`[BuildingTrafficPriceSystem] 检查附近建筑: ${nearbyBuilding.buildingType} (ID: ${nearbyBuilding.buildingId})`);
                 let priceBonus = 0;
                 
@@ -322,8 +378,8 @@ export class BuildingTrafficPriceSystem extends Component {
                     if (allBuildingsData) {
                         isUpgraded = this.checkSpecificFlowerClusterUpgrade(nearbyBuilding.buildingId, allBuildingsData);
                     } else {
-                        // 回退到近似检测
-                        isUpgraded = this.checkFlowerClusterUpgrade(nearbyBuildings);
+                        // 回退到近似检测（去重后的列表）
+                        isUpgraded = this.checkFlowerClusterUpgrade(uniqueNearbyBuildings);
                     }
                     
                     if (isUpgraded) {
@@ -432,6 +488,9 @@ export class BuildingTrafficPriceSystem extends Component {
         // 存储到静态Map中
         this.buildingTrafficPriceMap.set(buildingId, buildingInfo);
         
+        // 同步总每秒收入到TopBar
+        this.updateTopBarIncomePerSecond();
+        
         console.log(`[客流量单价系统] 计算建筑信息: ${buildingName}`, {
             客流量: `${trafficResult.baseTrafficFlow} → ${trafficResult.totalTrafficFlow}`,
             单价: `${priceResult.basePrice} → ${priceResult.totalPrice}`,
@@ -477,7 +536,9 @@ export class BuildingTrafficPriceSystem extends Component {
                 results.push(result);
             }
         }
-        
+        // 统一刷新TopBar每秒收入显示
+        this.updateTopBarIncomePerSecond();
+
         return results;
     }
     
@@ -510,16 +571,7 @@ export class BuildingTrafficPriceSystem extends Component {
         return totalIncome;
     }
     
-    /**
-     * 清除指定建筑的客流量和单价记录
-     * @param buildingId 建筑ID
-     */
-    public static removeBuildingTrafficPriceInfo(buildingId: string): void {
-        if (this.buildingTrafficPriceMap.has(buildingId)) {
-            this.buildingTrafficPriceMap.delete(buildingId);
-            console.log(`[客流量单价系统] 已清除建筑记录: ${buildingId}`);
-        }
-    }
+
     
     /**
      * 清除所有建筑的客流量和单价记录

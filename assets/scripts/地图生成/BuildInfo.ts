@@ -1,4 +1,4 @@
-import { _decorator, Component, Prefab, SpriteFrame, resources, Sprite, Node, CCString } from 'cc';
+import { _decorator, Component, Prefab, SpriteFrame, resources, assetManager, Sprite, Node, CCString } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -33,6 +33,9 @@ export class BuildInfo extends Component {
     
     @property({ tooltip: '建筑图片路径' })
     image: string = '';
+    
+    @property({ tooltip: '预制体路径' })
+    prefabPath: string = '';
     
     @property({ tooltip: '装饰价值' })
     decorationValue: number = 0;
@@ -160,6 +163,20 @@ export class BuildInfo extends Component {
      */
     public setImage(imagePath: string) {
         this.image = imagePath;
+    }
+
+    /**
+     * 获取预制体路径
+     */
+    public getPrefabPath(): string {
+        return this.prefabPath;
+    }
+
+    /**
+     * 设置预制体路径
+     */
+    public setPrefabPath(path: string) {
+        this.prefabPath = path;
     }
     
     /**
@@ -441,6 +458,7 @@ export class BuildInfo extends Component {
         this.height = other.height;
         this.unlockPopularity = other.unlockPopularity;
         this.image = other.image;
+        this.prefabPath = other.prefabPath; // 新增：复制预制体路径
         this.decorationValue = other.decorationValue;
         this.decorationRange = other.decorationRange;
         this.charmValue = other.charmValue;
@@ -515,4 +533,56 @@ export class BuildInfo extends Component {
         console.log(`建筑 ${this.buildingName} ${selected ? '选中' : '取消选中'}`);
     }
  
+
+    public async loadPrefab(): Promise<boolean> {
+        try {
+            let path = this.prefabPath || '';
+            if (!path) {
+                return false;
+            }
+            // 去除 .prefab 后缀
+            if (path.endsWith('.prefab')) {
+                path = path.substring(0, path.length - 7);
+            }
+            // 先尝试从 resources 包加载
+            const resourcesBundle = assetManager.getBundle('resources');
+            if (resourcesBundle) {
+                const prefab = await new Promise<Prefab | null>((resolve) => {
+                    resourcesBundle.load(path, Prefab, (err, asset) => {
+                        if (err) {
+                            resolve(null);
+                        } else {
+                            resolve(asset);
+                        }
+                    });
+                });
+                if (prefab) {
+                    this.setBuildingPrefab(prefab);
+                    return true;
+                }
+            }
+            // 再尝试从 main 包加载（assets 根目录）
+            const mainBundle = assetManager.getBundle('main');
+            if (mainBundle) {
+                const prefab = await new Promise<Prefab | null>((resolve) => {
+                    mainBundle.load(path, Prefab, (err, asset) => {
+                        if (err) {
+                            resolve(null);
+                        } else {
+                            resolve(asset);
+                        }
+                    });
+                });
+                if (prefab) {
+                    this.setBuildingPrefab(prefab);
+                    return true;
+                }
+            }
+            console.warn(`[BuildInfo] 预制体加载失败: ${path}`);
+            return false;
+        } catch (e) {
+            console.error('[BuildInfo] 加载预制体异常:', e);
+            return false;
+        }
+    }
 }

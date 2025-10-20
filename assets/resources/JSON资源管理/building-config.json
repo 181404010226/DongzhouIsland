@@ -9,6 +9,7 @@
         "length": 2,
         "width": 2
       },
+      "prefabPath": "预制体/建筑/Tile_2-2",
       "baseTrafficFlow": 2,
       "baseConsumptionPrice": 10,
       "basePrice": 100,
@@ -29,6 +30,7 @@
         "length": 2,
         "width": 3
       },
+      "prefabPath": "预制体/建筑/Tile_3-2",
       "baseTrafficFlow": 2,
       "baseConsumptionPrice": 20,
       "basePrice": 150,
@@ -49,6 +51,7 @@
         "length": 1,
         "width": 2
       },
+      "prefabPath": "预制体/建筑/Tile_2-1",
       "basePrice": 50,
       "priceIncrement": 10,
       "effects": {
@@ -61,12 +64,13 @@
     {
       "id": "building_tree",
       "name": "树木",
-      "image": "植被UI/hd_piece_4_3 (1).png",
+      "image": "广告/广告/松树.png",
       "type": "decoration",
       "size": {
         "length": 1,
         "width": 1
       },
+      "prefabPath": "预制体/建筑/Tile_1-1-tree",
       "basePrice": 80,
       "priceIncrement": 15,
       "effects": {
@@ -85,6 +89,7 @@
         "length": 1,
         "width": 1
       },
+      "prefabPath": "预制体/建筑/Tile_1-1",
       "basePrice": 60,
       "priceIncrement": 12,
       "effects": {
