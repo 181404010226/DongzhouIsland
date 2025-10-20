@@ -1,0 +1,88 @@
+{
+  "buildings": [
+    {
+      "name": "地砖1",
+      "type": "decoration",
+      "unlockPopularity": 100,
+      "width": 1,
+      "height": 1,
+      "image": "地砖1.png",
+      "order": 1,
+      "decorationValue": 10,
+      "decorationRange": 1
+    },
+    {
+      "name": "松树",
+      "type": "decoration",
+      "unlockPopularity": 100,
+      "width": 1,
+      "height": 1,
+      "image": "松树.png",
+      "order": 2,
+      "decorationValue": 10,
+      "decorationRange": 1
+    },
+    {
+      "name": "水方块",
+      "type": "decoration",
+      "unlockPopularity": 0,
+      "width": 1,
+      "height": 1,
+      "image": "水.png",
+      "order": 3,
+      "decorationValue": 0,
+      "decorationRange": 1
+    },
+    {
+      "name": "花丛",
+      "type": "consumption",
+      "unlockPopularity": 10,
+      "width": 1,
+      "height": 1,
+      "image": "花丛.png",
+      "order": 4,
+      "charmValue": 10,
+      "chainBuildings": []
+    },
+    {
+      "name": "花店",
+      "type": "consumption",
+      "unlockPopularity": 100,
+      "width": 2,
+      "height": 1,
+      "image": "花店.png",
+      "order": 5,
+      "charmValue": 12,
+      "chainBuildings": [
+        {
+          "building": "花丛",
+          "bonus": 12
+        }
+      ]
+    },
+    {
+      "name": "草皮",
+      "type": "decoration",
+      "unlockPopularity": 0,
+      "width": 1,
+      "height": 1,
+      "image": "草皮.png",
+      "order": 6,
+      "decorationValue": 1,
+      "decorationRange": 1
+    },
+    {
+      "name": "地砖2",
+      "type": "decoration",
+      "unlockPopularity": 1,
+      "width": 1,
+      "height": 1,
+      "image": "地砖2.png",
+      "order": 7,
+      "decorationValue": 1,
+      "decorationRange": 1
+    }
+  ],
+  "exportTime": "2025-10-17T03:42:47.591Z",
+  "version": "1.0"
+}

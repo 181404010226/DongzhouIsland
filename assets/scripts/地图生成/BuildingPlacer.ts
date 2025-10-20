@@ -115,7 +115,7 @@ export class BuildingPlacer extends Component {
                     
                     // 设置初始颜色为正常透明度并旋转45度
                     this.setPreviewNodeColor(new Color(255, 255, 255, 150));
-                    this.previewNode.setRotationFromEuler(0, 0, 45);
+                    this.previewNode.setRotationFromEuler(0, 0, 0);
                 }
             }
         }

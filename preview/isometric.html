@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Isometric Grid Preview</title>
+  <style>
+    html, body { height: 100%; margin: 0; background:#111; color:#ddd; font-family: system-ui, Arial; }
+    #wrap { display:flex; height:100%; }
+    #ctrl { width: 320px; padding: 12px; border-right: 1px solid #333; }
+    #canvasWrap { flex:1; display:flex; align-items:center; justify-content:center; }
+    canvas { background:#1a1a1a; box-shadow: 0 0 0 1px #333 inset; }
+    label { display:block; margin:8px 0 4px; }
+    input { width: 120px; }
+    .row { display:flex; gap:8px; align-items:center; }
+    .hint { font-size:12px; color:#aaa; margin-top:12px; }
+  </style>
+  <script>
+    function draw() {
+      const mw = parseInt(document.getElementById('mw').value, 10);
+      const mh = parseInt(document.getElementById('mh').value, 10);
+      const tw = parseInt(document.getElementById('tw').value, 10);
+      const th = parseInt(document.getElementById('th').value, 10);
+      const pad = 50;
+      const W = Math.max(800, mw * tw + 200);
+      const H = Math.max(600, mh * th + 200);
+      const canvas = document.getElementById('c');
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,W,H);
+      // center origin
+      const cx = W/2;
+      const cy = H/2;
+      // axes
+      ctx.strokeStyle = '#444'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+      // draw tiles
+      for (let y = 0; y < mh; y++) {
+        for (let x = 0; x < mw; x++) {
+          const dx = x - mw/2 + 0.5;
+          const dy = y - mh/2 + 0.5;
+          const px = (dx - dy) * (tw/2);
+          const py = -(dx + dy) * (th/2);
+          const cxp = cx + px;
+          const cyp = cy + py;
+          // diamond vertices in local space
+          const v = [
+            [cxp, cyp + th/2],
+            [cxp + tw/2, cyp],
+            [cxp, cyp - th/2],
+            [cxp - tw/2, cyp],
+          ];
+          // fill
+          ctx.beginPath();
+          ctx.moveTo(v[0][0], v[0][1]);
+          for (let i=1;i<4;i++){ ctx.lineTo(v[i][0], v[i][1]); }
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(100,200,150,0.12)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(120,200,255,0.9)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('input').forEach(i => i.addEventListener('input', draw));
+      draw();
+    });
+  </script>
+</head>
+<body>
+  <div id="wrap">
+    <div id="ctrl">
+      <h3>Isometric 预览</h3>
+      <div class="row">
+        <label>地图宽(格): <input id="mw" type="number" value="20" min="1" /></label>
+      </div>
+      <div class="row">
+        <label>地图高(格): <input id="mh" type="number" value="12" min="1" /></label>
+      </div>
+      <div class="row">
+        <label>Tile 宽(px): <input id="tw" type="number" value="128" min="8" /></label>
+      </div>
+      <div class="row">
+        <label>Tile 高(px): <input id="th" type="number" value="64" min="8" /></label>
+      </div>
+      <p class="hint">公式：<br/>px = (dx - dy) * (tw/2)<br/>py = -(dx + dy) * (th/2)</p>
+    </div>
+    <div id="canvasWrap">
+      <canvas id="c" width="1200" height="800"></canvas>
+    </div>
+  </div>
+</body>
+</html>

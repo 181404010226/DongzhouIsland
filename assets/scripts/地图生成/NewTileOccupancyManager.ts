@@ -305,13 +305,28 @@ export class NewTileOccupancyManager extends Component {
                     // 获取瓦片信息
                     const tiledTile = this.tileLayer.getTiledTileAt(col, row);
                     
-                    // 计算世界坐标
+                    // 等距（isometric）中心公式，计算瓦片中心像素坐标
+                    // dx = col - mapWidth/2 + 0.5
+                    // dy = row - mapHeight/2 + 0.5
+                    // px = (dx - dy) * (tileWidth/2)
+                    // py = -(dx + dy) * (tileHeight/2)
+                    const dx = col - mapSize.width / 2 + 0.5;
+                    const dy = row - mapSize.height / 2 + 0.5;
+                    const px = (dx - dy) * (tileSize.width / 2);
+                    const py = -(dx + dy) * (tileSize.height / 2);
+
+                    // 使用 TiledMap 的 UITransform 将像素坐标转换为世界坐标（与 GridTile 一致）
                     const worldPos = new Vec3();
-                    this.tiledMap.node.getComponent(UITransform).convertToWorldSpaceAR(
-                        new Vec3(col * tileSize.width + tileSize.width / 2, 
-                                (this.rows - row - 1) * tileSize.height + tileSize.height / 2, 0),
-                        worldPos
-                    );
+                    const mapUI = this.tiledMap.node.getComponent(UITransform);
+                    if (mapUI) {
+                        mapUI.convertToWorldSpaceAR(new Vec3(px, py, 0), worldPos);
+                        console.log(`[NewTileOccupancyManager] 瓦片(${row},${col})中心像素坐标: (${px}, ${py}), 世界坐标: (${worldPos.x}, ${worldPos.y}, ${worldPos.z})`);
+                    } else {
+                        // 兜底：若地图缺少 UITransform，则退回到图层的 UITransform
+                        const layerUI = this.tileLayer.node.getComponent(UITransform);
+                        layerUI?.convertToWorldSpaceAR(new Vec3(px, py, 0), worldPos);
+                        console.warn('[NewTileOccupancyManager] TiledMap 未找到 UITransform，使用 TileLayer UITransform 作为兜底');
+                    }
 
                     // 创建瓦片信息
                     const tileInfo: TileGridInfo = {
@@ -392,8 +407,8 @@ export class NewTileOccupancyManager extends Component {
      * 获取屏幕位置对应的瓦片信息
      */
     public getTileAtScreenPos(screenPos: Vec2, camera: Camera): { row: number, col: number, worldPosition: Vec3 } | null {
-        if (!camera || !this.tiledMap) {
-            console.warn('[NewTileOccupancyManager] 缺少Camera或TiledMap组件');
+        if (!camera || !this.tiledMap || !this.tileLayer) {
+            console.warn('[NewTileOccupancyManager] 缺少Camera、TiledMap或TileLayer组件');
             return null;
         }
 
@@ -405,11 +420,15 @@ export class NewTileOccupancyManager extends Component {
             console.log(`[NewTileOccupancyManager] 屏幕坐标: (${screenPos.x}, ${screenPos.y})`);
             console.log(`[NewTileOccupancyManager] 世界坐标: (${worldPos.x}, ${worldPos.y}, ${worldPos.z})`);
 
-            // 将世界坐标转换为TiledMap的本地坐标
+            // 将世界坐标转换为 TiledMap 的本地坐标（与 GridTile 统一）
             const localPos = new Vec3();
-            this.tiledMap.node.getComponent(UITransform).convertToNodeSpaceAR(worldPos, localPos);
-            
-            console.log(`[NewTileOccupancyManager] TiledMap本地坐标: (${localPos.x}, ${localPos.y}, ${localPos.z})`);
+            const mapUI = this.tiledMap.node.getComponent(UITransform);
+            if (!mapUI) {
+                console.warn('[NewTileOccupancyManager] TiledMap 缺少 UITransform，无法进行坐标换算');
+                return null;
+            }
+            mapUI.convertToNodeSpaceAR(worldPos, localPos);
+            console.log(`[NewTileOccupancyManager] TiledMap 本地坐标: (${localPos.x}, ${localPos.y}, ${localPos.z})`);
 
             // 获取瓦片尺寸
             const tileSize = this.tiledMap.getTileSize();
@@ -420,9 +439,17 @@ export class NewTileOccupancyManager extends Component {
             
             console.log(`[NewTileOccupancyManager] 瓦片尺寸: ${tileSize.width}x${tileSize.height}`);
 
-            // 计算瓦片坐标 - 改进计算逻辑
-            let col = Math.floor(localPos.x / tileSize.width);
-            let row = Math.floor((this.rows * tileSize.height - localPos.y) / tileSize.height);
+            // 使用等距（isometric）中心坐标系进行行列换算（GridTile 同步公式）
+            const mapSize = this.tiledMap.getMapSize();
+            const halfW = tileSize.width / 2;
+            const halfH = tileSize.height / 2;
+            // 由 px = (dx - dy)*halfW, py = -(dx + dy)*halfH 反解 dx, dy
+            const a = localPos.x / halfW;    // dx - dy
+            const b = -localPos.y / halfH;   // dx + dy
+            const dx = (a + b) / 2;
+            const dy = (b - a) / 2;
+            let col = Math.floor(dx + mapSize.width / 2);
+            let row = Math.floor(dy + mapSize.height / 2);
             
             // 处理边界情况
             col = Math.max(0, Math.min(col, this.columns - 1));
@@ -757,14 +784,14 @@ export class NewTileOccupancyManager extends Component {
         // 添加到TiledMap节点下
         this.tiledMap.node.addChild(previewNode);
         
-        // 设置位置
+        // 设置位置（与 GridTile 中心公式一致，使用地图中心为原点）
         const tileSize = this.tiledMap.getTileSize();
-        const localPos = new Vec3(
-            col * tileSize.width + tileSize.width / 2,
-            (this.rows - row - 1) * tileSize.height + tileSize.height / 2,
-            1 // 稍微提高z轴，确保在地图上方显示
-        );
-        previewNode.setPosition(localPos);
+        const mapSize = this.tiledMap.getMapSize();
+            const dx2 = col - mapSize.width / 2 + 0.5;
+            const dy2 = row - mapSize.height / 2 + 0.5;
+            const px = (dx2 - dy2) * (tileSize.width / 2);
+            const py = -(dx2 + dy2) * (tileSize.height / 2);
+        previewNode.setPosition(new Vec3(px, py, 1));
         
         // 添加UITransform组件
         const uiTransform = previewNode.addComponent(UITransform);

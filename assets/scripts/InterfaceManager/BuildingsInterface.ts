@@ -3,17 +3,30 @@ import { BuildInfo } from '../地图生成/BuildInfo';
 const { ccclass, property } = _decorator;
 
 /**
- * 建筑配置数据接口
+ * 建筑配置数据接口（适配新的 JSON 结构）
+ * 新结构示例：
+ * {
+ *   name: string,
+ *   type?: string,
+ *   unlockPopularity?: number,
+ *   width: number,
+ *   height: number,
+ *   image: string,
+ *   order?: number,
+ *   decorationValue?: number,
+ *   decorationRange?: number,
+ *   charmValue?: number,
+ *   chainBuildings?: Array<{building: string, bonus: number}>
+ * }
  */
 interface BuildingConfigData {
     name: string;
     type?: string;
     unlockPopularity?: number;
-    size: {
-        width: number;
-        length: number;
-    };
+    width: number;
+    height: number;
     image: string;
+    order?: number;
     decorationValue?: number;
     decorationRange?: number;
     charmValue?: number;
@@ -90,16 +103,26 @@ export class BuildingsInterface extends Component {
         buildInfo.setBuildingName(configData.name);  // name -> buildingName
         buildInfo.setType(configData.type || 'unknown');          // type -> type
         buildInfo.setUnlockPopularity(configData.unlockPopularity || 0); // unlockPopularity -> unlockPopularity
-        buildInfo.setBuildingSize(configData.size.width, configData.size.length);
+        // 新 JSON 使用顶层 width/height，而非 size.width/length
+        const width = (configData.width !== undefined && configData.width !== null) ? configData.width : 1;
+        const height = (configData.height !== undefined && configData.height !== null) ? configData.height : 1;
+        buildInfo.setBuildingSize(width, height);
         
-        // 处理图片路径：去除.png后缀
-        let imagePath = configData.image;
-        
-        // 去除.png后缀
-        if (imagePath.endsWith('.png')) {
-            imagePath = imagePath.substring(0, imagePath.length - 4);
+        // 处理图片路径
+        // 要求：相对 resources Bundle 的路径（不含扩展名），例如："建筑/花丛"
+        // 兼容："花丛.png"、"建筑/花丛.png"、"assets/resources/建筑/花丛.png" 等
+        let imagePath = (configData.image || '').trim();
+        // 统一分隔符
+        imagePath = imagePath.replace(/\\/g, '/');
+        // 去掉前缀
+        imagePath = imagePath.replace(/^assets\/resources\//, '');
+        // 去掉扩展名（.png/.jpg）
+        imagePath = imagePath.replace(/\.(png|jpg|jpeg)$/i, '');
+        // 若未包含目录，默认加上 "建筑/"
+        if (!imagePath.includes('/')) {
+            imagePath = `建筑/${imagePath}`;
         }
-        
+        // 设置到 BuildInfo，供 BuildInfo.loadAndSetImage 加载 "imagePath/spriteFrame"
         buildInfo.setImage(imagePath);        // image -> image
         
         // 可选字段映射
