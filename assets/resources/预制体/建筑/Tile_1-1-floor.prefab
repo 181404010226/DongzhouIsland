@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Tile_1-1",
+    "_name": "Tile_1-1-floor",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Tile_1-1",
+    "_name": "Tile_1-1-floor",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -86,8 +86,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 10,
-      "y": 10,
+      "x": -2,
+      "y": -1.5,
       "z": 0
     },
     "_lrot": {
@@ -99,8 +99,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.1,
-      "y": 0.2,
+      "x": 0.093,
+      "y": 0.16,
       "z": 1
     },
     "_mobility": 0,

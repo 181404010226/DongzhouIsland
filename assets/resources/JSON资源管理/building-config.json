@@ -64,7 +64,7 @@
     {
       "id": "building_tree",
       "name": "树木",
-      "image": "广告/广告/松树.png",
+      "image": "广告/广告/松树 2.png",
       "type": "decoration",
       "size": {
         "length": 1,
@@ -104,6 +104,28 @@
       },
       "createdAt": "2025-01-13T00:00:00.000Z",
       "updatedAt": "2025-01-13T00:00:00.000Z"
+    },
+    {
+      "id": "building_floor",
+      "name": "地板",
+      "image": "广告/广告/地板.png",
+      "type": "decoration",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "prefabPath": "预制体/建筑/Tile_1-1-floor"
+    },
+    {
+      "id": "building_floor",
+      "name": "水",
+      "image": "广告/广告/水_14.png",
+      "type": "decoration",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "prefabPath": "预制体/建筑/Tile_1-1-floor"
     }
   ],
   "exportedAt": "2025-09-04T09:55:02.647Z",
