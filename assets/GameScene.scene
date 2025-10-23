@@ -615671,7 +615671,7 @@
     "strokeColorA": 200,
     "fillAlpha": 30,
     "autoGenerateOnStart": true,
-    "showCollision": true,
+    "regenerateOnCheck": false,
     "_id": "80IJhZEklHXYm0bYt58rF4"
   },
   {

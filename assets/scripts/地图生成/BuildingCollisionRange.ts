@@ -38,26 +38,22 @@ export class BuildingCollisionRange extends Component {
     fillAlpha: number = 30;
 
     @property({ tooltip: '启动时自动生成碰撞框' })
-    autoGenerateOnStart: boolean = true;
+    autoGenerateOnStart: boolean = false;
 
-    @property({ tooltip: '勾选则显示碰撞框' })
-    showCollision: boolean = true;
+    @property({ tooltip: '勾选重新生成碰撞框（仅增量生成未生成的）' })
+    regenerateOnCheck: boolean = false;
 
     // 记录已生成的碰撞节点，便于清理
     private collisionNodes: Node[] = [];
 
-    private lastShowCollision: boolean = true;
+    private generatedKeys: Set<string> = new Set();
 
     start() {
         if (!this.tileOccupancyManager || !this.collisionRootNode) {
             console.warn('[BuildingCollisionRange] 请设置 tileOccupancyManager 与 collisionRootNode');
             return;
         }
-        this.lastShowCollision = this.showCollision;
-        if (this.autoGenerateOnStart) {
-            this.generateForPlacedBuildings();
-            this.applyDisplayToggle();
-        }
+        // 不再在启动时自动生成碰撞框
     }
 
     /**
@@ -70,45 +66,35 @@ export class BuildingCollisionRange extends Component {
             }
         }
         this.collisionNodes.length = 0;
+        // 注意：不清空 generatedKeys，以避免重复生成；如需完全重置请手动清空。
     }
 
     /**
-     * 重新生成（清理后再生成）
+     * 重新生成（增量生成：不清理，补全未生成的）
      */
     public regenerate() {
-        this.clearCollisionNodes();
+        // 增量生成：仅为新建筑生成碰撞框
         this.generateForPlacedBuildings();
-        this.applyDisplayToggle();
     }
 
     /**
-     * 应用显示开关到所有已生成的碰撞节点
+     * 显示开关逻辑已移除，生成后默认可见
      */
     public applyDisplayToggle() {
-        for (const node of this.collisionNodes) {
-            if (!node || !node.isValid) continue;
-            const g = node.getComponent(Graphics);
-            if (g) {
-                g.enabled = this.showCollision;
-            }
-        }
+        // 显示控制已移除；生成后默认可见
     }
 
     update() {
-        if (this.lastShowCollision !== this.showCollision) {
-            const prev = this.lastShowCollision;
-            this.lastShowCollision = this.showCollision;
-            // 当勾选为真时，如果尚未生成，则生成一次
-            if (this.showCollision && this.collisionNodes.length === 0) {
-                this.generateForPlacedBuildings();
-            }
-            this.applyDisplayToggle();
+        if (this.regenerateOnCheck) {
+            // 用户勾选后触发一次增量生成，并复位勾选
+            this.regenerateOnCheck = false;
+            this.generateForPlacedBuildings();
         }
     }
 
     /**
-     * 根据当前已放置的建筑生成碰撞范围矩形
-     * 碰撞范围为“0圈 - 0.5圈”的可视化（由开关控制显示）
+     * 根据当前已放置的建筑生成碰撞范围矩形（增量生成）
+     * 碰撞范围为“0圈 - 0.5圈”的可视化
      */
     public generateForPlacedBuildings() {
         const positions = this.tileOccupancyManager.getPlacedBuildingPositions();
@@ -122,7 +108,14 @@ export class BuildingCollisionRange extends Component {
         const tileSize = mapGen.tileSize / Math.sqrt(2);
         const shrinkPixels = this.shrinkRings * 2 * tileSize; // 两侧各收缩 0.5 圈，总计 1 格大小
 
+        let newCount = 0;
+
         for (const pos of positions) {
+            const keyUnique = `${pos.buildingType}:${pos.row}_${pos.col}w${pos.width}h${pos.height}`;
+            if (this.generatedKeys.has(keyUnique)) {
+                continue;
+            }
+
             const tileKey = `${pos.row}_${pos.col}`;
             const tileNode: Node = this.tileOccupancyManager['getTileByKey']?.(tileKey);
             if (!tileNode) {
@@ -189,11 +182,13 @@ export class BuildingCollisionRange extends Component {
             graphics.rect(left, bottom, rectW, rectH);
             graphics.fill();
             graphics.stroke();
-            graphics.enabled = this.showCollision;
+            graphics.enabled = true;
 
             this.collisionNodes.push(collisionNode);
+            this.generatedKeys.add(keyUnique);
+            newCount++;
         }
 
-        console.log(`[BuildingCollisionRange] 已生成 ${this.collisionNodes.length} 个碰撞范围节点`);
+        console.log(`[BuildingCollisionRange] 本次新增 ${newCount} 个碰撞范围节点；总计 ${this.collisionNodes.length}`);
     }
 }
