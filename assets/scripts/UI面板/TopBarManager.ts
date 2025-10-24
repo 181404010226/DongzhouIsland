@@ -1,4 +1,5 @@
-import { _decorator, Component, Label, find } from 'cc';
+import { _decorator, Component, find } from 'cc';
+import { NumberDisplayComponent } from '../组件/NumberDisplayComponent';
 const { ccclass, property } = _decorator;
 
 /**
@@ -17,15 +18,11 @@ const { ccclass, property } = _decorator;
 @ccclass('TopBarManager')
 export class TopBarManager extends Component {
     
-    @property({ tooltip: '金币显示前缀文本' })
-    coinsPrefix: string = '金币: ';
-    
-    @property({ tooltip: '客流量显示前缀文本' })
-    trafficFlowPrefix: string = '客流量: ';
+
     
     // 私有属性
-    private coinsLabel: Label = null;
-    private trafficFlowLabel: Label = null;
+    private coinsDisplay: NumberDisplayComponent | null = null;
+    private trafficFlowDisplay: NumberDisplayComponent | null = null;
     
     // 静态实例引用，方便其他系统调用
     private static instance: TopBarManager = null;
@@ -33,33 +30,25 @@ export class TopBarManager extends Component {
     // 游戏数据
     private currentCoins: number = 1000; // 初始金币
     private currentTrafficFlow: number = 0; // 当前客流量
-    private coinsPerSecond: number = 0; // 每秒增加的金币总量
+
     
     onLoad() {
         // 设置静态实例引用
         TopBarManager.instance = this;
         
-        // 查找UI显示节点
-        this.findUILabels();
+        // 查找数字显示组件
+        this.findUIDisplays();
         
         // 初始化显示
         this.updateCoinsDisplay();
         this.updateTrafficFlowDisplay();
 
-        // 每秒递增金币
-        try {
-            this.schedule(() => {
-                // 使用最新的每秒收入进行增加
-                if (this.coinsPerSecond > 0) {
-                    this.currentCoins += this.coinsPerSecond;
-                    this.updateCoinsDisplay();
-                } else {
-                    // 即使为0，也维持显示格式的一致性
-                    this.updateCoinsDisplay();
-                }
-            }, 1);
-        } catch (error) {
-            console.error('[顶部面板管理器] 启动每秒递增失败:', error);
+        // 初始化数字显示组件小数位（金币、客流量均为整数）
+        if (this.coinsDisplay) {
+            this.coinsDisplay.setDecimalPlaces(0);
+        }
+        if (this.trafficFlowDisplay) {
+            this.trafficFlowDisplay.setDecimalPlaces(0);
         }
     }
     
@@ -71,16 +60,16 @@ export class TopBarManager extends Component {
     }
     
     /**
-     * 查找UI显示Label组件
+     * 查找数字显示组件
      */
-    private findUILabels(): void {
+    private findUIDisplays(): void {
         try {
             // 查找金币显示节点
             const coinsNode = find('CanvasUI/TopBar/金币');
             if (coinsNode) {
-                this.coinsLabel = coinsNode.getComponent(Label);
-                if (!this.coinsLabel) {
-                    console.error('[顶部面板管理器] 金币节点缺少Label组件');
+                this.coinsDisplay = coinsNode.getComponent(NumberDisplayComponent);
+                if (!this.coinsDisplay) {
+                    console.error('[顶部面板管理器] 金币节点缺少NumberDisplayComponent组件');
                 }
             } else {
                 console.error('[顶部面板管理器] 未找到金币显示节点: CanvasUI/TopBar/金币');
@@ -89,15 +78,15 @@ export class TopBarManager extends Component {
             // 查找客流量显示节点
             const trafficFlowNode = find('CanvasUI/TopBar/客流量');
             if (trafficFlowNode) {
-                this.trafficFlowLabel = trafficFlowNode.getComponent(Label);
-                if (!this.trafficFlowLabel) {
-                    console.error('[顶部面板管理器] 客流量节点缺少Label组件');
+                this.trafficFlowDisplay = trafficFlowNode.getComponent(NumberDisplayComponent);
+                if (!this.trafficFlowDisplay) {
+                    console.error('[顶部面板管理器] 客流量节点缺少NumberDisplayComponent组件');
                 }
             } else {
                 console.error('[顶部面板管理器] 未找到客流量显示节点: CanvasUI/TopBar/客流量');
             }
         } catch (error) {
-            console.error('[顶部面板管理器] 查找UI Label失败:', error);
+            console.error('[顶部面板管理器] 查找数字显示组件失败:', error);
         }
     }
     
@@ -105,26 +94,22 @@ export class TopBarManager extends Component {
      * 更新金币显示
      */
     private updateCoinsDisplay(): void {
-        if (!this.coinsLabel) {
-            console.error('[顶部面板管理器] 金币Label组件不存在，无法更新显示');
+        if (!this.coinsDisplay) {
+            console.error('[顶部面板管理器] 金币NumberDisplayComponent不存在，无法更新显示');
             return;
         }
-        
-        const displayText = `${this.coinsPrefix}${this.currentCoins} +${this.coinsPerSecond}/秒`;
-        this.coinsLabel.string = displayText;
+        this.coinsDisplay.setValue(this.currentCoins);
     }
     
     /**
      * 更新客流量显示
      */
     private updateTrafficFlowDisplay(): void {
-        if (!this.trafficFlowLabel) {
-            console.error('[顶部面板管理器] 客流量Label组件不存在，无法更新显示');
+        if (!this.trafficFlowDisplay) {
+            console.error('[顶部面板管理器] 客流量NumberDisplayComponent不存在，无法更新显示');
             return;
         }
-        
-        const displayText = `${this.trafficFlowPrefix}${this.currentTrafficFlow}`;
-        this.trafficFlowLabel.string = displayText;
+        this.trafficFlowDisplay.setValue(this.currentTrafficFlow);
     }
     
     /**
@@ -159,16 +144,7 @@ export class TopBarManager extends Component {
         return false;
     }
 
-    /**
-     * 设置每秒增加的金币总量
-     * @param amount 每秒金币（总收入）
-     */
-    public setCoinsPerSecond(amount: number): void {
-        // 只接受非负整数，保证显示一致
-        const val = Math.max(0, Math.floor(amount));
-        this.coinsPerSecond = val;
-        this.updateCoinsDisplay();
-    }
+
     
     /**
      * 设置客流量
@@ -234,18 +210,7 @@ export class TopBarManager extends Component {
         }
     }
 
-    /**
-     * 静态方法：设置每秒金币（便捷调用）
-     * @param amount 每秒金币（总收入）
-     */
-    public static setCoinsPerSecond(amount: number): void {
-        const instance = TopBarManager.getInstance();
-        if (instance) {
-            instance.setCoinsPerSecond(amount);
-        } else {
-            console.error('[顶部面板管理器] 实例不存在，无法设置每秒金币');
-        }
-    }
+
     
     /**
      * 静态方法：增加金币（便捷调用）
