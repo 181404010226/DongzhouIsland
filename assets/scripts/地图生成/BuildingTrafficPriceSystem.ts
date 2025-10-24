@@ -132,12 +132,8 @@ export class BuildingTrafficPriceSystem extends Component {
      */
     public static updateTopBarIncomePerSecond(): void {
         const totalIncome = this.getTotalIncomePerSecond();
-        try {
-            TopBarManager.setCoinsPerSecond(totalIncome);
-            console.log(`[BuildingTrafficPriceSystem] 已同步每秒总收入到TopBar: +${totalIncome}/秒`);
-        } catch (error) {
-            console.error('[BuildingTrafficPriceSystem] 同步TopBar每秒收入失败:', error);
-        }
+        // 已停用：不再同步到 TopBar，仅打印日志以供调试
+        console.log(`[BuildingTrafficPriceSystem] 每秒总收入计算: +${totalIncome}/秒 (TopBar 同步已禁用)`);
     }
 
     /**
@@ -146,7 +142,7 @@ export class BuildingTrafficPriceSystem extends Component {
     public static removeBuildingTrafficPriceInfo(buildingId: string): void {
         if (this.buildingTrafficPriceMap.delete(buildingId)) {
             this.updateTopBarIncomePerSecond();
-            console.log(`[BuildingTrafficPriceSystem] 已移除建筑收入记录并刷新TopBar: ${buildingId}`);
+            console.log(`[BuildingTrafficPriceSystem] 已移除建筑收入记录: ${buildingId}`);
         }
     }
     
