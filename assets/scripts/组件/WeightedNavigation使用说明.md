@@ -19,6 +19,7 @@
 - `moveSpeed: number` 跟随路径的实际移动速度（单位/秒，默认 120）。
 - `maxSearchSteps: number` A* 最大扩展步数，防止搜索过久（默认 4000）。
 - `maxSearchRadius: number` 从起点出发的最大搜索半径，超出将被剪枝（默认 4000）。
+- `maxExpandPerFrame: number` 分帧计算：每帧最多进行的节点展开次数（默认 200）。
 - `regionGroups: WeightedNodeGroup[]` 区域组数组，每组包含若干节点和一个权重 `weight`。命中这些节点的 `UITransform` 矩形时，代价放大。
 - `targetNode: Node | null` 目标节点。运行时路径将朝该目标计算一次。
 - `recomputeOnStart: boolean` 勾选后立即重算一次路径，随后自动复位为未勾选（默认 false）。

@@ -615846,16 +615846,16 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 282.174,
-      "y": 1834.328,
+      "x": 80.283,
+      "y": 1994.995,
       "z": 0
     },
     "_lrot": {
       "__type__": "cc.Quat",
       "x": 0,
       "y": 0,
-      "z": -0.3826834323650898,
-      "w": 0.9238795325112867
+      "z": 0,
+      "w": 1
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -615869,7 +615869,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": 0,
-      "z": -45.00000000000001
+      "z": 0
     },
     "_id": "22KwXdyqFBRJJU6WpnKw/+"
   },
@@ -618763,6 +618763,7 @@
     "moveSpeed": 120,
     "maxSearchSteps": 50000,
     "maxSearchRadius": 4000,
+    "maxExpandPerFrame": 200,
     "regionGroups": [
       {
         "__id__": 16630
