@@ -34,7 +34,7 @@ export class WeightedNavigation extends Component {
     targetNode: Node | null = null;
 
     @property
-    recomputeOnStart: boolean = true;
+    recomputeOnStart: boolean = false; // 勾选时触发一次重算
 
     @property
     showPath: boolean = true;
@@ -61,12 +61,15 @@ export class WeightedNavigation extends Component {
     }
 
     start() {
-        if (this.recomputeOnStart) {
-            this.computePathOnce();
-        }
+        // 改为仅在勾选时重算，不在启动时自动重算
     }
 
     update(dt: number) {
+        // 勾选触发一次重算，随后自动复位为未勾选
+        if (this.recomputeOnStart) {
+            this.recomputeOnStart = false;
+            this.recomputePath();
+        }
         this.followPath(dt);
         if (this.showPath) {
             this.drawPath();

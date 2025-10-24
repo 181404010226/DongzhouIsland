@@ -21,7 +21,7 @@
 - `maxSearchRadius: number` 从起点出发的最大搜索半径，超出将被剪枝（默认 4000）。
 - `regionGroups: WeightedNodeGroup[]` 区域组数组，每组包含若干节点和一个权重 `weight`。命中这些节点的 `UITransform` 矩形时，代价放大。
 - `targetNode: Node | null` 目标节点。运行时路径将朝该目标计算一次。
-- `recomputeOnStart: boolean` 组件启用后是否自动计算一次路径（默认 true）。
+- `recomputeOnStart: boolean` 勾选后立即重算一次路径，随后自动复位为未勾选（默认 false）。
 - `showPath: boolean` 是否在编辑器/运行时预览路径（默认 true）。
 - `pathGraphics: Graphics | null` 用于绘制预览的画布组件，可选。
 
