@@ -71,6 +71,8 @@ export class TileEditorTool extends Component {
                 inst.name = `${tile.name}-floor`;
                 tile.addChild(inst);
                 inst.setPosition(0, 0, 0);
+                // 生成后取消预制体关联（避免运行时被还原）
+                this.unlinkPrefabInstance(inst);
 
                 const prefabSprite = this.findSprite(inst);
                 if (prefabSprite) {
@@ -80,7 +82,7 @@ export class TileEditorTool extends Component {
             }
 
             // 按用户要求：处理后将地块的图片关闭显示
-            if (tileSprite) tileSprite.enabled = false;
+            // if (tileSprite) tileSprite.enabled = false;
         }
     }
 
@@ -139,5 +141,16 @@ export class TileEditorTool extends Component {
 
     private colorEquals(color: Color, r: number, g: number, b: number): boolean {
         return color.r === r && color.g === g && color.b === b;
+    }
+
+    // 取消与预制体的关联：清除内部 _prefab 标记（编辑器环境下）
+    private unlinkPrefabInstance(node: Node) {
+        const clear = (n: Node) => {
+            try {
+                (n as any)._prefab = null;
+            } catch {}
+            for (const c of n.children) clear(c);
+        };
+        clear(node);
     }
 }
