@@ -116,6 +116,50 @@
       },
       "prefabPath": "预制体/建筑/Tile_1-1-floor"
     },
+     {
+      "id": "building_floor",
+      "name": "地板",
+      "image": "广告/广告/青苔.png",
+      "type": "decoration",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "prefabPath": "预制体/建筑/Tile_1-1-floor"
+    },
+     {
+      "id": "building_floor",
+      "name": "地板",
+      "image": "广告/广告/地砖.png",
+      "type": "decoration",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "prefabPath": "预制体/建筑/Tile_1-1-floor"
+    },
+     {
+      "id": "building_floor",
+      "name": "地板",
+      "image": "广告/广告/草地.png",
+      "type": "decoration",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "prefabPath": "预制体/建筑/Tile_1-1-floor"
+    },
+     {
+      "id": "building_floor",
+      "name": "地板",
+      "image": "广告/广告/水面.png",
+      "type": "decoration",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "prefabPath": "预制体/建筑/Tile_1-1-floor"
+    },
     {
       "id": "building_floor",
       "name": "水",

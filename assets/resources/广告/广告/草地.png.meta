@@ -11,7 +11,7 @@
     "6c48a": {
       "importer": "texture",
       "uuid": "fef18722-3506-43e9-8dfb-dae01d58e02b@6c48a",
-      "displayName": "未命名作品 6",
+      "displayName": "草地",
       "id": "6c48a",
       "name": "texture",
       "userData": {
@@ -35,17 +35,17 @@
     "f9941": {
       "importer": "sprite-frame",
       "uuid": "fef18722-3506-43e9-8dfb-dae01d58e02b@f9941",
-      "displayName": "未命名作品 6",
+      "displayName": "草地",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -246,
+        "offsetX": -274.5,
         "offsetY": 11.5,
         "trimX": 472,
         "trimY": 838,
-        "width": 612,
+        "width": 555,
         "height": 349,
         "rawWidth": 2048,
         "rawHeight": 2048,
@@ -60,16 +60,16 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -306,
+            -277.5,
             -174.5,
             0,
-            306,
+            277.5,
             -174.5,
             0,
-            -306,
+            -277.5,
             174.5,
             0,
-            306,
+            277.5,
             174.5,
             0
           ],
@@ -84,30 +84,30 @@
           "uv": [
             472,
             1210,
-            1084,
+            1027,
             1210,
             472,
             861,
-            1084,
+            1027,
             861
           ],
           "nuv": [
             0.23046875,
             0.42041015625,
-            0.529296875,
+            0.50146484375,
             0.42041015625,
             0.23046875,
             0.5908203125,
-            0.529296875,
+            0.50146484375,
             0.5908203125
           ],
           "minPos": [
-            -306,
+            -277.5,
             -174.5,
             0
           ],
           "maxPos": [
-            306,
+            277.5,
             174.5,
             0
           ]
@@ -115,7 +115,7 @@
         "isUuid": true,
         "imageUuidOrDatabaseUri": "fef18722-3506-43e9-8dfb-dae01d58e02b@6c48a",
         "atlasUuid": "",
-        "trimType": "auto"
+        "trimType": "custom"
       },
       "ver": "1.0.12",
       "imported": true,
