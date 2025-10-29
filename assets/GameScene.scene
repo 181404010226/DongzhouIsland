@@ -100861,7 +100861,7 @@
     "node": {
       "__id__": 3693
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": null,
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -100988,7 +100988,7 @@
       "a": 152
     },
     "_spriteFrame": {
-      "__uuid__": "7d8f9b89-4fd1-4c9f-a3ab-38ec7cded7ca@f9941",
+      "__uuid__": "464d6031-81a9-408b-a2f3-774b7c8ab3b5@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
