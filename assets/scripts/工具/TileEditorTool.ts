@@ -58,7 +58,8 @@ export class TileEditorTool extends Component {
             const coords = this.parseTileName(tile.name);
             if (!coords) continue;
             const { x, y } = coords;
-            if (x > 20 || y > 20) {
+            // 删除所有 x >= 15 的地块
+            if (x >= 15 || y > 20) {
                 tile.destroy();
                 continue;
             }
@@ -66,9 +67,18 @@ export class TileEditorTool extends Component {
             const tileSprite = this.findSprite(tile);
             const colorType = this.getColorType(tileSprite);
 
-            if (this.floorPrefab) {
+            const childName = `${tile.name}-floor`;
+            const existing = tile.getChildByName(childName);
+
+            if (existing) {
+                const prefabSprite = this.findSprite(existing);
+                if (prefabSprite) {
+                    const frame = this.pickSpriteFrame(colorType);
+                    if (frame) prefabSprite.spriteFrame = frame;
+                }
+            } else if (this.floorPrefab) {
                 const inst = instantiate(this.floorPrefab);
-                inst.name = `${tile.name}-floor`;
+                inst.name = childName;
                 tile.addChild(inst);
                 inst.setPosition(0, 0, 0);
                 // 生成后取消预制体关联（避免运行时被还原）
