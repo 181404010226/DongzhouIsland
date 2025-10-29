@@ -243,7 +243,8 @@ export class CustomScrollView extends Component {
         console.log(`[CustomScrollView] 循环滚动移动: 偏移=${adjustedDeltaX.toFixed(1)}, 总偏移=${this._totalOffset.toFixed(1)}`);
         
         // 记录触摸移动数据用于惯性滚动
-        this._recordTouchMove(new Vec2(deltaX, deltaY), speed);
+        // 仅记录水平方向，清除Y轴偏移以确保水平滚动惯性
+        this._recordTouchMove(new Vec2(adjustedDeltaX, 0), speed);
     }
     
     /**

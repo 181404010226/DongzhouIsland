@@ -59,7 +59,10 @@ export class InteractionControl extends Component {
     @property({ tooltip: '滑动速度阈值（像素/秒）' })
     slideSpeedThreshold: number = 100;
     
-
+    // 拖拽行为优化：仅当Y坐标超过阈值时触发“拖出”
+    @property({ tooltip: '触发拖出效果的Y坐标阈值（UI坐标）' })
+    dragOutYThreshold: number = 200;
+    
     
     @property({ tooltip: '启用详细的区域检测调试日志' })
     enableRegionDebugLog: boolean = true;
@@ -347,6 +350,11 @@ export class InteractionControl extends Component {
      * 斜向拖动：以45°为基准，斜向上为拖拽建筑，其他为滚动视图
      */
     private determineBuildingBarLockByDirection(absX: number, absY: number): { lock: InteractionLock, reason: string } {
+        // 若触摸起始Y未超过阈值，则在建造栏内一律视为滚动视图（仅水平滚动）
+        if (this.touchStartPos && this.touchStartPos.y <= this.dragOutYThreshold) {
+            return { lock: InteractionLock.BUILDING_BAR, reason: `起始Y(${this.touchStartPos.y.toFixed(1)})未超过阈值(${this.dragOutYThreshold})，保持滚动视图` };
+        }
+        
         // 计算拖拽角度（相对于水平方向的角度，单位：度）
         const angle = Math.atan2(absY, absX) * (180 / Math.PI);
         
@@ -404,6 +412,12 @@ export class InteractionControl extends Component {
         
         switch (lock) {
             case InteractionLock.BUILDING_DRAG:
+                // 建造栏区域内且未超过阈值时，不允许触发建筑拖拽，改为滚动视图
+                if (this.isInBuildingBarArea && this.currentTouchPos && this.currentTouchPos.y <= this.dragOutYThreshold) {
+                    console.log(`[InteractionControl] 当前Y(${this.currentTouchPos.y.toFixed(1)})未超过阈值(${this.dragOutYThreshold})，不触发建筑拖拽，改为建造栏滚动`);
+                    this.currentLock = InteractionLock.BUILDING_BAR;
+                    break;
+                }
                 // 检查是否真的点击了建筑，只有在点击建筑时才启动建筑拖拽
                 if (this.interactionManager && this.interactionManager.checkBuildingAtPosition) {
                     const hasBuildingAtPos = this.interactionManager.checkBuildingAtPosition(this.touchStartPos);
@@ -741,7 +755,20 @@ export class InteractionControl extends Component {
         // 获取UI坐标
         const touchPos = event.getUILocation();
         const deltaX = touchPos.x - this.lastTouchPos.x;
-        const deltaY = touchPos.y - this.lastTouchPos.y;
+        let deltaY = touchPos.y - this.lastTouchPos.y;
+        
+        // 若当前Y未超过阈值，则清除Y轴偏移，仅执行水平滚动
+        if (touchPos.y <= this.dragOutYThreshold) {
+            deltaY = 0;
+        } else {
+            // Y超过阈值，若当前仍为建造栏滚动锁，则切换到建筑拖拽锁
+            if (this.currentLock === InteractionLock.BUILDING_BAR) {
+                console.log(`[InteractionControl] Y超过阈值(${this.dragOutYThreshold})，切换为建筑拖拽`);
+                this.assignLock(InteractionLock.BUILDING_DRAG);
+                // 切换锁后，当前移动不再作为滚动处理
+                return;
+            }
+        }
         
         // 计算滚动速度
         const currentTime = Date.now();
