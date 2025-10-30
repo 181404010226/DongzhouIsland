@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Tile_2-2",
+    "_name": "Tile_3-2-verbose",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Tile_2-2",
+    "_name": "Tile_3-2-verbose",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -86,8 +86,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 45,
-      "y": 50,
+      "x": 40,
+      "y": 80,
       "z": 0
     },
     "_lrot": {
@@ -100,7 +100,7 @@
     "_lscale": {
       "__type__": "cc.Vec3",
       "x": 0.105,
-      "y": 0.18,
+      "y": 0.165,
       "z": 1
     },
     "_mobility": 0,
@@ -127,8 +127,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 870,
-      "height": 1015
+      "width": 1328,
+      "height": 1328
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -164,12 +164,12 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "bfd83c34-d5d8-46bc-ad33-eb63d334e8fa@f9941",
+      "__uuid__": "ba60f049-0a3a-4112-86e2-fdf0e9c66f8b@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -247,7 +247,7 @@
     "buildingName": "",
     "description": "",
     "buildingEnabled": true,
-    "width": 2,
+    "width": 3,
     "height": 2,
     "unlockPopularity": 0,
     "image": "",

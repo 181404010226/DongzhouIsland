@@ -86,8 +86,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 50,
-      "y": 90,
+      "x": 40,
+      "y": 80,
       "z": 0
     },
     "_lrot": {
@@ -99,8 +99,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.08,
-      "y": 0.16,
+      "x": -0.105,
+      "y": 0.165,
       "z": 1
     },
     "_mobility": 0,
@@ -164,12 +164,12 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "1090a985-c2c1-4b1b-8306-6c54605a2a88@f9941",
+      "__uuid__": "ba60f049-0a3a-4112-86e2-fdf0e9c66f8b@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -251,6 +251,7 @@
     "height": 2,
     "unlockPopularity": 0,
     "image": "",
+    "prefabPath": "",
     "decorationValue": 0,
     "decorationRange": 0,
     "charmValue": 0,

@@ -42,6 +42,28 @@
       "createdAt": "2025-01-13T00:00:00.000Z",
       "updatedAt": "2025-01-13T00:00:00.000Z"
     },
+    
+    {
+      "id": "building_flower_shop",
+      "name": "花店",
+      "image": "广告/广告/花店.png",
+      "type": "commercial",
+      "size": {
+        "length": 2,
+        "width": 3
+      },
+      "prefabPath": "预制体/建筑/-verbose",
+      "baseTrafficFlow": 2,
+      "baseConsumptionPrice": 20,
+      "basePrice": 150,
+      "priceIncrement": 30,
+      "effects": {
+        "generates_income": true,
+        "affected_by_flower_clusters": true
+      },
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "updatedAt": "2025-01-13T00:00:00.000Z"
+    },
     {
       "id": "building_table",
       "name": "桌子",
@@ -56,6 +78,44 @@
       "priceIncrement": 10,
       "effects": {
         "boosts_snack_shop_price": 10,
+        "range": 1
+      },
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "updatedAt": "2025-01-13T00:00:00.000Z"
+    },
+    {
+      "id": "building_tree",
+      "name": "树木",
+      "image": "广告/广告/松树.png",
+      "type": "decoration",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "prefabPath": "预制体/建筑/Tile_1-1-songtree",
+      "basePrice": 80,
+      "priceIncrement": 15,
+      "effects": {
+        "boosts_traffic_flow": 1,
+        "range": 1
+      },
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "updatedAt": "2025-01-13T00:00:00.000Z"
+    },
+    {
+      "id": "building_tree",
+      "name": "树木",
+      "image": "广告/广告/柳树.png",
+      "type": "decoration",
+      "size": {
+        "length": 1,
+        "width": 1
+      },
+      "prefabPath": "预制体/建筑/Tile_1-1-tree",
+      "basePrice": 80,
+      "priceIncrement": 15,
+      "effects": {
+        "boosts_traffic_flow": 1,
         "range": 1
       },
       "createdAt": "2025-01-13T00:00:00.000Z",

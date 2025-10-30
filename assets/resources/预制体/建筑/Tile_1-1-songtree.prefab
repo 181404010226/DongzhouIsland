@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Tile_2-2",
+    "_name": "Tile_1-1-songtree",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Tile_2-2",
+    "_name": "Tile_1-1-songtree",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -86,21 +86,21 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 45,
-      "y": 50,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
       "__type__": "cc.Quat",
       "x": 0,
       "y": 0,
-      "z": -0.3826834323650898,
+      "z": -0.38268343236508984,
       "w": 0.9238795325112867
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.105,
-      "y": 0.18,
+      "x": 0.15,
+      "y": 0.34,
       "z": 1
     },
     "_mobility": 0,
@@ -109,7 +109,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": 0,
-      "z": -45
+      "z": -45.000000000000014
     },
     "_id": ""
   },
@@ -127,13 +127,13 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 870,
-      "height": 1015
+      "width": 395,
+      "height": 473
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0.5
+      "y": 0
     },
     "_id": ""
   },
@@ -164,7 +164,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "bfd83c34-d5d8-46bc-ad33-eb63d334e8fa@f9941",
+      "__uuid__": "b5618cab-4bce-4866-9ca1-fa686271ca04@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -247,8 +247,8 @@
     "buildingName": "",
     "description": "",
     "buildingEnabled": true,
-    "width": 2,
-    "height": 2,
+    "width": 1,
+    "height": 1,
     "unlockPopularity": 0,
     "image": "",
     "prefabPath": "",
@@ -262,7 +262,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "67lAvNQIFO+JKAJlEKfpXq"
+    "fileId": "33pP/FV1hBgKahzakKXLPW"
   },
   {
     "__type__": "cc.PrefabInfo",

@@ -127,8 +127,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1328,
-      "height": 1328
+      "width": 473,
+      "height": 475
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -163,7 +163,10 @@
       "b": 255,
       "a": 255
     },
-    "_spriteFrame": null,
+    "_spriteFrame": {
+      "__uuid__": "07996213-6814-4a57-aad1-8140edc9b73d@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
     "_type": 0,
     "_fillType": 0,
     "_sizeMode": 1,
@@ -248,6 +251,7 @@
     "height": 1,
     "unlockPopularity": 0,
     "image": "",
+    "prefabPath": "",
     "decorationValue": 0,
     "decorationRange": 0,
     "charmValue": 0,
