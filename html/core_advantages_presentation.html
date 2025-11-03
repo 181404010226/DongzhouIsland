@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>核心优势展示 - 游戏化广告解决方案</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --accent: #38bdf8;
+            --secondary: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 标题区域 */
+        .header {
+            text-align: center;
+            padding: 60px 0;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--secondary) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 优势卡片区域 */
+        .advantages-section {
+            padding: 80px 0;
+        }
+
+        .advantage-card {
+            background: var(--secondary);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .advantage-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(56, 189, 248, 0.2);
+            border-color: var(--accent);
+        }
+
+        .advantage-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #8b5cf6);
+        }
+
+        .advantage-number {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            animation: rotate 10s linear infinite;
+        }
+
+        .advantage-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .advantage-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 30px;
+        }
+
+        .advantage-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .highlight-item {
+            background: rgba(56, 189, 248, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        .highlight-item:hover {
+            background: rgba(56, 189, 248, 0.2);
+            transform: translateX(10px);
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .highlight-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* 统计数据区域 */
+        .stats-section {
+            background: var(--secondary);
+            padding: 60px 0;
+            margin: 60px 0;
+            border-radius: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-item {
+            position: relative;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Canvas动画区域 */
+        .canvas-container {
+            position: relative;
+            height: 200px;
+            margin: 30px 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .advantage-canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .advantage-card {
+                padding: 30px 20px;
+            }
+            
+            .advantage-title {
+                font-size: 1.5rem;
+            }
+            
+            .advantage-highlights {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* 滚动进度条 */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #8b5cf6);
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div class="header">
+        <div class="container">
+            <h1 class="main-title">核心优势</h1>
+            <p class="subtitle">游戏化广告解决方案的三大竞争优势</p>
+        </div>
+    </div>
+
+    <div class="advantages-section">
+        <div class="container">
+            <!-- 优势一：品牌心智 -->
+            <div class="advantage-card fade-in-up" data-advantage="1">
+                <div class="advantage-number">1</div>
+                <h2 class="advantage-title">塑造"游戏即入口"的品牌心智</h2>
+                <p class="advantage-content">
+                    与生命周期短、用户印象模糊的普通小游戏不同，本项目将游戏与实体景区、品牌进行深度绑定。
+                    通过游戏体验，在玩家心中牢固建立"玩过即知道，看到即联想"的品牌认知。
+                    玩家接触的不仅是游戏，更是一个集文化、商品与体验于一体的实体入口。
+                </p>
+                
+                <div class="canvas-container">
+                    <canvas class="advantage-canvas" id="canvas1"></canvas>
+                </div>
+                
+               
+            </div>
+
+            <!-- 优势二：双重价值闭环 -->
+            <div class="advantage-card fade-in-up" data-advantage="2">
+                <div class="advantage-number">2</div>
+                <h2 class="advantage-title">"娱乐+消费"的双重价值闭环</h2>
+                <p class="advantage-content">
+                    我们从根本上重塑了游戏的商业模式：首要目标是一款能通过广告实现自身盈利的优质产品，
+                    而非简单的带货工具。成功构建了双重价值闭环，突破单一变现天花板。
+                </p>
+                
+                <div class="canvas-container">
+                    <canvas class="advantage-canvas" id="canvas2"></canvas>
+                </div>
+                
+                
+            </div>
+
+            <!-- 优势三：规模化潜力 -->
+            <div class="advantage-card fade-in-up" data-advantage="3">
+                <div class="advantage-number">3</div>
+                <h2 class="advantage-title">标准化与可复制的规模化潜力</h2>
+                <p class="advantage-content">
+                    项目已验证的"游戏化广告"模板与合作流程，具备高度的标准化潜力。
+                    在成功打造首批样板案例后，可以快速将这一模式复制到全国各地的景区与中小企业。
+                </p>
+                
+                <div class="canvas-container">
+                    <canvas class="advantage-canvas" id="canvas3"></canvas>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计数据展示 -->
+    <div class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number" data-target="95">0</span>
+                    <div class="stat-label">品牌认知提升率</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="3.5">0</span>
+                    <div class="stat-label">平均ROI倍数</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="80">0</span>
+                    <div class="stat-label">用户转化率(%)</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="15">0</span>
+                    <div class="stat-label">复制周期(天)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 滚动进度条
+        window.addEventListener('scroll', () => {
+            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // 数字动画
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.stat-number');
+            numbers.forEach(number => {
+                const target = parseFloat(number.getAttribute('data-target'));
+                const increment = target / 100;
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    number.textContent = target % 1 === 0 ? Math.floor(current) : current.toFixed(1);
+                }, 20);
+            });
+        }
+
+        // 观察器用于触发动画
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-up');
+                    if (entry.target.classList.contains('stats-section')) {
+                        animateNumbers();
+                    }
+                }
+            });
+        });
+
+        // 观察所有需要动画的元素
+        document.querySelectorAll('.advantage-card, .stats-section').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Canvas动画
+        function initCanvas() {
+            // Canvas 1: 品牌心智动画
+            const canvas1 = document.getElementById('canvas1');
+            const ctx1 = canvas1.getContext('2d');
+            canvas1.width = canvas1.offsetWidth;
+            canvas1.height = canvas1.offsetHeight;
+
+            function drawBrandMind() {
+                ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+                
+                const time = Date.now() * 0.001;
+                const centerX = canvas1.width / 2;
+                const centerY = canvas1.height / 2;
+                
+                // 绘制中心品牌核心
+                ctx1.fillStyle = '#38bdf8';
+                ctx1.beginPath();
+                ctx1.arc(centerX, centerY, 30 + Math.sin(time) * 5, 0, Math.PI * 2);
+                ctx1.fill();
+                
+                // 绘制围绕的游戏元素
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2 + time * 0.5;
+                    const x = centerX + Math.cos(angle) * 80;
+                    const y = centerY + Math.sin(angle) * 40;
+                    
+                    ctx1.fillStyle = `hsl(${200 + i * 30}, 70%, 60%)`;
+                    ctx1.beginPath();
+                    ctx1.arc(x, y, 15, 0, Math.PI * 2);
+                    ctx1.fill();
+                    
+                    // 连接线
+                    ctx1.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+                    ctx1.lineWidth = 2;
+                    ctx1.beginPath();
+                    ctx1.moveTo(centerX, centerY);
+                    ctx1.lineTo(x, y);
+                    ctx1.stroke();
+                }
+                
+                requestAnimationFrame(drawBrandMind);
+            }
+            drawBrandMind();
+
+            // Canvas 2: 双重价值闭环动画
+            const canvas2 = document.getElementById('canvas2');
+            const ctx2 = canvas2.getContext('2d');
+            canvas2.width = canvas2.offsetWidth;
+            canvas2.height = canvas2.offsetHeight;
+
+            function drawValueLoop() {
+                ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+                
+                const time = Date.now() * 0.001;
+                const centerX = canvas2.width / 2;
+                const centerY = canvas2.height / 2;
+                
+                // 绘制双重循环
+                for (let loop = 0; loop < 2; loop++) {
+                    const radius = 60 + loop * 30;
+                    const offset = loop * Math.PI;
+                    
+                    ctx2.strokeStyle = loop === 0 ? '#10b981' : '#f59e0b';
+                    ctx2.lineWidth = 4;
+                    ctx2.beginPath();
+                    
+                    for (let i = 0; i <= 100; i++) {
+                        const angle = (i / 100) * Math.PI * 2 + time + offset;
+                        const x = centerX + Math.cos(angle) * radius;
+                        const y = centerY + Math.sin(angle) * (radius * 0.6);
+                        
+                        if (i === 0) {
+                            ctx2.moveTo(x, y);
+                        } else {
+                            ctx2.lineTo(x, y);
+                        }
+                    }
+                    ctx2.stroke();
+                    
+                    // 绘制流动点
+                    const pointAngle = time * 2 + offset;
+                    const pointX = centerX + Math.cos(pointAngle) * radius;
+                    const pointY = centerY + Math.sin(pointAngle) * (radius * 0.6);
+                    
+                    ctx2.fillStyle = loop === 0 ? '#10b981' : '#f59e0b';
+                    ctx2.beginPath();
+                    ctx2.arc(pointX, pointY, 8, 0, Math.PI * 2);
+                    ctx2.fill();
+                }
+                
+                requestAnimationFrame(drawValueLoop);
+            }
+            drawValueLoop();
+
+            // Canvas 3: 规模化扩张动画
+            const canvas3 = document.getElementById('canvas3');
+            const ctx3 = canvas3.getContext('2d');
+            canvas3.width = canvas3.offsetWidth;
+            canvas3.height = canvas3.offsetHeight;
+
+            function drawScaleExpansion() {
+                ctx3.clearRect(0, 0, canvas3.width, canvas3.height);
+                
+                const time = Date.now() * 0.001;
+                const centerX = canvas3.width / 2;
+                const centerY = canvas3.height / 2;
+                
+                // 绘制扩散波纹
+                for (let i = 0; i < 5; i++) {
+                    const radius = (time * 50 + i * 40) % 200;
+                    const opacity = 1 - (radius / 200);
+                    
+                    ctx3.strokeStyle = `rgba(139, 92, 246, ${opacity * 0.5})`;
+                    ctx3.lineWidth = 3;
+                    ctx3.beginPath();
+                    ctx3.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx3.stroke();
+                }
+                
+                // 绘制中心节点
+                ctx3.fillStyle = '#8b5cf6';
+                ctx3.beginPath();
+                ctx3.arc(centerX, centerY, 20, 0, Math.PI * 2);
+                ctx3.fill();
+                
+                // 绘制扩展节点
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const distance = 80 + Math.sin(time + i) * 20;
+                    const x = centerX + Math.cos(angle) * distance;
+                    const y = centerY + Math.sin(angle) * distance;
+                    
+                    ctx3.fillStyle = '#38bdf8';
+                    ctx3.beginPath();
+                    ctx3.arc(x, y, 10, 0, Math.PI * 2);
+                    ctx3.fill();
+                }
+                
+                requestAnimationFrame(drawScaleExpansion);
+            }
+            drawScaleExpansion();
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            initCanvas();
+        });
+
+        // 窗口大小改变时重新调整canvas
+        window.addEventListener('resize', () => {
+            setTimeout(initCanvas, 100);
+        });
+    </script>
+</body>
+</html>

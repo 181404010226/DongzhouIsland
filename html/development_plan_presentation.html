@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发计划展示 - 小步迭代，快速试错</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 头部样式 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+            opacity: 0.3;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 主要内容区域 */
+        .main-content {
+            padding: 80px 0;
+        }
+
+        .section {
+            margin-bottom: 80px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #f0f0f0;
+        }
+
+        .section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #667eea;
+            text-align: center;
+            position: relative;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        /* 开发周期时间轴 */
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+            z-index: 1;
+        }
+
+        .timeline-item {
+            background: white;
+            border: 4px solid #667eea;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .timeline-item h3 {
+            font-size: 1rem;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .timeline-item p {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+        }
+
+        /* Canvas 容器 */
+        .canvas-container {
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .chart-canvas {
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* 策略卡片 */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .strategy-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid #e0e7ff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .strategy-card h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .strategy-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* 客户群体展示 */
+        .customer-segments {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .customer-segment {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            min-width: 200px;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .customer-segment:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .customer-segment h4 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 20px;
+                margin-bottom: 40px;
+            }
+            
+            .timeline {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .timeline::before {
+                display: none;
+            }
+            
+            .customer-segments {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>开发计划展示</h1>
+            <p>小步迭代 · 快速试错 · 精准定位</p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <!-- 开发周期时间轴 -->
+            <section class="section">
+                <h2>3个月开发周期</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <h3>第1月</h3>
+                        <p>MVP开发<br>核心功能</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h3>第2月</h3>
+                        <p>功能完善<br>用户测试</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h3>第3月</h3>
+                        <p>优化迭代<br>正式发布</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 项目规模展示 -->
+            <section class="section">
+                <h2>项目投资规模</h2>
+                <div class="canvas-container">
+                    <canvas id="budgetChart" class="chart-canvas" width="800" height="400"></canvas>
+                </div>
+            </section>
+
+            <!-- 迭代策略 -->
+            <section class="section">
+                <h2>小步迭代策略</h2>
+                <div class="strategy-grid">
+                    <div class="strategy-card">
+                        <h3>快速验证</h3>
+                        <p>每个迭代周期2-3周，快速验证核心假设，降低试错成本</p>
+                    </div>
+                    <div class="strategy-card">
+                        <h3>用户反馈</h3>
+                        <p>持续收集用户反馈，基于真实数据调整产品方向</p>
+                    </div>
+                    <div class="strategy-card">
+                        <h3>敏捷开发</h3>
+                        <p>采用敏捷开发方法，保持团队高效协作和快速响应</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 敏捷迭代流程 -->
+            <section class="section">
+                <h2>敏捷迭代流程</h2>
+                <div class="canvas-container">
+                    <canvas id="agileChart" class="chart-canvas" width="800" height="400"></canvas>
+                </div>
+            </section>
+
+            <!-- 客户群体定位 -->
+            <section class="section">
+                <h2>目标客户群体</h2>
+                <div class="canvas-container">
+                    <canvas id="customerChart" class="chart-canvas" width="800" height="500"></canvas>
+                </div>
+                <div class="customer-segments">
+                    <div class="customer-segment">
+                        <h4>文旅景区</h4>
+                        <p>传统景区数字化转型需求</p>
+                    </div>
+                    <div class="customer-segment">
+                        <h4>教育机构</h4>
+                        <p>寓教于乐的互动体验需求</p>
+                    </div>
+                    <div class="customer-segment">
+                        <h4>商业地产</h4>
+                        <p>提升客流和用户粘性需求</p>
+                    </div>
+                    <div class="customer-segment">
+                        <h4>品牌营销</h4>
+                        <p>创新营销方式和用户互动</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 开发进度展示 -->
+            <section class="section">
+                <h2>开发进度规划</h2>
+                <div class="canvas-container">
+                    <canvas id="progressChart" class="chart-canvas" width="800" height="500"></canvas>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // 项目预算图表 - 突出小投资规模特点
+        function drawBudgetChart() {
+            const canvas = document.getElementById('budgetChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制标题
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 24px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText('小投资·大回报策略', canvas.width / 2, 40);
+            
+            // 绘制对比图表 - 传统vs小步迭代
+            const centerX = canvas.width / 2;
+            const centerY = 200;
+            
+            // 传统大投资（左侧）
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(80, centerY - 120, 120, 240);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Microsoft YaHei';
+            ctx.fillText('传统模式', 140, centerY - 130);
+            ctx.fillText('500万+', 140, centerY);
+            ctx.fillStyle = '#666';
+            ctx.font = '16px Microsoft YaHei';
+            ctx.fillText('高风险', 140, centerY + 30);
+            ctx.fillText('周期长', 140, centerY + 50);
+            
+            // VS 标识
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 28px Microsoft YaHei';
+            ctx.fillText('VS', centerX, centerY);
+            
+            // 小步迭代（右侧）- 多个小柱子
+            const smallBars = [
+                { x: centerX + 90, height: 120, color: '#4ecdc4', label: '10万' },
+                { x: centerX + 160, height: 150, color: '#45b7d1', label: '10万' },
+                { x: centerX + 230, height: 136, color: '#96ceb4', label: '10万' }
+            ];
+            
+            smallBars.forEach((bar, index) => {
+                ctx.fillStyle = bar.color;
+                ctx.fillRect(bar.x - 40, centerY + 120 - bar.height, 80, bar.height);
+                
+                // 绘制金额
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 24px Microsoft YaHei';
+                ctx.fillText(bar.label, bar.x, centerY + 120 - bar.height/2);
+                
+                // 绘制迭代标识
+                ctx.fillStyle = '#333';
+                ctx.font = '20px Microsoft YaHei';
+                ctx.fillText(`第${index+1}期`, bar.x, centerY + 160);
+            });
+            
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 20px Microsoft YaHei';
+            ctx.fillText('小步迭代', centerX + 130, centerY - 130);
+            ctx.fillStyle = '#4ecdc4';
+            ctx.font = 'bold 18px Microsoft YaHei';
+            ctx.fillText('低风险·快验证', centerX + 130, centerY + 160);
+            
+            // 绘制箭头和优势说明
+            ctx.strokeStyle = '#4ecdc4';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX + 200, centerY - 20);
+            ctx.lineTo(centerX + 250, centerY - 40);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#4ecdc4';
+            ctx.font = 'bold 18px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            ctx.fillText('✓ 快速试错', centerX + 280, centerY - 60);
+            ctx.fillText('✓ 灵活调整', centerX + 280, centerY - 30);
+            ctx.fillText('✓ 降低风险', centerX + 280, centerY);
+        }
+        
+        // 开发进度图表
+        function drawProgressChart() {
+            const canvas = document.getElementById('progressChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 设置样式
+            ctx.font = '14px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            
+            // 开发任务数据
+            const tasks = [
+                { name: '需求分析', progress: 100, color: '#4ade80' },
+                { name: '原型设计', progress: 85, color: '#60a5fa' },
+                { name: '前端开发', progress: 70, color: '#a78bfa' },
+                { name: '后端开发', progress: 60, color: '#fb7185' },
+                { name: '测试优化', progress: 30, color: '#fbbf24' },
+                { name: '部署上线', progress: 10, color: '#f97316' }
+            ];
+            
+            const barHeight = 40;
+            const barSpacing = 20;
+            const maxBarWidth = 500;
+            const startX = 150;
+            const startY = 80;
+            
+            // 绘制标题
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 24px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText('开发进度跟踪', canvas.width / 2, 40);
+            
+            tasks.forEach((task, index) => {
+                const y = startY + index * (barHeight + barSpacing);
+                
+                // 绘制任务名称
+                ctx.fillStyle = '#333';
+                ctx.font = '16px Microsoft YaHei';
+                ctx.textAlign = 'right';
+                ctx.fillText(task.name, startX - 20, y + barHeight / 2 + 6);
+                
+                // 绘制背景条
+                ctx.fillStyle = '#f3f4f6';
+                ctx.fillRect(startX, y, maxBarWidth, barHeight);
+                
+                // 绘制进度条
+                const progressWidth = (task.progress / 100) * maxBarWidth;
+                const gradient = ctx.createLinearGradient(startX, y, startX + progressWidth, y);
+                gradient.addColorStop(0, task.color);
+                gradient.addColorStop(1, task.color + '80');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(startX, y, progressWidth, barHeight);
+                
+                // 绘制边框
+                ctx.strokeStyle = task.color;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(startX, y, maxBarWidth, barHeight);
+                
+                // 绘制进度百分比
+                ctx.fillStyle = task.progress > 50 ? 'white' : '#333';
+                ctx.font = 'bold 16px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                ctx.fillText(task.progress + '%', startX + progressWidth / 2, y + barHeight / 2 + 6);
+            });
+        }
+        
+        // 客户群体分析图表 - 突出多元化客户策略
+        function drawCustomerChart() {
+            const canvas = document.getElementById('customerChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制标题
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 24px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText('多元化客户群体策略', canvas.width / 2, 40);
+            
+            // 客户群体数据 - 重新设计为目标靶心图
+            const customers = [
+                { name: '文旅爱好者', size: 80, color: '#667eea', x: 200, y: 150, features: ['体验导向', '情感消费'] },
+                { name: '游戏玩家', size: 75, color: '#764ba2', x: 500, y: 150, features: ['互动性强', '社交需求'] },
+                { name: '教育机构', size: 70, color: '#f093fb', x: 200, y: 280, features: ['教育价值', '团体采购'] },
+                { name: '企业客户', size: 65, color: '#4facfe', x: 500, y: 280, features: ['商务应用', '定制需求'] }
+            ];
+            
+            // 绘制客户群体圆圈和连接线
+            customers.forEach((customer, index) => {
+                // 绘制客户圆圈
+                const gradient = ctx.createRadialGradient(customer.x, customer.y, 0, customer.x, customer.y, customer.size/2);
+                gradient.addColorStop(0, customer.color + 'CC');
+                gradient.addColorStop(1, customer.color + '66');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(customer.x, customer.y, customer.size/2, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 绘制边框
+                ctx.strokeStyle = customer.color;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // 绘制客户名称
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                ctx.fillText(customer.name, customer.x, customer.y - 5);
+                
+                // 绘制特征标签
+                ctx.fillStyle = customer.color;
+                ctx.font = '12px Microsoft YaHei';
+                customer.features.forEach((feature, fIndex) => {
+                    ctx.fillText(feature, customer.x, customer.y + customer.size/2 + 20 + fIndex * 15);
+                });
+                
+                // 绘制连接到中心的线
+                ctx.strokeStyle = customer.color + '80';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(customer.x, customer.y);
+                ctx.lineTo(350, 215);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            });
+            
+            // 绘制中心核心圆
+            const centerGradient = ctx.createRadialGradient(350, 215, 0, 350, 215, 30);
+            centerGradient.addColorStop(0, '#4ecdc4');
+            centerGradient.addColorStop(1, '#44a08d');
+            
+            ctx.fillStyle = centerGradient;
+            ctx.beginPath();
+            ctx.arc(350, 215, 30, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 12px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText('核心', 350, 210);
+            ctx.fillText('产品', 350, 225);
+            
+            // 绘制策略说明
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 16px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            ctx.fillText('差异化策略:', 50, 380);
+            
+            const strategies = [
+                '• 文旅：注重文化体验和情感共鸣',
+                '• 游戏：强化互动性和社交功能',
+                '• 教育：突出学习价值和团体优惠',
+                '• 企业：提供定制化和商务应用'
+            ];
+            
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Microsoft YaHei';
+            strategies.forEach((strategy, index) => {
+                ctx.fillText(strategy, 70, 405 + index * 20);
+            });
+        }
+        
+        // 页面加载完成后绘制图表
+        window.addEventListener('load', function() {
+            drawBudgetChart();
+            drawProgressChart();
+            drawCustomerChart();
+            drawAgileChart();
+        });
+        
+        // 敏捷迭代流程图表
+        function drawAgileChart() {
+            const canvas = document.getElementById('agileChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制标题
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 24px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText('敏捷迭代循环流程', canvas.width / 2, 40);
+            
+            // 迭代流程步骤
+            const steps = [
+                { name: '需求分析', icon: '📋', color: '#667eea', angle: 0 },
+                { name: '快速开发', icon: '⚡', color: '#4ecdc4', angle: Math.PI / 2 },
+                { name: '测试验证', icon: '🧪', color: '#45b7d1', angle: Math.PI },
+                { name: '优化迭代', icon: '🔄', color: '#96ceb4', angle: 3 * Math.PI / 2 }
+            ];
+            
+            const centerX = canvas.width / 2;
+            const centerY = 220;
+            const radius = 120;
+            const stepRadius = 50;
+            
+            // 绘制中心圆
+            const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 40);
+            centerGradient.addColorStop(0, '#764ba2');
+            centerGradient.addColorStop(1, '#667eea');
+            
+            ctx.fillStyle = centerGradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 40, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText('2周', centerX, centerY - 5);
+            ctx.fillText('迭代', centerX, centerY + 10);
+            
+            // 绘制步骤圆圈和连接线
+            steps.forEach((step, index) => {
+                const x = centerX + Math.cos(step.angle - Math.PI / 2) * radius;
+                const y = centerY + Math.sin(step.angle - Math.PI / 2) * radius;
+                
+                // 绘制连接线
+                ctx.strokeStyle = step.color;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(centerX + Math.cos(step.angle - Math.PI / 2) * 45, centerY + Math.sin(step.angle - Math.PI / 2) * 45);
+                ctx.lineTo(x - Math.cos(step.angle - Math.PI / 2) * stepRadius, y - Math.sin(step.angle - Math.PI / 2) * stepRadius);
+                ctx.stroke();
+                
+                // 绘制步骤圆圈
+                const stepGradient = ctx.createRadialGradient(x, y, 0, x, y, stepRadius);
+                stepGradient.addColorStop(0, step.color + 'CC');
+                stepGradient.addColorStop(1, step.color + '66');
+                
+                ctx.fillStyle = stepGradient;
+                ctx.beginPath();
+                ctx.arc(x, y, stepRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.strokeStyle = step.color;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // 绘制图标
+                ctx.font = '24px Arial';
+                ctx.fillText(step.icon, x, y + 8);
+                
+                // 绘制步骤名称
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 14px Microsoft YaHei';
+                const labelX = x + Math.cos(step.angle - Math.PI / 2) * 80;
+                const labelY = y + Math.sin(step.angle - Math.PI / 2) * 80;
+                ctx.fillText(step.name, labelX, labelY);
+                
+                // 绘制箭头指向下一步
+                const nextIndex = (index + 1) % steps.length;
+                const nextStep = steps[nextIndex];
+                const nextX = centerX + Math.cos(nextStep.angle - Math.PI / 2) * radius;
+                const nextY = centerY + Math.sin(nextStep.angle - Math.PI / 2) * radius;
+                
+                // 计算箭头位置
+                const arrowAngle = step.angle + Math.PI / 4;
+                const arrowX = centerX + Math.cos(arrowAngle) * (radius + 20);
+                const arrowY = centerY + Math.sin(arrowAngle) * (radius + 20);
+                
+                // 绘制箭头
+                ctx.fillStyle = '#667eea';
+                ctx.beginPath();
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(arrowX - 10 * Math.cos(arrowAngle - 0.3), arrowY - 10 * Math.sin(arrowAngle - 0.3));
+                ctx.lineTo(arrowX - 10 * Math.cos(arrowAngle + 0.3), arrowY - 10 * Math.sin(arrowAngle + 0.3));
+                ctx.closePath();
+                ctx.fill();
+            });
+            
+            // 绘制特点说明
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 16px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            ctx.fillText('快速试错特点:', 50, 360);
+            
+            const features = [
+                '• 短周期：2周快速迭代，降低风险',
+                '• 小投入：每次投入可控，避免大额损失',
+                '• 快反馈：及时获取用户反馈，调整方向',
+                '• 持续优化：基于数据驱动的产品改进'
+            ];
+            
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Microsoft YaHei';
+            features.forEach((feature, index) => {
+                ctx.fillText(feature, 70, 385 + index * 20);
+            });
+        }
+        
+        // 窗口大小改变时重新绘制
+        window.addEventListener('resize', function() {
+            drawBudgetChart();
+            drawProgressChart();
+            drawCustomerChart();
+            drawAgileChart();
+        });
+    </script>
+</body>
+</html>

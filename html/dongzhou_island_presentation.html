@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>衡阳东洲岛 - 游戏化文旅体验</title>
+    <style>
+        :root {
+            --primary-blue: #38bdf8;
+            --primary-purple: #9333ea;
+            --dark-bg: #0f172a;
+            --card-bg: #111827;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --accent-green: #34d399;
+            --accent-orange: #fb923c;
+            --traditional-red: #8b0000;
+            --traditional-green: #4b5320;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary-blue), var(--primary-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .game-areas {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .area-card {
+            background: rgba(17, 24, 39, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .area-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, var(--primary-blue), var(--primary-purple));
+            z-index: -1;
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .area-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .area-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(56, 189, 248, 0.3);
+        }
+
+        .area-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .area-icon {
+            width: 60px;
+            height: 60px;
+            margin-right: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .area1 .area-icon {
+            background: linear-gradient(45deg, var(--traditional-red), #dc2626);
+        }
+
+        .area2 .area-icon {
+            background: linear-gradient(45deg, var(--traditional-green), var(--accent-green));
+        }
+
+        .area3 .area-icon {
+            background: linear-gradient(45deg, var(--primary-blue), #0ea5e9);
+        }
+
+        .area4 .area-icon {
+            background: linear-gradient(45deg, var(--accent-orange), #f59e0b);
+        }
+
+        .area-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .area-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .area-canvas {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .progress-section {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .progress-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--primary-blue);
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .progress-step {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(17, 24, 39, 0.8);
+            border: 3px solid var(--primary-blue);
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-step.completed {
+            background: linear-gradient(45deg, var(--primary-blue), var(--primary-purple));
+            animation: pulse 2s infinite;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-purple));
+            z-index: 1;
+            animation: flowLine 3s linear infinite;
+        }
+
+        .step-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        @keyframes titleGlow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.2) drop-shadow(0 0 20px rgba(56, 189, 248, 0.5)); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes flowLine {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .game-areas {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .progress-container {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .progress-line {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">衡阳东洲岛</h1>
+            <h2 class="subtitle">游戏化文旅体验设计</h2>
+            <div class="description">
+                以当前试点项目衡阳东洲岛为例，我们将游戏划分为四个区域，每个区域有自己的主题，玩家需要跟随游戏引导一步步将四个主题区域建设好，并吸引足够多的虚拟游客来玩。那么在这个过程中，游客自然就知道了景区的核心游玩内容和故事背景，达到了无形中宣传的效果。
+            </div>
+        </div>
+
+        <div class="game-areas">
+            <div class="area-card area1 floating">
+                <div class="area-header">
+                    <div class="area-icon">🏛️</div>
+                    <div class="area-title">文化古迹区</div>
+                </div>
+                <div class="area-content">
+                    重现东洲岛的历史文化底蕴，玩家通过修复古建筑、收集文物、了解历史故事来建设这一区域。每个完成的任务都会解锁真实的历史知识和景点介绍。
+                </div>
+                <canvas class="area-canvas" id="canvas1"></canvas>
+            </div>
+
+            <div class="area-card area2 floating" style="animation-delay: 0.5s;">
+                <div class="area-header">
+                    <div class="area-icon">🌿</div>
+                    <div class="area-title">生态观光区</div>
+                </div>
+                <div class="area-content">
+                    打造绿色生态环境，玩家需要种植特色植物、保护野生动物、建设观景台。通过游戏互动了解东洲岛的自然生态和环保理念。
+                </div>
+                <canvas class="area-canvas" id="canvas2"></canvas>
+            </div>
+
+            <div class="area-card area3 floating" style="animation-delay: 1s;">
+                <div class="area-header">
+                    <div class="area-icon">🎭</div>
+                    <div class="area-title">文艺体验区</div>
+                </div>
+                <div class="area-content">
+                    设置各种文艺活动和表演场所，玩家可以组织诗词大会、书法展览、传统音乐演出等活动，体验东洲岛深厚的文艺传统。
+                </div>
+                <canvas class="area-canvas" id="canvas3"></canvas>
+            </div>
+
+            <div class="area-card area4 floating" style="animation-delay: 1.5s;">
+                <div class="area-header">
+                    <div class="area-icon">🏪</div>
+                    <div class="area-title">休闲商业区</div>
+                </div>
+                <div class="area-content">
+                    建设特色商店、餐厅和休闲设施，玩家通过经营管理吸引虚拟游客，同时了解当地特色产品和美食文化，促进实际消费转化。
+                </div>
+                <canvas class="area-canvas" id="canvas4"></canvas>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <h3 class="progress-title">建设进度</h3>
+            <div class="progress-container">
+                <div class="progress-line"></div>
+                <div class="progress-step completed">
+                    <div class="step-number">1</div>
+                    <div class="step-label">规划设计</div>
+                </div>
+                <div class="progress-step completed">
+                    <div class="step-number">2</div>
+                    <div class="step-label">基础建设</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-number">3</div>
+                    <div class="step-label">内容填充</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-number">4</div>
+                    <div class="step-label">运营推广</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas动画设置函数
+        function setupCanvas(canvasId, drawFunction) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+            canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            
+            function animate() {
+                drawFunction(ctx, canvas);
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // 文化古迹区动画
+        setupCanvas('canvas1', (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const time = Date.now() * 0.001;
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            
+            // 绘制古建筑轮廓
+            ctx.strokeStyle = '#8b0000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            // 主殿
+            const buildingX = width * 0.3;
+            const buildingY = height * 0.4;
+            const buildingWidth = width * 0.4;
+            const buildingHeight = height * 0.3;
+            
+            ctx.rect(buildingX, buildingY, buildingWidth, buildingHeight);
+            
+            // 屋顶
+            ctx.moveTo(buildingX - 10, buildingY);
+            ctx.lineTo(buildingX + buildingWidth / 2, buildingY - 20);
+            ctx.lineTo(buildingX + buildingWidth + 10, buildingY);
+            
+            ctx.stroke();
+            
+            // 飘动的文字
+            const characters = ['诗', '书', '礼', '乐'];
+            for (let i = 0; i < characters.length; i++) {
+                const x = width * 0.2 + (width * 0.6 * i / (characters.length - 1));
+                const y = height * 0.2 + Math.sin(time + i) * 10;
+                
+                ctx.font = 'bold 16px serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = `rgba(139, 0, 0, ${0.7 + Math.sin(time + i) * 0.3})`;
+                ctx.fillText(characters[i], x, y);
+            }
+        });
+
+        // 生态观光区动画
+        setupCanvas('canvas2', (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const time = Date.now() * 0.001;
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            
+            // 绘制树木
+            for (let i = 0; i < 5; i++) {
+                const x = width * (0.1 + i * 0.2);
+                const y = height * 0.8;
+                const treeHeight = 40 + Math.sin(time + i) * 5;
+                
+                // 树干
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y - treeHeight);
+                ctx.stroke();
+                
+                // 树冠
+                ctx.fillStyle = `rgba(52, 211, 153, ${0.7 + Math.sin(time + i) * 0.2})`;
+                ctx.beginPath();
+                ctx.arc(x, y - treeHeight, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // 飞鸟
+            const birdX = width * (0.5 + Math.sin(time * 0.5) * 0.3);
+            const birdY = height * (0.3 + Math.sin(time * 0.7) * 0.1);
+            
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(birdX - 5, birdY);
+            ctx.lineTo(birdX, birdY - 3);
+            ctx.lineTo(birdX + 5, birdY);
+            ctx.stroke();
+        });
+
+        // 文艺体验区动画
+        setupCanvas('canvas3', (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const time = Date.now() * 0.001;
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            
+            // 绘制舞台
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+            ctx.fillRect(width * 0.2, height * 0.6, width * 0.6, height * 0.3);
+            
+            // 聚光灯效果
+            const gradient = ctx.createRadialGradient(
+                width * 0.5, height * 0.2, 0,
+                width * 0.5, height * 0.2, width * 0.3
+            );
+            gradient.addColorStop(0, 'rgba(56, 189, 248, 0.5)');
+            gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            // 音符
+            const notes = ['♪', '♫', '♬'];
+            for (let i = 0; i < notes.length; i++) {
+                const x = width * (0.3 + i * 0.2) + Math.sin(time + i) * 20;
+                const y = height * 0.4 + Math.cos(time + i) * 15;
+                
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = `rgba(56, 189, 248, ${0.8 + Math.sin(time + i) * 0.2})`;
+                ctx.fillText(notes[i], x, y);
+            }
+        });
+
+        // 休闲商业区动画
+        setupCanvas('canvas4', (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const time = Date.now() * 0.001;
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            
+            // 绘制商店
+            for (let i = 0; i < 3; i++) {
+                const x = width * (0.1 + i * 0.3);
+                const y = height * 0.5;
+                const shopWidth = width * 0.2;
+                const shopHeight = height * 0.4;
+                
+                // 店铺
+                ctx.fillStyle = 'rgba(251, 146, 60, 0.6)';
+                ctx.fillRect(x, y, shopWidth, shopHeight);
+                
+                // 招牌
+                ctx.fillStyle = 'rgba(251, 146, 60, 0.8)';
+                ctx.fillRect(x, y - 15, shopWidth, 15);
+            }
+            
+            // 流动的人群（用点表示）
+            for (let i = 0; i < 8; i++) {
+                const x = (width * (time * 0.1 + i * 0.125)) % width;
+                const y = height * 0.9 + Math.sin(time + i) * 5;
+                
+                ctx.fillStyle = `rgba(251, 146, 60, ${0.6 + Math.sin(time + i) * 0.3})`;
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+
+        // 添加卡片点击交互
+        document.querySelectorAll('.area-card').forEach((card, index) => {
+            card.addEventListener('click', () => {
+                // 简单的点击反馈
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // 响应式处理
+        window.addEventListener('resize', () => {
+            document.querySelectorAll('canvas').forEach(canvas => {
+                canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+                canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            });
+        });
+    </script>
+</body>
+</html>

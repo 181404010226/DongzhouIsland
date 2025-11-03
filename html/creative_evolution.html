@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创意进化之旅 - 国学与AI的融合</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-image: url('https://img.freepik.com/free-vector/chinese-watercolor-background_52683-68895.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #8B0000;
+            margin: 0;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            color: #4B5320;
+            margin-top: 0;
+        }
+        
+        .evolution-path {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .stage {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        
+        .stage:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stage::after {
+            content: "";
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px;
+            background: #8B0000;
+            display: block;
+        }
+        
+        .stage:last-child::after {
+            display: none;
+        }
+        
+        .stage-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        
+        .stage-icon {
+            font-size: 2rem;
+            color: #8B0000;
+        }
+        
+        .stage-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8B0000;
+            margin: 0;
+        }
+        
+        .stage-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .stage-description {
+            flex: 2;
+            min-width: 300px;
+        }
+        
+        .stage-visual {
+            flex: 1;
+            min-width: 300px;
+            height: 200px;
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .stage-visual canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .key-features {
+            margin-top: 15px;
+        }
+        
+        .key-features h4 {
+            margin-bottom: 10px;
+            color: #4B5320;
+        }
+        
+        .key-features ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .key-features li {
+            margin-bottom: 5px;
+        }
+        
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>创意进化之旅</h1>
+            <h2>国学与人工智能的融合与拓展</h2>
+        </header>
+        
+        <div class="evolution-path">
+            <div class="stage" id="stage1">
+                <div class="stage-title">
+                    <div class="stage-icon">🧠</div>
+                    <h3 class="stage-name">国学 + AI智能体</h3>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-description">
+                        <p>最初的创意构想是将中国传统文化（国学）与人工智能智能体相结合，创造能够传承和解读中国古典智慧的数字助手。</p>
+                        <div class="key-features">
+                            <h4>关键特点：</h4>
+                            <ul>
+                                <li>AI辅助国学经典解读</li>
+                                <li>智能对话式学习国学内容</li>
+                                <li>传统文化知识库构建</li>
+                                <li>个性化学习路径推荐</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="stage-visual">
+                        <canvas id="canvas1"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stage" id="stage2">
+                <div class="stage-title">
+                    <div class="stage-icon">📖</div>
+                    <h3 class="stage-name">国学 + AI + 视觉小说</h3>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-description">
+                        <p>创意演进为融合视觉小说的交互形式，通过故事化的叙事和视觉体验，将抽象的国学概念转化为沉浸式的学习体验。</p>
+                        <div class="key-features">
+                            <h4>关键特点：</h4>
+                            <ul>
+                                <li>国学故事的视觉化呈现</li>
+                                <li>基于用户选择的分支叙事</li>
+                                <li>AI生成的场景和对话</li>
+                                <li>古典场景的数字重建</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="stage-visual">
+                        <canvas id="canvas2"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stage" id="stage3">
+                <div class="stage-title">
+                    <div class="stage-icon">🏯</div>
+                    <h3 class="stage-name">国学 + AI + 模拟经营 × 视觉小说</h3>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-description">
+                        <p>创意进一步融合模拟经营元素，让用户在体验国学文化的同时，能够管理和经营与传统文化相关的虚拟世界，增强互动性和参与感。</p>
+                        <div class="key-features">
+                            <h4>关键特点：</h4>
+                            <ul>
+                                <li>古代书院、文化机构模拟经营</li>
+                                <li>国学知识影响游戏进程</li>
+                                <li>AI动态调整剧情和挑战</li>
+                                <li>社交化学习系统</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="stage-visual">
+                        <canvas id="canvas3"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stage" id="stage4">
+                <div class="stage-title">
+                    <div class="stage-icon">🌏</div>
+                    <h3 class="stage-name">国学 + AI + 文旅（游戏 + 线下推广）</h3>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-description">
+                        <p>最终创意演化为线上线下结合的文化旅游体验，将数字游戏与实体文化景点相联系，打造沉浸式的文化体验新模式。</p>
+                        <div class="key-features">
+                            <h4>关键特点：</h4>
+                            <ul>
+                                <li>虚实结合的文化体验</li>
+                                <li>基于地理位置的AR国学内容</li>
+                                <li>线上任务引导线下探索</li>
+                                <li>AI个性化推荐文化路线</li>
+                                <li>文旅景点数字孪生</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="stage-visual">
+                        <canvas id="canvas4"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 创意进化之旅 - 探索国学与现代科技的融合</p>
+        </footer>
+    </div>
+
+    <script>
+        // Canvas动画脚本
+        function setupCanvas(canvasId, drawFunction) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // 设置canvas尺寸匹配容器
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // 启动动画循环
+            let animationFrameId;
+            function animate() {
+                drawFunction(ctx, canvas);
+                animationFrameId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+            
+            // 当元素不可见时停止动画以节省资源
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animate();
+                    } else {
+                        cancelAnimationFrame(animationFrameId);
+                    }
+                });
+            });
+            
+            observer.observe(canvas.parentElement);
+        }
+        
+        // 第一阶段：国学+AI智能体
+        setupCanvas('canvas1', (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#f5f5f5');
+            gradient.addColorStop(1, '#e6e6e6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制AI智能体标志
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.2;
+            
+            // 绘制大脑形状
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(139, 0, 0, 0.2)';
+            ctx.fill();
+            
+            // 绘制连接线
+            const time = Date.now() * 0.001;
+            const numLines = 8;
+            
+            for (let i = 0; i < numLines; i++) {
+                const angle = (i / numLines) * Math.PI * 2 + time * 0.5;
+                const x1 = centerX + Math.cos(angle) * radius;
+                const y1 = centerY + Math.sin(angle) * radius;
+                const x2 = centerX + Math.cos(angle) * radius * 1.8;
+                const y2 = centerY + Math.sin(angle) * radius * 1.8;
+                
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = 'rgba(139, 0, 0, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制节点
+                ctx.beginPath();
+                ctx.arc(x2, y2, 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(139, 0, 0, 0.8)';
+                ctx.fill();
+            }
+            
+            // 绘制国学符号
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'rgba(139, 0, 0, 1)';
+            ctx.fillText('智', centerX, centerY);
+        });
+        
+        // 第二阶段：国学+AI+视觉小说
+        setupCanvas('canvas2', (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#f5f5f5');
+            gradient.addColorStop(1, '#e6e6e6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制书本
+            const bookWidth = canvas.width * 0.6;
+            const bookHeight = canvas.height * 0.4;
+            const bookX = (canvas.width - bookWidth) / 2;
+            const bookY = (canvas.height - bookHeight) / 2;
+            
+            // 书本封面
+            ctx.fillStyle = 'rgba(139, 0, 0, 0.8)';
+            ctx.fillRect(bookX, bookY, bookWidth, bookHeight);
+            
+            // 书本内页
+            const pageWidth = bookWidth * 0.9;
+            const pageHeight = bookHeight * 0.9;
+            const pageX = bookX + (bookWidth - pageWidth) / 2;
+            const pageY = bookY + (bookHeight - pageHeight) / 2;
+            
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(pageX, pageY, pageWidth, pageHeight);
+            
+            // 动态文字
+            const time = Date.now() * 0.001;
+            const characters = ['诗', '书', '礼', '乐', '易', '春', '秋'];
+            
+            for (let i = 0; i < characters.length; i++) {
+                const x = pageX + pageWidth * (i + 1) / (characters.length + 1);
+                const y = pageY + pageHeight / 2 + Math.sin(time + i) * 10;
+                
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'rgba(139, 0, 0, 0.8)';
+                ctx.fillText(characters[i], x, y);
+            }
+            
+            // 绘制人物对话框
+            const dialogX = canvas.width * 0.1;
+            const dialogY = canvas.height * 0.7;
+            const dialogWidth = canvas.width * 0.8;
+            const dialogHeight = canvas.height * 0.2;
+            
+            // 对话框背景
+            ctx.fillStyle = 'rgba(75, 83, 32, 0.8)';
+            ctx.fillRect(dialogX, dialogY, dialogWidth, dialogHeight);
+            
+            // 对话文字
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#fff';
+            ctx.fillText('开启智慧之旅...', dialogX + 20, dialogY + dialogHeight / 2);
+        });
+        
+        // 第三阶段：国学+AI+模拟经营×视觉小说
+        setupCanvas('canvas3', (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#f5f5f5');
+            gradient.addColorStop(1, '#e6e6e6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制古代书院
+            const buildingWidth = canvas.width * 0.8;
+            const buildingHeight = canvas.height * 0.4;
+            const buildingX = (canvas.width - buildingWidth) / 2;
+            const buildingY = canvas.height * 0.2;
+            
+            // 主建筑
+            ctx.fillStyle = 'rgba(139, 0, 0, 0.8)';
+            ctx.fillRect(buildingX, buildingY, buildingWidth, buildingHeight);
+            
+            // 屋顶
+            ctx.beginPath();
+            ctx.moveTo(buildingX - 20, buildingY);
+            ctx.lineTo(buildingX + buildingWidth / 2, buildingY - 40);
+            ctx.lineTo(buildingX + buildingWidth + 20, buildingY);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(75, 83, 32, 0.8)';
+            ctx.fill();
+            
+            // 门
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(buildingX + buildingWidth / 2 - 20, buildingY + buildingHeight - 60, 40, 60);
+            
+            // 窗户
+            for (let i = 0; i < 3; i++) {
+                const windowX = buildingX + buildingWidth * (i + 1) / 4;
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(windowX - 15, buildingY + 40, 30, 30);
+            }
+            
+            // 绘制资源指示器
+            const time = Date.now() * 0.001;
+            const indicators = [
+                { name: '学识', value: 0.7 + Math.sin(time) * 0.1 },
+                { name: '财富', value: 0.5 + Math.sin(time + 1) * 0.1 },
+                { name: '名望', value: 0.6 + Math.sin(time + 2) * 0.1 }
+            ];
+            
+            for (let i = 0; i < indicators.length; i++) {
+                const x = canvas.width * 0.2 + canvas.width * 0.3 * i;
+                const y = canvas.height * 0.7;
+                const width = canvas.width * 0.2;
+                const height = 20;
+                
+                // 背景条
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(x, y, width, height);
+                
+                // 进度条
+                ctx.fillStyle = 'rgba(139, 0, 0, 0.8)';
+                ctx.fillRect(x, y, width * indicators[i].value, height);
+                
+                // 标签
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText(indicators[i].name, x + width / 2, y + height + 15);
+            }
+        });
+        
+        // 第四阶段：国学+AI+文旅（游戏+线下推广）
+        setupCanvas('canvas4', (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#f5f5f5');
+            gradient.addColorStop(1, '#e6e6e6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制地图
+            const mapX = canvas.width * 0.1;
+            const mapY = canvas.height * 0.1;
+            const mapWidth = canvas.width * 0.8;
+            const mapHeight = canvas.height * 0.8;
+            
+            // 地图背景
+            ctx.fillStyle = 'rgba(222, 184, 135, 0.5)';
+            ctx.fillRect(mapX, mapY, mapWidth, mapHeight);
+            
+            // 绘制地标
+            const time = Date.now() * 0.001;
+            const landmarks = [
+                { x: 0.2, y: 0.3, name: '古寺' },
+                { x: 0.7, y: 0.2, name: '书院' },
+                { x: 0.4, y: 0.6, name: '园林' },
+                { x: 0.8, y: 0.7, name: '城墙' }
+            ];
+            
+            for (let i = 0; i < landmarks.length; i++) {
+                const x = mapX + mapWidth * landmarks[i].x;
+                const y = mapY + mapHeight * landmarks[i].y;
+                
+                // 绘制地标图标
+                ctx.beginPath();
+                ctx.arc(x, y, 10 + Math.sin(time + i) * 2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(139, 0, 0, 0.8)';
+                ctx.fill();
+                
+                // 绘制连接线
+                if (i < landmarks.length - 1) {
+                    const nextX = mapX + mapWidth * landmarks[i + 1].x;
+                    const nextY = mapY + mapHeight * landmarks[i + 1].y;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(nextX, nextY);
+                    ctx.strokeStyle = 'rgba(139, 0, 0, 0.5)';
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                // 地标名称
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText(landmarks[i].name, x, y + 25);
+            }
+            
+            // 绘制AR指示
+            const arX = mapX + mapWidth * 0.4;
+            const arY = mapY + mapHeight * 0.6;
+            
+            ctx.beginPath();
+            ctx.arc(arX, arY, 30, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(75, 83, 32, 0.2)';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(arX, arY, 30 + Math.sin(time * 2) * 5, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(75, 83, 32, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 手机指示
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(75, 83, 32, 1)';
+            ctx.fillText('AR体验点', arX, arY);
+            
+            // 绘制用户位置
+            const userX = mapX + mapWidth * (0.3 + Math.sin(time) * 0.05);
+            const userY = mapY + mapHeight * (0.4 + Math.cos(time) * 0.05);
+            
+            ctx.beginPath();
+            ctx.arc(userX, userY, 8, 0, Math.PI * 2);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>第三页 · 游戏即广告 · 动态理念图谱</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root { --bg: #0f172a; --card: #111827; --accent: #38bdf8; --text: #111827; --muted: #9ca3af; --green: #34d399; --orange: #fb923c }
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;min-height:100vh;background:#ffffff;color:var(--text)}
+.container{max-width:1200px;margin:0 auto;padding:36px;display:grid;grid-template-columns:1fr;gap:24px}
+.header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.h1{font-size:36px;font-weight:700;letter-spacing:.5px;color:var(--text)}
+.h2{font-size:22px;font-weight:600;color:var(--accent)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.35);color:var(--accent);font-size:12px}
+.grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:24px}
+.card{background:rgba(255,255,255,.95);border:1px solid rgba(148,163,184,.2);border-radius:14px;padding:20px;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+.card h3{margin:0 0 8px 0;font-size:18px;color:var(--accent);font-weight:700}
+.card p{margin:6px 0;color:var(--muted);font-size:14px}
+.list{margin:10px 0 0 0;padding-left:18px}
+.list li{margin:6px 0;color:#cbd5e1}
+.footer{font-size:12px;color:var(--muted)}
+/* 互动控件 */
+.controls{display:flex;gap:10px;align-items:center;margin-top:8px}
+.btn{cursor:pointer;padding:8px 12px;border-radius:10px;border:1px solid #7f92ae;background:#F5F7FA;color:#0f172a}
+.btn:hover{border-color:var(--accent);color:#111827}
+/* ROI 仪表盘 */
+.gauge{display:flex;align-items:center;gap:16px}
+.gauge svg{width:160px;height:160px}
+.gauge .metric{display:flex;flex-direction:column;gap:4px}
+.gauge .big{font-size:28px;font-weight:800}
+.gauge .desc{font-size:13px;color:var(--muted)}
+@keyframes progress{from{stroke-dashoffset:503}to{stroke-dashoffset:var(--offset)}}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+/* 闭环流动图（路径上的脉冲点） */
+.flow{position:relative}
+.flow svg{width:100%;height:220px}
+.pulse-dot{r:6;fill:url(#gradPulse)}
+@keyframes movePath{to{offset-distance:100%}}
+.mover{offset-path:path("M40,160 C220,20 480,260 720,60 C880,-20 1040,120 1160,140");offset-distance:0%;animation:movePath 4.8s linear infinite}
+/* 转化漏斗 */
+.funnel{display:grid;grid-template-columns:1fr;gap:8px;margin-top:4px}
+.bar{position:relative;height:40px;border-radius:10px;background:linear-gradient(90deg,rgba(56,189,248,.25),rgba(147,51,234,.25));border:1px solid rgba(148,163,184,.25);overflow:hidden}
+.bar .fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#38bdf8,#9333ea);width:0}
+@keyframes grow{from{width:0}to{width:var(--w)}}
+.bar .label{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted)}
+.bar .value{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--accent)}
+/* 响应式 */
+@media(max-width:900px){.grid{grid-template-columns:1fr}.container{padding:22px}.gauge svg{width:140px;height:140px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <div class="h1">第三页 · 游戏即广告（AIGame-As-Ad）</div>
+      <div class="h2">以小游戏为可交互广告载体，构建“玩广告—获客—分成—复购”的双重价值闭环</div>
+    </div>
+    <div class="badge" aria-label="数据与策略">理念关键词：ROI＞1 · 可复制 · 零流量成本</div>
+  </div>
+
+  <div class="grid">
+    <!-- 左：核心理念 + ROI 仪表盘 -->
+    <div class="card">
+      <h3>核心理念与度量（ROI 仪表盘）</h3>
+      <p>以“游戏即广告”为核心，通过可视化指标衡量从品牌曝光到交易达成的完整闭环，强调 <b>ROI＞1</b> 与可复制的规模化潜力。</p>
+      <div class="gauge">
+        <svg viewBox="0 0 180 180" aria-label="ROI 仪表">
+          <defs>
+            <linearGradient id="gradTrack" x1="0" x2="1">
+              <stop offset="0%" stop-color="#1f2937"/>
+              <stop offset="100%" stop-color="#0b1220"/>
+            </linearGradient>
+            <linearGradient id="gradProg" x1="0" x2="1">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#9333ea"/>
+            </linearGradient>
+          </defs>
+          <circle cx="90" cy="90" r="80" stroke="url(#gradTrack)" stroke-width="18" fill="none" opacity="0.35"/>
+          <circle id="roiProgress" cx="90" cy="90" r="80" stroke="url(#gradProg)" stroke-width="18" fill="none" stroke-linecap="round" transform="rotate(-90 90 90)"/>
+          <text id="roiText" x="90" y="96" text-anchor="middle" font-size="24" fill="#0f172a" font-weight="800">ROI 1.00</text>
+        </svg>
+        <div class="metric">
+          <div class="big" id="roiLabel">目标 ROI：1.35</div>
+          <div class="desc">以小游戏为入口，将娱乐时间转化为实体消费与品牌资产沉淀。</div>
+         
+        </div>
+      </div>
+      <ul class="list">
+        <li>玩法与权益深度绑定，提升参与与付费意愿。</li>
+        <li>以样板案例快速复制到不同景区与中小企业，形成标准化模板。</li>
+        <li>从广告到交易的闭环，ROI衡量清晰，可持续优化。</li>
+      </ul>
+    </div>
+
+    <!-- 右：闭环模型流动图 -->
+    <div class="card flow">
+      <h3>商业闭环（玩广告→获客→分成→复购）</h3>
+      <p>将 ToB 广告与 ToC 消费打通，形成“娱乐+消费”的双重价值闭环。</p>
+      <svg viewBox="0 0 1200 220" aria-label="闭环路径图">
+        <defs>
+          <linearGradient id="gradLine" x1="0" x2="1">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#9333ea"/>
+          </linearGradient>
+          <radialGradient id="gradPulse">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#9333ea"/>
+          </radialGradient>
+        </defs>
+        <path d="M40,160 C220,20 480,260 720,60 C880,-20 1040,120 1160,140" fill="none" stroke="url(#gradLine)" stroke-width="6" stroke-linecap="round" stroke-opacity="0.85"/>
+        <circle class="mover" r="7" fill="url(#gradPulse)"></circle>
+        <g font-size="40" fill="#334155" font-weight="700">
+          <text x="30" y="36">玩广告</text>
+          <text x="300" y="234">获客</text>
+          <text x="760" y="2">分成</text>
+          <text x="1120" y="206">复购</text>
+        </g>
+      </svg>
+      
+      <ul class="list">
+        <li>用户在“玩广告”的过程中获得现实权益与优惠，转化为实际消费。</li>
+        <li>平台与合作方按交易分成，形成清晰的收益结构。</li>
+        <li>以活动与版本迭代强化复购与复游，实现品牌长效沉淀。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 转化漏斗（认知→互动→权益→消费） -->
+  <div class="card">
+    <h3>转化漏斗（认知→互动→权益→消费）</h3>
+    <p>以“游戏即入口”打造稳定心智，从认知到消费的每层数据皆可视、可优化。</p>
+    <div class="funnel">
+      <div class="bar" style="--w:92%">
+        <div class="fill" style="animation:grow 1.2s ease forwards"></div>
+        <div class="label">认知（覆盖）</div>
+        <div class="value">92%</div>
+      </div>
+      <div class="bar" style="--w:64%">
+        <div class="fill" style="animation:grow 1.2s .1s ease forwards"></div>
+        <div class="label">互动（参与）</div>
+        <div class="value">64%</div>
+      </div>
+      <div class="bar" style="--w:38%">
+        <div class="fill" style="animation:grow 1.2s .2s ease forwards"></div>
+        <div class="label">权益（激励）</div>
+        <div class="value">38%</div>
+      </div>
+      <div class="bar" style="--w:22%">
+        <div class="fill" style="animation:grow 1.2s .3s ease forwards"></div>
+        <div class="label">消费（转化）</div>
+        <div class="value">22%</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="replayFunnel">重播漏斗动画</button>
+      <button class="btn" id="optFunnel">优化方案：提升互动至 72%</button>
+    </div>
+  </div>
+
+  <div class="footer">本页以创新的动效与图表，呈现“游戏即广告”的核心理念与商业闭环设计；强调 ROI＞1、可复制的规模化潜力与零流量成本优势。</div>
+</div>
+
+<script>
+// ROI 仪表逻辑
+(function(){
+  const C= document.getElementById('roiProgress');
+  const T= document.getElementById('roiText');
+  const L= document.getElementById('roiLabel');
+  const circumference= 2*Math.PI*80; // r=80
+  function setROI(v){
+    const clamped= Math.max(0, Math.min(2, v));
+    const ratio= clamped/2; // map [0,2] -> [0,1]
+    const offset= circumference*(1-ratio);
+    C.style.strokeDasharray= circumference;
+    C.style.setProperty('--offset', offset);
+    C.style.animation= `progress 1200ms ease forwards`;
+    T.textContent= `ROI ${v.toFixed(2)}`;
+    L.textContent= `目标 ROI：${v.toFixed(2)}`;
+  }
+  // 初始状态
+  setROI(1.00);
+})();
+
+// 闭环流速度控制
+(function(){
+  const slow= document.getElementById('speedSlow');
+  const fast= document.getElementById('speedFast');
+  const mover= document.querySelector('.mover');
+  slow.addEventListener('click',()=> mover.style.animationDuration='8s');
+  fast.addEventListener('click',()=> mover.style.animationDuration='3s');
+})();
+
+// 漏斗动画控制与优化示例
+(function(){
+  const replay= document.getElementById('replayFunnel');
+  const opt= document.getElementById('optFunnel');
+  const fills= Array.from(document.querySelectorAll('.bar .fill'));
+  function replayAnim(){
+    fills.forEach((el,i)=>{
+      el.style.animation='none';
+      // 触发重排
+      void el.offsetWidth;
+      el.style.animation=`grow 1.2s ${i*0.1}s ease forwards`; 
+    });
+  }
+  function optimize(){
+    const bars= document.querySelectorAll('.bar');
+    bars[1].style.setProperty('--w','72%');
+    fills[1].style.animation='none';
+    void fills[1].offsetWidth;
+    fills[1].style.animation='grow 900ms ease forwards';
+    const v= bars[1].querySelector('.value');
+    v.textContent='72%';
+  }
+  replay.addEventListener('click',replayAnim);
+  opt.addEventListener('click',optimize);
+})();
+</script>
+</body>
+</html>
