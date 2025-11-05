@@ -1,11 +1,9 @@
-import { _decorator, Component, Node, Prefab, instantiate, Sprite, SpriteFrame, Color } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, Sprite, SpriteFrame, Color, Graphics, UITransform, Vec3 } from 'cc';
 import { EDITOR } from 'cc/env';
 const { ccclass, property, executeInEditMode, disallowMultiple, menu } = _decorator;
 
 @ccclass('TileEditorTool')
 @executeInEditMode(true)
-@disallowMultiple()
-@menu('工具/TileEditorTool')
 export class TileEditorTool extends Component {
     @property({ type: Prefab, tooltip: '要生成到每个地块上的预制体' })
     floorPrefab: Prefab | null = null;
@@ -19,6 +17,30 @@ export class TileEditorTool extends Component {
     @property({ type: SpriteFrame, tooltip: '当地块颜色为绿色时使用的图片' })
     greenImage: SpriteFrame | null = null;
 
+    // 运行期：布尔开关，是否显示路径（四向相邻）
+    @property({ tooltip: '运行时是否显示路径（四向相邻）' })
+    showPath: boolean = false;
+    @property({ type: Color, tooltip: '连线颜色' })
+    lineColor: Color = new Color(0, 200, 255, 255);
+    @property({ tooltip: '连线宽度' })
+    lineWidth: number = 2;
+    @property({ type: Node, tooltip: '用于挂载绘制线段的节点（可选）' })
+    lineLayerNode: Node | null = null;
+    @property({ tooltip: '权重矩形尺寸（像素）' })
+    markerSize: number = 10;
+    @property({ type: Node, tooltip: '权重容器（背景节点，决定颜色/成本）' })
+    weightContainerNode: Node | null = null;
+    @property({ type: Node, tooltip: '障碍容器（MapContainer，用于占用/封锁）' })
+    obstacleContainerNode: Node | null = null;
+    @property({ tooltip: '打印调试日志' })
+    debugLog: boolean = true;
+
+    // 运行期：可选的起点与终点 Tile 节点（不设置则自动选择首/尾可通行地块）
+    @property({ type: Node, tooltip: '起点 Tile（可选）' })
+    startTile: Node | null = null;
+    @property({ type: Node, tooltip: '终点 Tile（可选）' })
+    endTile: Node | null = null;
+
     @property({ tooltip: '切换为 true 执行一次处理（执行后会自动恢复为 false）' })
     runOnce = false;
 
@@ -28,6 +50,24 @@ export class TileEditorTool extends Component {
     @property({ tooltip: '切换为 true 开启所有地块图片显示（执行后自动复位）' })
     showSpritesOnce = false;
     private _showRunning = false;
+
+    // ===== 导航图数据（运行时使用） =====
+    private _tilesByName: Map<string, Node> = new Map();
+    private _costByName: Map<string, number> = new Map(); // Infinity 表示不可通行
+    private _neighbors: Map<string, string[]> = new Map();
+    private _currentPath: string[] = [];
+    private _originalColors: Map<string, Color> = new Map();
+    private _lastShowPath: boolean = false;
+    private _lineLayer: Node | null = null;
+    private _lineGraphics: Graphics | null = null;
+    private _navContainer: Node | null = null; // 指向权重容器（背景）
+    private _obstacleContainer: Node | null = null; // 指向障碍容器（MapContainer）
+
+    onLoad() {
+        // 不做自动构建，等待外部显式调用 buildNavigationGraph(container)
+        // 支持在编辑器模式下显示路径
+        this.dbg('onLoad', { EDITOR, showPath: this.showPath, lineLayerNode: this.lineLayerNode?.name || null });
+    }
 
     update() {
         if (!EDITOR) return;
@@ -120,6 +160,13 @@ export class TileEditorTool extends Component {
 
     private getColorType(sprite: Sprite | null): 'white' | 'yellow' | 'green' | null {
         if (!sprite) return null;
+        const frame = sprite.spriteFrame;
+        // 优先基于 SpriteFrame 判断（更可靠，不受颜色混合影响）
+        // if (frame && this.whiteImage && frame === this.whiteImage) return 'white';
+        // if (frame && this.yellowImage && frame === this.yellowImage) return 'yellow';
+        // if (frame && this.greenImage && frame === this.greenImage) return 'green';
+
+        // 兜底：基于颜色近似判断（允许轻微色差）
         const c = sprite.color;
         if (this.colorEquals(c, 255, 255, 255)) return 'white';
         if (this.colorEquals(c, 255, 255, 0)) return 'yellow';
@@ -150,7 +197,8 @@ export class TileEditorTool extends Component {
     }
 
     private colorEquals(color: Color, r: number, g: number, b: number): boolean {
-        return color.r === r && color.g === g && color.b === b;
+        const tol = 2; // 允许小幅色差
+        return Math.abs(color.r - r) <= tol && Math.abs(color.g - g) <= tol && Math.abs(color.b - b) <= tol;
     }
 
     // 取消与预制体的关联：清除内部 _prefab 标记（编辑器环境下）
@@ -162,5 +210,296 @@ export class TileEditorTool extends Component {
             for (const c of n.children) clear(c);
         };
         clear(node);
+    }
+
+    // ====== 运行期：导航图构建与路径可视化 ======
+
+    /**
+     * 构建导航图（从指定容器读取，缺省为当前节点或其子节点中的 MapContainer）。
+     * - 规则：
+     *   1) Tile 下存在除 "Tile_x_y-floor" 以外的子节点 => 视为障碍，不可通行
+     *   2) Floor 精灵图片：whiteImage => 不可通行；yellowImage => 成本 1；greenImage => 成本 5
+     */
+    buildNavigationGraph(obstacleContainer?: Node,weightContainer?: Node) {
+        // 权重容器（背景）决定每个 Tile 的颜色与成本；障碍容器（MapContainer）用于覆写不可通行
+        const weightRoot = weightContainer || this.weightContainerNode || this._navContainer || this.node;
+        const obstacleRoot = obstacleContainer || this.obstacleContainerNode || this._obstacleContainer || null;
+        if (!weightRoot) { this.dbg('buildNavigationGraph skipped: no weight container'); return; }
+        this._navContainer = weightRoot;
+        this._obstacleContainer = obstacleRoot;
+
+        const weightTiles = this.collectTiles(weightRoot);
+        const obstacleTilesMap: Map<string, Node> = new Map();
+        if (obstacleRoot) {
+            for (const t of this.collectTiles(obstacleRoot)) obstacleTilesMap.set(t.name, t);
+        }
+        this.dbg('buildNavigationGraph: weightRoot=', weightRoot.name, 'tiles=', weightTiles.length, 'obstacleRoot=', obstacleRoot ? obstacleRoot.name : 'none', 'obstacleTiles=', obstacleTilesMap.size);
+        this._tilesByName.clear();
+        this._costByName.clear();
+        this._neighbors.clear();
+
+        let blockedCount = 0;
+        let walkableCount = 0;
+        let blockedByObstacle = 0;
+        let blockedByColor = 0;
+        const sampleBlocked: string[] = [];
+        const sampleWalkable: string[] = [];
+
+        for (const tile of weightTiles) {
+            this._tilesByName.set(tile.name, tile);
+
+            // 权重容器不参与占用判断，仅依据颜色确定成本；占用判断在障碍容器进行
+            const floorName = `${tile.name}`;
+            let cost = 1;
+            let blocked = false;
+
+            // 根据 floor 的图片确定成本/障碍
+            console.log(tile.name)
+            const sp =  this.findSprite(tile);
+            const type = this.getColorType(sp);
+            // 新规则：仅黄色(FFFF00)与绿色(00FF5C)可通行，其它颜色不可通行（按背景节点颜色）
+            if (type === 'yellow') {
+                cost = 1;
+            } else if (type === 'green') {
+                cost = 5;
+            } else {
+                blocked = true; blockedByColor++;
+            }
+
+            // 来自障碍容器（MapContainer）的占用覆写：如果对应 Tile 在障碍容器存在且含非 floor 子节点，则视为不可通行
+            if (!blocked && obstacleRoot) {
+                const occ = obstacleTilesMap.get(tile.name);
+                if (occ) {
+                    const occFloorName = `${occ.name}-floor`;
+                    const occHasNonFloorChild = occ.children.some(c => c.name !== occFloorName);
+                    if (occHasNonFloorChild) { blocked = true; blockedByObstacle++; }
+                }
+            }
+
+            this._costByName.set(tile.name, blocked ? Number.POSITIVE_INFINITY : cost);
+
+            if (blocked) {
+                blockedCount++;
+                if (sampleBlocked.length < 5) sampleBlocked.push(tile.name);
+            } else {
+                walkableCount++;
+                if (sampleWalkable.length < 5) sampleWalkable.push(tile.name);
+            }
+        }
+
+        // 邻接（仅四向）：按 Tile_i_j 命名推断
+        for (const [name, tile] of this._tilesByName) {
+            const coords = this.parseTileName(name);
+            if (!coords) continue;
+            const { x, y } = coords;
+            const cand = [
+                `Tile_${x + 1}_${y}`,
+                `Tile_${x - 1}_${y}`,
+                `Tile_${x}_${y + 1}`,
+                `Tile_${x}_${y - 1}`
+            ];
+            const neigh = cand.filter(n => this._tilesByName.has(n));
+            this._neighbors.set(name, neigh);
+        }
+
+        // 统计潜在连线数量（两端都可通行的四向边）
+        let potentialEdges = 0;
+        for (const [u, neigh] of this._neighbors) {
+            const cu = this._costByName.get(u) ?? Number.POSITIVE_INFINITY;
+            if (!isFinite(cu)) continue;
+            for (const v of neigh) {
+                const cv = this._costByName.get(v) ?? Number.POSITIVE_INFINITY;
+                if (!isFinite(cv)) continue;
+                if (u < v) potentialEdges++;
+            }
+        }
+        this.dbg('graph stats', { walkable: walkableCount, blocked: blockedCount, blockedByColor, blockedByObstacle, sampleBlocked, sampleWalkable, edges: potentialEdges });
+    }
+
+    /** 查找最短路径（Dijkstra），仅四向，返回 Tile 名称数组 */
+    private findPath(startName: string, endName: string): string[] {
+        if (!this._tilesByName.has(startName) || !this._tilesByName.has(endName)) return [];
+        const dist = new Map<string, number>();
+        const prev = new Map<string, string | null>();
+        const visited = new Set<string>();
+
+        for (const key of this._tilesByName.keys()) {
+            dist.set(key, Number.POSITIVE_INFINITY);
+            prev.set(key, null);
+        }
+        dist.set(startName, 0);
+
+        const pickMinUnvisited = () => {
+            let bestKey: string | null = null;
+            let bestVal = Number.POSITIVE_INFINITY;
+            for (const [k, v] of dist) {
+                if (!visited.has(k) && v < bestVal) {
+                    bestVal = v;
+                    bestKey = k;
+                }
+            }
+            return bestKey;
+        };
+
+        while (true) {
+            const u = pickMinUnvisited();
+            if (!u) break;
+            if (u === endName) break;
+            visited.add(u);
+            const neigh = this._neighbors.get(u) || [];
+            for (const v of neigh) {
+                const costV = this._costByName.get(v) ?? Number.POSITIVE_INFINITY;
+                if (!isFinite(costV)) continue; // 障碍
+                const alt = (dist.get(u) || Number.POSITIVE_INFINITY) + costV;
+                if (alt < (dist.get(v) || Number.POSITIVE_INFINITY)) {
+                    dist.set(v, alt);
+                    prev.set(v, u);
+                }
+            }
+        }
+
+        // 回溯路径
+        const path: string[] = [];
+        let cur: string | null = endName;
+        if (!isFinite(dist.get(endName) || Number.POSITIVE_INFINITY)) return [];
+        while (cur) {
+            path.unshift(cur);
+            cur = prev.get(cur) || null;
+        }
+        return path;
+    }
+
+    /** 开关开启时更新并可视化：绘制所有可通行相邻地块的连线 */
+    private updatePathVisualization() {
+        if (!this._navContainer) return;
+        this.drawNavLines();
+    }
+
+    private drawNavLines() {
+        const container = this._navContainer || this.node;
+        const g = this.ensureLineLayer(container);
+        g.clear();
+        const lt = this._lineLayer!.getComponent(UITransform)!;
+        this.dbg('drawNavLines: using world coordinates -> line layer local', this._lineLayer?.name);
+
+        let segments = 0;
+        for (const [u, neigh] of this._neighbors) {
+            const costU = this._costByName.get(u) ?? Number.POSITIVE_INFINITY;
+            if (!isFinite(costU)) continue;
+            const n1 = this._tilesByName.get(u);
+            if (!n1) continue;
+            const p1w = n1.worldPosition;
+            const p1 = lt.convertToNodeSpaceAR(p1w);
+            if (!isFinite(p1.x) || !isFinite(p1.y)) continue;
+            for (const v of neigh) {
+                const costV = this._costByName.get(v) ?? Number.POSITIVE_INFINITY;
+                if (!isFinite(costV)) continue;
+                // 避免重复绘制：只在字典序 u < v 时绘制
+                if (u < v) {
+                    const n2 = this._tilesByName.get(v);
+                    if (!n2) continue;
+                    const p2w = n2.worldPosition;
+                    const p2 = lt.convertToNodeSpaceAR(p2w);
+                    if (!isFinite(p2.x) || !isFinite(p2.y)) continue;
+                    // 每条线单独 beginPath + stroke，避免一次性缓存过大导致 typed array 异常
+                    try {
+                        // 路径颜色保持为蓝色/lineColor
+                        g.moveTo(p1.x, p1.y);
+                        g.lineTo(p2.x, p2.y);
+                        g.stroke();
+                        segments++;
+                    } catch (e) {
+                        this.warn('stroke error between', u, 'and', v, e);
+                    }
+                }
+            }
+        }
+        // 额外在每个可通行点绘制矩形表示权重：1 => 黄，5 => 绿
+        let markers = 0;
+        const yellow = new Color(255, 255, 0, 255);
+        const green = new Color(0, 255, 92, 255);
+        for (const [name, node] of this._tilesByName) {
+            const c = this._costByName.get(name) ?? Number.POSITIVE_INFINITY;
+            if (!isFinite(c)) continue;
+            const pw = node.worldPosition;
+            const p = lt.convertToNodeSpaceAR(pw);
+            const size = this.markerSize;
+            if (c === 1) g.fillColor = yellow;
+            else if (c === 5) g.fillColor = green;
+            else continue;
+            try {
+                g.rect(p.x - size / 2, p.y - size / 2, size, size);
+                g.fill();
+                markers++;
+            } catch (e) {
+                this.warn('marker fill error at', name, e);
+            }
+        }
+        this.dbg('drawNavLines done', { segments, markers, lineWidth: this.lineWidth, color: this.lineColor.toHEX ? (this.lineColor as any).toHEX() : `${this.lineColor.r},${this.lineColor.g},${this.lineColor.b}` });
+    }
+
+    private clearPathVisualization() {
+        if (this._lineGraphics) this._lineGraphics.clear();
+        this._originalColors.clear();
+        this._currentPath = [];
+    }
+
+    // 运行期每帧检查布尔开关变化
+    lateUpdate() {
+        // 编辑器与运行期都允许根据布尔开关刷新
+        if (this.showPath !== this._lastShowPath) {
+            this._lastShowPath = this.showPath;
+            if (this.showPath) this.updatePathVisualization();
+            else this.clearPathVisualization();
+        }
+    }
+
+    private ensureLineLayer(container: Node): Graphics {
+        // 若用户在面板指定了挂载节点，则直接在该节点上绘制
+        if (this.lineLayerNode && this.lineLayerNode.isValid) {
+            this._lineLayer = this.lineLayerNode;
+            // 确保有 UITransform 与 Graphics
+            const t = this._lineLayer.getComponent(UITransform) || this._lineLayer.addComponent(UITransform);
+            const ct = container.getComponent(UITransform);
+            if (ct) t.setContentSize(ct.contentSize);
+            this._lineGraphics = this._lineLayer.getComponent(Graphics) || this._lineLayer.addComponent(Graphics);
+            this.dbg('ensureLineLayer: use provided node', this._lineLayer.name);
+        } else {
+            // 未指定则在传入的容器下创建一个临时 NavLines 层
+            if (!this._lineLayer || !this._lineLayer.isValid || this._lineLayer.parent !== container) {
+                if (this._lineLayer && this._lineLayer.isValid) this._lineLayer.destroy();
+                this._lineLayer = new Node('NavLines');
+                this._lineLayer.parent = container;
+                this._lineLayer.setPosition(0, 0, 0);
+                const t = this._lineLayer.addComponent(UITransform);
+                const ct = container.getComponent(UITransform);
+                if (ct) t.setContentSize(ct.contentSize);
+                this._lineGraphics = this._lineLayer.addComponent(Graphics);
+                this.dbg('ensureLineLayer: create temp layer under', container.name);
+            }
+        }
+        const g = this._lineGraphics!;
+        g.lineWidth = this.lineWidth;
+        g.strokeColor = this.lineColor;
+        // 放到最上层（如果在容器下）
+        if (this._lineLayer && this._lineLayer.parent === container) {
+            this._lineLayer.setSiblingIndex(container.children.length - 1);
+        }
+        if (!g) this.warn('Graphics component missing on line layer');
+        return g;
+    }
+
+    private dbg(...args: any[]) {
+        if (this.debugLog) console.log('[TileEditorTool]', ...args);
+    }
+    private warn(...args: any[]) {
+        console.warn('[TileEditorTool]', ...args);
+    }
+
+    /** 外部调用：在导航图已构建的前提下刷新/清除可视化 */
+    public refreshVisualization() {
+        // 编辑器与运行期都可刷新
+        if (this.showPath) this.updatePathVisualization();
+        else this.clearPathVisualization();
     }
 }

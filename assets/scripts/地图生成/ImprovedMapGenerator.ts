@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, UITransform, Sprite, SpriteFrame, Vec3, Camera } from 'cc';
 import { TileSelectionManager } from './TileSelectionManager';
+import { TileEditorTool } from '../工具/TileEditorTool';
 const { ccclass, property } = _decorator;
 
 /**
@@ -25,6 +26,9 @@ export class ImprovedMapGenerator extends Component {
     
     @property({ type: TileSelectionManager, tooltip: '地块选择管理器' })
     tileSelectionManager: TileSelectionManager = null;
+
+    @property({ type: TileEditorTool, tooltip: 'TileEditorTool，用于构建导航图' })
+    tileEditorTool: TileEditorTool = null;
     
     @property({ tooltip: '使用已有地图容器' })
     useExistingMapContainer: boolean = false;
@@ -47,6 +51,12 @@ export class ImprovedMapGenerator extends Component {
         
         if (this.enableTileSelection) {
             this.setupTileSelection();
+        }
+
+        // 生成或读取完成后，触发导航图构建
+        if (this.tileEditorTool && this.getMapContainer()) {
+            this.tileEditorTool.buildNavigationGraph(this.getMapContainer());
+            this.tileEditorTool.refreshVisualization();
         }
     }
     
@@ -71,6 +81,12 @@ export class ImprovedMapGenerator extends Component {
          if (this.enableTileSelection && this.tileSelectionManager) {
              this.tileSelectionManager.updateTiles(this.getAllTiles());
          }
+
+        // 生成后构建导航图
+        if (this.tileEditorTool && this.getMapContainer()) {
+            this.tileEditorTool.buildNavigationGraph(this.getMapContainer());
+            this.tileEditorTool.refreshVisualization();
+        }
     }
     
     /**
@@ -149,7 +165,13 @@ export class ImprovedMapGenerator extends Component {
             this.rows = maxI;
             this.columns = maxJ;
         }
-        
+
+        // 读取现有地图后构建导航图
+        if (this.tileEditorTool && this.getMapContainer()) {
+            this.tileEditorTool.buildNavigationGraph(this.getMapContainer());
+            this.tileEditorTool.refreshVisualization();
+        }
+
         return true;
     }
     
