@@ -5,25 +5,25 @@
 <title>第三页 · 游戏即广告 · 动态理念图谱</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-:root { --bg: #0f172a; --card: #111827; --accent: #38bdf8; --text: #111827; --muted: #9ca3af; --green: #34d399; --orange: #fb923c }
+:root { --bg: #1f1d1b; --card: #24221f; --accent: #a67c52; --accent-2: #6d4c41; --accent-rgb: 166,124,82; --text: #3a3530; --muted: #b0a79d; --green: #34d399; --orange: #fb923c }
 *{box-sizing:border-box}
 body{margin:0;font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;min-height:100vh;background:#ffffff;color:var(--text)}
 .container{max-width:1200px;margin:0 auto;padding:36px;display:grid;grid-template-columns:1fr;gap:24px}
 .header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
 .h1{font-size:36px;font-weight:700;letter-spacing:.5px;color:var(--text)}
 .h2{font-size:22px;font-weight:600;color:var(--accent)}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.35);color:var(--accent);font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(var(--accent-rgb),.15);border:1px solid rgba(var(--accent-rgb),.35);color:var(--accent);font-size:12px}
 .grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:24px}
 .card{background:rgba(255,255,255,.95);border:1px solid rgba(148,163,184,.2);border-radius:14px;padding:20px;box-shadow:0 6px 16px rgba(0,0,0,.08)}
 .card h3{margin:0 0 8px 0;font-size:18px;color:var(--accent);font-weight:700}
 .card p{margin:6px 0;color:var(--muted);font-size:14px}
 .list{margin:10px 0 0 0;padding-left:18px}
-.list li{margin:6px 0;color:#cbd5e1}
+.list li{margin:6px 0;color:#c0b8af}
 .footer{font-size:12px;color:var(--muted)}
 /* 互动控件 */
 .controls{display:flex;gap:10px;align-items:center;margin-top:8px}
-.btn{cursor:pointer;padding:8px 12px;border-radius:10px;border:1px solid #7f92ae;background:#F5F7FA;color:#0f172a}
-.btn:hover{border-color:var(--accent);color:#111827}
+.btn{cursor:pointer;padding:8px 12px;border-radius:10px;border:1px solid #7f92ae;background:#F5F7FA;color:#3a3530}
+.btn:hover{border-color:var(--accent);color:var(--text)}
 /* ROI 仪表盘 */
 .gauge{display:flex;align-items:center;gap:16px}
 .gauge svg{width:160px;height:160px}
@@ -40,8 +40,8 @@ body{margin:0;font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;min-heig
 .mover{offset-path:path("M40,160 C220,20 480,260 720,60 C880,-20 1040,120 1160,140");offset-distance:0%;animation:movePath 4.8s linear infinite}
 /* 转化漏斗 */
 .funnel{display:grid;grid-template-columns:1fr;gap:8px;margin-top:4px}
-.bar{position:relative;height:40px;border-radius:10px;background:linear-gradient(90deg,rgba(56,189,248,.25),rgba(147,51,234,.25));border:1px solid rgba(148,163,184,.25);overflow:hidden}
-.bar .fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#38bdf8,#9333ea);width:0}
+.bar{position:relative;height:40px;border-radius:10px;background:linear-gradient(90deg,rgba(var(--accent-rgb),.25),rgba(109,76,65,.25));border:1px solid rgba(148,163,184,.25);overflow:hidden}
+.bar .fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0}
 @keyframes grow{from{width:0}to{width:var(--w)}}
 .bar .label{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted)}
 .bar .value{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--accent)}
@@ -68,17 +68,17 @@ body{margin:0;font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;min-heig
         <svg viewBox="0 0 180 180" aria-label="ROI 仪表">
           <defs>
             <linearGradient id="gradTrack" x1="0" x2="1">
-              <stop offset="0%" stop-color="#1f2937"/>
-              <stop offset="100%" stop-color="#0b1220"/>
+              <stop offset="0%" stop-color="#2b2a28"/>
+              <stop offset="100%" stop-color="#1f1d1b"/>
             </linearGradient>
             <linearGradient id="gradProg" x1="0" x2="1">
-              <stop offset="0%" stop-color="#38bdf8"/>
-              <stop offset="100%" stop-color="#9333ea"/>
+              <stop offset="0%" stop-color="#a67c52"/>
+              <stop offset="100%" stop-color="#6d4c41"/>
             </linearGradient>
           </defs>
           <circle cx="90" cy="90" r="80" stroke="url(#gradTrack)" stroke-width="18" fill="none" opacity="0.35"/>
           <circle id="roiProgress" cx="90" cy="90" r="80" stroke="url(#gradProg)" stroke-width="18" fill="none" stroke-linecap="round" transform="rotate(-90 90 90)"/>
-          <text id="roiText" x="90" y="96" text-anchor="middle" font-size="24" fill="#0f172a" font-weight="800">ROI 1.00</text>
+          <text id="roiText" x="90" y="96" text-anchor="middle" font-size="24" fill="#3a3530" font-weight="800">ROI 1.00</text>
         </svg>
         <div class="metric">
           <div class="big" id="roiLabel">目标 ROI：1.35</div>
@@ -100,17 +100,17 @@ body{margin:0;font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;min-heig
       <svg viewBox="0 0 1200 220" aria-label="闭环路径图">
         <defs>
           <linearGradient id="gradLine" x1="0" x2="1">
-            <stop offset="0%" stop-color="#38bdf8"/>
-            <stop offset="100%" stop-color="#9333ea"/>
+            <stop offset="0%" stop-color="#a67c52"/>
+            <stop offset="100%" stop-color="#6d4c41"/>
           </linearGradient>
           <radialGradient id="gradPulse">
-            <stop offset="0%" stop-color="#38bdf8"/>
-            <stop offset="100%" stop-color="#9333ea"/>
+            <stop offset="0%" stop-color="#a67c52"/>
+            <stop offset="100%" stop-color="#6d4c41"/>
           </radialGradient>
         </defs>
         <path d="M40,160 C220,20 480,260 720,60 C880,-20 1040,120 1160,140" fill="none" stroke="url(#gradLine)" stroke-width="6" stroke-linecap="round" stroke-opacity="0.85"/>
         <circle class="mover" r="7" fill="url(#gradPulse)"></circle>
-        <g font-size="40" fill="#334155" font-weight="700">
+        <g font-size="40" fill="#4a433d" font-weight="700">
           <text x="30" y="36">玩广告</text>
           <text x="300" y="234">获客</text>
           <text x="760" y="2">分成</text>

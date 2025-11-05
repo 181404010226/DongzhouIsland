@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>实现路径 · Canvas 演示</title>
+    <style>
+        :root {
+            --bg: #f9f7f4;
+            --text: #2c2c2c;
+            --muted: #6b5e54;
+            --accent: #8b5e34; /* 主题棕色 */
+            --accent2: #b38355; /* 次级棕色 */
+            --line: #d9c9b8;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wrap {
+            width: min(92vw, 1200px);
+            /* 16:9 近似比例 */
+            aspect-ratio: 16 / 9.5;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* 右下角轻量说明 */
+        .hint {
+            position: absolute;
+            right: 14px;
+            bottom: 10px;
+            font-size: 12px;
+            color: #8a8a8a;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <canvas id="roadmapCanvas"></canvas>
+        <div class="hint">Canvas 动效：依次呈现要点，可自适应分辨率</div>
+    </div>
+
+    <script>
+        (function(){
+            const canvas = document.getElementById('roadmapCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const data = {
+                title: '实现路径',
+                steps: [
+                    {
+                        label: 'Step1',
+                        subtitle: '短期规划',
+                        bullets: [
+                            '完成2-3个样板景区项目',
+                            '打造>3款文旅主题微信小游戏',
+                            '建立标准化支付流程'
+                        ]
+                    },
+                    {
+                        label: 'Step2',
+                        subtitle: '中长期规划',
+                        bullets: [
+                            '形成产品矩阵与投放体系',
+                            '实现ROI上的稳定模式',
+                            '打造文旅数字化品牌资产'
+                        ]
+                    }
+                ]
+            };
+
+            // 设计基准
+            const DESIGN_W = 1200;
+            const DESIGN_H = 720;
+            let scale = 1; // 逻辑缩放系数
+            let animStart = performance.now();
+
+            function resize(){
+                const dpr = window.devicePixelRatio || 1;
+                const rectW = document.querySelector('.wrap').clientWidth;
+                const rectH = document.querySelector('.wrap').clientHeight;
+
+                canvas.width = Math.floor(rectW * dpr);
+                canvas.height = Math.floor(rectH * dpr);
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                // 以宽度为主做等比缩放
+                scale = rectW / DESIGN_W;
+                draw();
+            }
+
+            // 绘制菱形图标
+            function drawDiamond(x, y, size, fill){
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(Math.PI / 4);
+                ctx.fillStyle = fill;
+                ctx.beginPath();
+                ctx.rect(-size/2, -size/2, size, size);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 圆角矩形
+            function roundRect(x, y, w, h, r){
+                const rr = Math.min(r, h/2, w/2);
+                ctx.beginPath();
+                ctx.moveTo(x+rr, y);
+                ctx.arcTo(x+w, y, x+w, y+h, rr);
+                ctx.arcTo(x+w, y+h, x, y+h, rr);
+                ctx.arcTo(x, y+h, x, y, rr);
+                ctx.arcTo(x, y, x+w, y, rr);
+                ctx.closePath();
+            }
+
+            // 阴影盒
+            function shadowBox(x, y, w, h){
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.08)';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetY = 6;
+                ctx.fillStyle = '#fff';
+                roundRect(x, y, w, h, 16*scale);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function drawHeader(){
+                const titleY = 70 * scale;
+                // 左侧小菱形
+                drawDiamond(60 * scale, titleY - 8*scale, 18 * scale, getStyle('--accent'));
+
+                // 标题
+                ctx.fillStyle = getStyle('--text');
+                ctx.font = `${Math.round(44*scale)}px Microsoft YaHei`;
+                ctx.textAlign = 'left';
+                ctx.fillText(data.title, 90*scale, titleY);
+            }
+
+            function drawStepColumn(step, x, y, w, h, accentColor){
+                // 背景盒
+                shadowBox(x, y, w, h);
+
+                // 标题区
+                const pad = 22 * scale;
+                const lineY = y + 80 * scale;
+                ctx.fillStyle = accentColor;
+                ctx.font = `${Math.round(26*scale)}px Microsoft YaHei`;
+                ctx.textAlign = 'left';
+                ctx.fillText(step.label, x + pad, y + 42*scale);
+
+                ctx.fillStyle = getStyle('--muted');
+                ctx.font = `${Math.round(20*scale)}px Microsoft YaHei`;
+                ctx.fillText(step.subtitle, x + pad, y + 72*scale);
+
+                // 分隔线
+                ctx.strokeStyle = getStyle('--line');
+                ctx.lineWidth = 2 * scale;
+                ctx.beginPath();
+                ctx.moveTo(x + pad, lineY);
+                ctx.lineTo(x + w - pad, lineY);
+                ctx.stroke();
+
+                // 项目点：顺序动画出现
+                const bullets = step.bullets;
+                const startY = lineY + 34*scale;
+                const rowH = 42 * scale;
+                for(let i=0;i<bullets.length;i++){
+                    const appearT = 400 + i * 350; // 每个要点延迟
+                    const elapsed = performance.now() - animStart;
+                    const alpha = Math.max(0, Math.min(1, (elapsed - appearT) / 400));
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+
+                    // 勾选图标圆 + 斜勾
+                    const cx = x + pad + 10*scale;
+                    const cy = startY + i * rowH - 6*scale;
+                    ctx.fillStyle = '#f5efe8';
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 9*scale, 0, Math.PI*2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = accentColor;
+                    ctx.lineWidth = 3 * scale;
+                    ctx.beginPath();
+                    ctx.moveTo(cx-6*scale, cy);
+                    ctx.lineTo(cx-1*scale, cy+6*scale);
+                    ctx.lineTo(cx+8*scale, cy-6*scale);
+                    ctx.stroke();
+
+                    // 文本
+                    ctx.fillStyle = getStyle('--text');
+                    ctx.font = `${Math.round(18*scale)}px Microsoft YaHei`;
+                    ctx.textAlign = 'left';
+                    ctx.fillText(bullets[i], x + pad + 26*scale, startY + i * rowH);
+                    ctx.restore();
+                }
+            }
+
+            function getStyle(varName){
+                return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+            }
+
+            function draw(){
+                // 清屏
+                const wrap = document.querySelector('.wrap');
+                ctx.clearRect(0, 0, wrap.clientWidth, wrap.clientHeight);
+
+                // 背景淡纹理
+                const grad = ctx.createLinearGradient(0, 0, wrap.clientWidth, wrap.clientHeight);
+                grad.addColorStop(0, 'rgba(139,94,52,0.06)');
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, wrap.clientWidth, wrap.clientHeight);
+
+                drawHeader();
+
+                // 两栏布局
+                const totalPadX = 64 * scale;
+                const colGap = 32 * scale;
+                const colW = (DESIGN_W - totalPadX*2 - colGap) / 2 * scale;
+                const colH = 440 * scale;
+                const colY = 120 * scale;
+
+                // 左列 Step1
+                drawStepColumn(data.steps[0], totalPadX, colY, colW, colH, getStyle('--accent'));
+                // 右列 Step2
+                drawStepColumn(data.steps[1], totalPadX + colW + colGap, colY, colW, colH, getStyle('--accent2'));
+            }
+
+            function tick(){
+                draw();
+                requestAnimationFrame(tick);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            tick();
+        })();
+    </script>
+</body>
+</html>

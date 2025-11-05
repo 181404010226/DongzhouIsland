@@ -7,14 +7,16 @@
     <style>
         :root {
             --bg: #ffffff;
-            --accent: #38bdf8;
-            --secondary: #1e293b;
-            --text: #f1f5f9;
-            --text-muted: #94a3b8;
+            --accent: #a67c52;
+            --accent-2: #6d4c41;
+            --accent-rgb: 166, 124, 82;
+            --secondary: #2f2e2c;
+            --text: #f3f4f6;
+            --text-muted: #c0b8af;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient: linear-gradient(135deg, #a1887f 0%, #6d4c41 100%);
         }
 
         * {
@@ -53,14 +55,14 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
+            background: radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.1) 0%, transparent 70%);
             animation: pulse 3s ease-in-out infinite;
         }
 
         .main-title {
             font-size: 3.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -90,12 +92,12 @@
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(var(--accent-rgb), 0.2);
         }
 
         .advantage-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 20px 40px rgba(var(--accent-rgb), 0.2);
             border-color: var(--accent);
         }
 
@@ -106,14 +108,14 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--accent), #8b5cf6);
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
         }
 
         .advantage-number {
             display: inline-block;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -146,7 +148,7 @@
         }
 
         .highlight-item {
-            background: rgba(56, 189, 248, 0.1);
+            background: rgba(var(--accent-rgb), 0.1);
             padding: 20px;
             border-radius: 10px;
             border-left: 4px solid var(--accent);
@@ -154,7 +156,7 @@
         }
 
         .highlight-item:hover {
-            background: rgba(56, 189, 248, 0.2);
+            background: rgba(var(--accent-rgb), 0.2);
             transform: translateX(10px);
         }
 
@@ -269,7 +271,7 @@
             left: 0;
             width: 0%;
             height: 4px;
-            background: linear-gradient(90deg, var(--accent), #8b5cf6);
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
             z-index: 1000;
             transition: width 0.3s ease;
         }

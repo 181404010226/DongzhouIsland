@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>持续学习与人才壁垒 · Canvas</title>
+    <style>
+        :root {
+            --bg: #f7f5f2;
+            --text: #242424;
+            --muted: #5f5b56;
+            --accent: #6f3f1f; 
+            --accent-soft: #a67145;
+            --line: #ccb8a3;
+        }
+
+        body { margin: 0; background: var(--bg); font-family: "Microsoft YaHei","PingFang SC","Noto Sans SC",Arial,sans-serif; display: flex; min-height: 100vh; align-items: center; justify-content: center; }
+        .stage { width: min(92vw, 1200px); aspect-ratio: 16 / 9.5; background: #fff; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,.08); border: 1px solid rgba(0,0,0,.05); position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; }
+        .hint { position: absolute; right: 14px; bottom: 10px; font-size: 12px; color: #8a8a8a; user-select: none; }
+    </style>
+</head>
+<body>
+    <div class="stage">
+        <canvas id="talentCanvas"></canvas>
+        <div class="hint">不同样式：顶部横条 + 圆编号，顺序动画</div>
+    </div>
+    <script>
+        (function(){
+            const canvas = document.getElementById('talentCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const MODEL_W = 1200; // 设计参考宽度
+            const MODEL_H = 720;  // 设计参考高度
+            let scale = 1;
+            let startTime = performance.now();
+
+            const data = {
+                title: '持续学习与人才壁垒',
+                left: {
+                    title: '技术提升',
+                    bullets: ['强化AIGC与数据分析','持续深造AI与图形学']
+                },
+                right: {
+                    title: '人才培养',
+                    bullets: ['发展技术社区组织','建立人才培养机制','构建人才壁垒']
+                }
+            };
+
+            function getStyle(name){
+                return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            }
+
+            function resize(){
+                const dpr = window.devicePixelRatio || 1;
+                const w = document.querySelector('.stage').clientWidth;
+                const h = document.querySelector('.stage').clientHeight;
+                canvas.width = Math.floor(w * dpr);
+                canvas.height = Math.floor(h * dpr);
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                scale = w / MODEL_W;
+                draw();
+            }
+
+            function drawDiamond(x, y, size, color){
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(Math.PI/4);
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.rect(-size/2, -size/2, size, size);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function drawHeader(){
+                const y = 74 * scale;
+                drawDiamond(56*scale, y - 10*scale, 18*scale, getStyle('--accent'));
+                drawDiamond(72*scale, y - 10*scale, 10*scale, getStyle('--accent-soft'));
+                ctx.fillStyle = getStyle('--text');
+                ctx.font = `${Math.round(40*scale)}px Microsoft YaHei`;
+                ctx.textAlign = 'left';
+                ctx.fillText(data.title, 96*scale, y);
+            }
+
+            function drawTopBar(x, y, w, color){
+                ctx.save();
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, w, 8*scale);
+                ctx.restore();
+            }
+
+            function drawColumn(column, x, y, w, h, index){
+                drawTopBar(x, y, w, index === 0 ? getStyle('--accent') : getStyle('--accent-soft'));
+                ctx.fillStyle = getStyle('--text');
+                ctx.font = `${Math.round(22*scale)}px Microsoft YaHei`;
+                ctx.textAlign = 'left';
+                ctx.fillText(column.title, x, y + 34*scale);
+
+                ctx.strokeStyle = getStyle('--line');
+                ctx.lineWidth = 2*scale;
+                ctx.beginPath();
+                ctx.moveTo(x, y + 54*scale);
+                ctx.lineTo(x + w, y + 54*scale);
+                ctx.stroke();
+
+                const baseY = y + 88*scale;
+                const rowH = 42 * scale;
+                for(let i=0;i<column.bullets.length;i++){
+                    const delay = 300 + i * 320; // 顺序出现
+                    const elapsed = performance.now() - startTime;
+                    const a = Math.max(0, Math.min(1, (elapsed - delay) / 420));
+                    ctx.save();
+                    ctx.globalAlpha = a;
+                    // 左侧圆点
+                    ctx.fillStyle = index === 0 ? getStyle('--accent') : getStyle('--accent-soft');
+                    const cy = baseY + i * rowH - 6*scale;
+                    ctx.beginPath();
+                    ctx.arc(x + 8*scale, cy, 4.5*scale, 0, Math.PI*2);
+                    ctx.fill();
+                    // 文本
+                    ctx.fillStyle = getStyle('--text');
+                    ctx.font = `${Math.round(18*scale)}px Microsoft YaHei`;
+                    ctx.textAlign = 'left';
+                    ctx.fillText(column.bullets[i], x + 22*scale, baseY + i * rowH);
+                    ctx.restore();
+                }
+
+                // 底部圆编号
+                const circleR = 16 * scale;
+                const cx = x + w * 0.08;
+                const cy = y + h - 48*scale;
+                ctx.fillStyle = '#efefef';
+                ctx.beginPath();
+                ctx.arc(cx, cy, circleR, 0, Math.PI*2);
+                ctx.fill();
+                ctx.strokeStyle = getStyle('--line');
+                ctx.lineWidth = 1.5*scale;
+                ctx.stroke();
+                ctx.fillStyle = getStyle('--muted');
+                ctx.font = `${Math.round(14*scale)}px Microsoft YaHei`;
+                ctx.textAlign = 'center';
+                ctx.fillText(index===0?'01':'02', cx, cy + 5*scale);
+            }
+
+            function drawBackground(){
+                const s = document.querySelector('.stage');
+                const grd = ctx.createLinearGradient(0, 0, s.clientWidth, s.clientHeight);
+                grd.addColorStop(0, 'rgba(167,113,69,0.06)');
+                grd.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = grd;
+                ctx.fillRect(0, 0, s.clientWidth, s.clientHeight);
+            }
+
+            function draw(){
+                const s = document.querySelector('.stage');
+                ctx.clearRect(0, 0, s.clientWidth, s.clientHeight);
+                drawBackground();
+                drawHeader();
+
+                const padX = 72 * scale;
+                const gap = 40 * scale;
+                const colW = (MODEL_W - padX*2 - gap) / 2 * scale;
+                const colH = 420 * scale;
+                const colY = 120 * scale;
+                drawColumn(data.left, padX, colY, colW, colH, 0);
+                drawColumn(data.right, padX + colW + gap, colY, colW, colH, 1);
+            }
+
+            function tick(){
+                draw();
+                requestAnimationFrame(tick);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            tick();
+        })();
+    </script>
+</body>
+</html>
