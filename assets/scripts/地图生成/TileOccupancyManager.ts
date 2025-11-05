@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransform, Camera, Color, CCString, sys, Canvas, view } from 'cc';
+import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransform, Camera, Color, CCString, sys, Canvas, view, Rect } from 'cc';
 import { BuildInfo } from './BuildInfo';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
 import { BuildingManager } from './BuildingManager';
@@ -28,7 +28,9 @@ export class TileOccupancyManager extends Component {
     @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
     mapGenerator: ImprovedMapGenerator = null;
     
-
+    @property({ type: [Node], tooltip: '可建造区域节点数组（每个节点需带UITransform）' })
+    buildableRegions: Node[] = [];
+    
     
     // 编辑器只读字段：已放置建筑节点索引
     @property({ type: [Node], readonly: true, tooltip: '当前已放置的建筑节点列表（编辑器查看）' })
@@ -59,6 +61,11 @@ export class TileOccupancyManager extends Component {
                 // 检查地块是否已被占用
                 const tileKey = `${r}_${c}`;
                 if (this.tileOccupancyMap.has(tileKey)) {
+                    return false;
+                }
+
+                // 检查地块中心是否在可建造区域内
+                if (!this.isTileIndexInBuildableRegions(r, c)) {
                     return false;
                 }
             }
@@ -420,6 +427,44 @@ export class TileOccupancyManager extends Component {
         this.clearAllOccupancy();
         
 
+    }
+
+    /**
+     * 判断指定地块索引的地块中心是否在可建造区域内
+     * 当未设置区域或数组为空时，默认允许建造
+     */
+    private isTileIndexInBuildableRegions(row: number, col: number): boolean {
+        // 未配置区域时，默认可建造
+        if (!this.buildableRegions || this.buildableRegions.length === 0) {
+            return true;
+        }
+        const tile = this.getTileByKey(`${row}_${col}`);
+        if (!tile || !tile.isValid) {
+            return false;
+        }
+        const center = tile.getWorldPosition();
+        
+        for (const region of this.buildableRegions) {
+            if (!region || !region.isValid) continue;
+            const ui = region.getComponent(UITransform);
+            if (!ui) continue;
+            
+            // 将世界坐标转换为区域节点的本地坐标（考虑旋转与缩放，AR表示以锚点为原点）
+            const localPos = ui.convertToNodeSpaceAR(new Vec3(center.x, center.y, 0));
+            const w = ui.width;
+            const h = ui.height;
+            const ax = ui.anchorPoint.x;
+            const ay = ui.anchorPoint.y;
+            const minX = -ax * w;
+            const maxX = (1 - ax) * w;
+            const minY = -ay * h;
+            const maxY = (1 - ay) * h;
+            
+            if (localPos.x >= minX && localPos.x <= maxX && localPos.y >= minY && localPos.y <= maxY) {
+                return true;
+            }
+        }
+        return false;
     }
     
     
