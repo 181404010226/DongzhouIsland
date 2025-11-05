@@ -174510,6 +174510,10 @@
     "tileSelectionManager": {
       "__id__": 5444
     },
+    "useExistingMapContainer": true,
+    "existingMapContainer": {
+      "__id__": 2141
+    },
     "_id": "42lE6LAnZLy7apqxORS+rr"
   },
   {

@@ -26,11 +26,24 @@ export class ImprovedMapGenerator extends Component {
     @property({ type: TileSelectionManager, tooltip: '地块选择管理器' })
     tileSelectionManager: TileSelectionManager = null;
     
+    @property({ tooltip: '使用已有地图容器' })
+    useExistingMapContainer: boolean = false;
+
+    @property({ type: Node, tooltip: '已有的地图容器节点（可选）' })
+    existingMapContainer: Node = null;
+    
     private mapContainer: Node = null;
     private allTiles: Node[] = []; // 存储所有地块的数组
     
     start() {
-        this.generateMap();
+        let loadedFromExisting = false;
+        if (this.useExistingMapContainer) {
+            loadedFromExisting = this.loadMapFromExistingContainer();
+        }
+        
+        if (!loadedFromExisting) {
+            this.generateMap();
+        }
         
         if (this.enableTileSelection) {
             this.setupTileSelection();
@@ -88,6 +101,56 @@ export class ImprovedMapGenerator extends Component {
         
         // 设置容器位置
         this.mapContainer.setPosition(0, 0, 0);
+    }
+    
+    /**
+     * 从已有的地图容器读取地图数据，不重新生成
+     */
+    loadMapFromExistingContainer(container?: Node): boolean {
+        const target = container || this.existingMapContainer || this.node.getChildByName('MapContainer');
+        if (!target) {
+            console.warn('未找到现有的MapContainer，无法读取地图');
+            return false;
+        }
+        
+        // 绑定容器并收集所有 tile 子节点
+        this.mapContainer = target;
+        this.allTiles = [];
+        for (const child of target.children) {
+            if (child.name.startsWith('Tile')) {
+                this.allTiles.push(child);
+            }
+        }
+        
+        // 推断地块尺寸（旋转的正方形对角线长度）
+        if (this.allTiles.length > 0) {
+            const t = this.allTiles[0].getComponent(UITransform);
+            if (t) {
+                const side = t.contentSize.width; // 假设正方形
+                if (side > 0) {
+                    this.tileSize = side * Math.sqrt(2);
+                }
+            }
+        }
+        
+        // 根据名称 Tile_i_j 推断行列（若存在该命名）
+        let maxI = 0;
+        let maxJ = 0;
+        for (const tile of this.allTiles) {
+            const m = tile.name.match(/^Tile_(\d+)_([0-9]+)$/);
+            if (m) {
+                const i = parseInt(m[1]);
+                const j = parseInt(m[2]);
+                if (!isNaN(i) && i > maxI) maxI = i;
+                if (!isNaN(j) && j > maxJ) maxJ = j;
+            }
+        }
+        if (maxI > 0 && maxJ > 0) {
+            this.rows = maxI;
+            this.columns = maxJ;
+        }
+        
+        return true;
     }
     
     /**
@@ -262,6 +325,13 @@ export class ImprovedMapGenerator extends Component {
      * 重新生成地图（供外部调用）
      */
     regenerateMap() {
+        if (this.useExistingMapContainer) {
+            const ok = this.loadMapFromExistingContainer();
+            if (ok && this.enableTileSelection && this.tileSelectionManager) {
+                this.tileSelectionManager.updateTiles(this.getAllTiles());
+            }
+            return;
+        }
         this.generateMap();
     }
     
@@ -273,6 +343,14 @@ export class ImprovedMapGenerator extends Component {
     setMapSize(rows: number, cols: number) {
         this.rows = Math.max(1, rows);
         this.columns = Math.max(1, cols);
+        if (this.useExistingMapContainer) {
+            // 使用现有容器时不重新生成，仅更新选择管理器配置
+            if (this.enableTileSelection && this.tileSelectionManager) {
+                const mapConfig = { rows: this.rows, columns: this.columns, tileSize: this.tileSize };
+                this.tileSelectionManager.initialize(this.getAllTiles(), mapConfig);
+            }
+            return;
+        }
         this.generateMap();
     }
     
@@ -282,6 +360,13 @@ export class ImprovedMapGenerator extends Component {
      */
     setTileSize(size: number) {
         this.tileSize = Math.max(10, size);
+        if (this.useExistingMapContainer) {
+            if (this.enableTileSelection && this.tileSelectionManager) {
+                const mapConfig = { rows: this.rows, columns: this.columns, tileSize: this.tileSize };
+                this.tileSelectionManager.initialize(this.getAllTiles(), mapConfig);
+            }
+            return;
+        }
         this.generateMap();
     }
     
@@ -378,6 +463,15 @@ export class ImprovedMapGenerator extends Component {
      */
     getMapContainer(): Node {
         return this.mapContainer;
+    }
+    
+    /**
+     * 设置并启用现有的地图容器
+     */
+    setExistingMapContainer(container: Node) {
+        this.existingMapContainer = container;
+        this.useExistingMapContainer = true;
+        this.regenerateMap();
     }
     
     /**
