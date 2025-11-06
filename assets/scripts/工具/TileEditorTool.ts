@@ -32,6 +32,9 @@ export class TileEditorTool extends Component {
     weightContainerNode: Node | null = null;
     @property({ type: Node, tooltip: '障碍容器（MapContainer，用于占用/封锁）' })
     obstacleContainerNode: Node | null = null;
+    // 特殊景区出入口（可选，直接指定为场景中的节点）
+    @property({ type: [Node], tooltip: '特殊景区出入口节点数组（与导航最近点相连，权重0）' })
+    scenicEntranceNodes: Node[] = [];
     @property({ tooltip: '打印调试日志' })
     debugLog: boolean = true;
 
@@ -62,6 +65,7 @@ export class TileEditorTool extends Component {
     private _lineGraphics: Graphics | null = null;
     private _navContainer: Node | null = null; // 指向权重容器（背景）
     private _obstacleContainer: Node | null = null; // 指向障碍容器（MapContainer）
+    private _entranceCounter = 0; // 生成唯一入口名称用
 
     onLoad() {
         // 不做自动构建，等待外部显式调用 buildNavigationGraph(container)
@@ -271,7 +275,8 @@ export class TileEditorTool extends Component {
                 const occ = obstacleTilesMap.get(tile.name);
                 if (occ) {
                     const occFloorName = `${occ.name}-floor`;
-                    const occHasNonFloorChild = occ.children.some(c => c.name !== occFloorName);
+                    // 忽略名为 enter 的子节点（建筑入口不会导致该 Tile 变为障碍）
+                    const occHasNonFloorChild = occ.children.some(c => c.name !== occFloorName && !this.isEntranceNode(c));
                     if (occHasNonFloorChild) { blocked = true; blockedByObstacle++; }
                 }
             }
@@ -302,6 +307,11 @@ export class TileEditorTool extends Component {
             this._neighbors.set(name, neigh);
         }
 
+        // 计算完基础导航图后：收集并连接所有入口到最近可通行点
+        const obstacleEntrances = this.collectObstacleEntrances(obstacleRoot);
+        const externalEntrances = (this.scenicEntranceNodes || []).filter(n => n && n.isValid);
+        this.connectEntrancesToNearestTiles([...obstacleEntrances, ...externalEntrances]);
+
         // 统计潜在连线数量（两端都可通行的四向边）
         let potentialEdges = 0;
         for (const [u, neigh] of this._neighbors) {
@@ -314,6 +324,75 @@ export class TileEditorTool extends Component {
             }
         }
         this.dbg('graph stats', { walkable: walkableCount, blocked: blockedCount, blockedByColor, blockedByObstacle, sampleBlocked, sampleWalkable, edges: potentialEdges });
+    }
+
+    /** 在障碍容器中收集名为 enter 的入口节点 */
+    private collectObstacleEntrances(obstacleRoot: Node | null): Node[] {
+        const result: Node[] = [];
+        if (!obstacleRoot) return result;
+        for (const tile of this.collectTiles(obstacleRoot)) {
+            for (const c of tile.children) {
+                for (const enter of c.children) {
+                    if (this.isEntranceNode(enter)) result.push(enter);
+                }
+            }
+        }
+        this.dbg('collectObstacleEntrances', { count: result.length });
+        return result;
+    }
+
+    /** 入口节点命名规则，保证唯一 */
+    private makeEntranceKey(n: Node): string {
+        const id = (n as any).uuid || `${Date.now()}_${++this._entranceCounter}`;
+        return `Enter_${id}`;
+    }
+
+    /** 判断是否为入口节点（名称为 enter） */
+    private isEntranceNode(n: Node): boolean {
+        return /^enter$/i.test(n.name);
+    }
+
+    /**
+     * 将每个入口连接到最近的可通行 Tile（双向邻接），入口权重设为 0。
+     * 入口只参与绘制与起终点使用，不改变原有 Tile 成本。
+     */
+    private connectEntrancesToNearestTiles(entrances: Node[]): void {
+        let connected = 0;
+        // 仅在已有可通行点时进行
+        const walkableTiles: string[] = [];
+        for (const [name, cost] of this._costByName) {
+            const isTile = !!this.parseTileName(name);
+            if (isTile && isFinite(cost)) walkableTiles.push(name);
+        }
+        if (walkableTiles.length === 0) { this.dbg('connectEntrancesToNearestTiles skipped: no walkable tiles'); return; }
+
+        for (const ent of entrances) {
+            if (!ent || !ent.isValid) continue;
+            const entPos = ent.worldPosition;
+            let bestName: string | null = null;
+            let bestDist = Number.POSITIVE_INFINITY;
+            for (const tname of walkableTiles) {
+                const tnode = this._tilesByName.get(tname);
+                if (!tnode) continue;
+                const tp = tnode.worldPosition;
+                const dx = entPos.x - tp.x;
+                const dy = entPos.y - tp.y; // 忽略 z 维度，按平面距离
+                const d2 = dx * dx + dy * dy;
+                if (d2 < bestDist) { bestDist = d2; bestName = tname; }
+            }
+            if (!bestName) { this.warn('entrance has no nearest tile', ent.name); continue; }
+            const key = this.makeEntranceKey(ent);
+            // 注册入口点
+            this._tilesByName.set(key, ent);
+            this._costByName.set(key, 0);
+            // 建立双向邻接
+            const nlist = this._neighbors.get(bestName) || [];
+            nlist.push(key);
+            this._neighbors.set(bestName, nlist);
+            this._neighbors.set(key, [bestName]);
+            connected++;
+        }
+        this.dbg('connectEntrancesToNearestTiles', { connected });
     }
 
     /** 查找最短路径（Dijkstra），仅四向，返回 Tile 名称数组 */
@@ -414,8 +493,9 @@ export class TileEditorTool extends Component {
                 }
             }
         }
-        // 额外在每个可通行点绘制矩形表示权重：1 => 黄，5 => 绿
+        // 额外在每个可通行点绘制矩形表示权重：0 => 红，1 => 黄，5 => 绿
         let markers = 0;
+        const red = new Color(255, 0, 0, 255);
         const yellow = new Color(255, 255, 0, 255);
         const green = new Color(0, 255, 92, 255);
         for (const [name, node] of this._tilesByName) {
@@ -424,7 +504,8 @@ export class TileEditorTool extends Component {
             const pw = node.worldPosition;
             const p = lt.convertToNodeSpaceAR(pw);
             const size = this.markerSize;
-            if (c === 1) g.fillColor = yellow;
+            if (c === 0) g.fillColor = red;
+            else if (c === 1) g.fillColor = yellow;
             else if (c === 5) g.fillColor = green;
             else continue;
             try {
