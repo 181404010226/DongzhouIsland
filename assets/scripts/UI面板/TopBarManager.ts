@@ -1,4 +1,4 @@
-import { _decorator, Component, find, tween, Vec3 } from 'cc';
+import { _decorator, Component, find, tween, Vec3, Tween, Node } from 'cc';
 import { NumberDisplayComponent } from '../组件/NumberDisplayComponent';
 const { ccclass, property } = _decorator;
 
@@ -23,6 +23,14 @@ export class TopBarManager extends Component {
     // 私有属性
     private coinsDisplay: NumberDisplayComponent | null = null;
     private trafficFlowDisplay: NumberDisplayComponent | null = null;
+
+    // 金币动画：控制字体放大效果，避免多次触发叠加变大
+    private coinsBaseScale: Vec3 | null = null;
+    private coinsScaleTween: Tween<Node> | null = null;
+    private readonly coinsPulseUpFactor: number = 1.12; // 单次放大倍数
+    private readonly coinsPulseMaxFactor: number = 1.25; // 放大上限（相对基础倍数）
+    private readonly coinsPulseUpTime: number = 0.12; // 放大时长
+    private readonly coinsPulseDownTime: number = 0.18; // 回落时长
     
     // 静态实例引用，方便其他系统调用
     private static instance: TopBarManager = null;
@@ -160,15 +168,8 @@ export class TopBarManager extends Component {
             })
             .start();
 
-        // 视觉反馈：金币数字节点轻微放大回弹
-        if (this.coinsDisplay && this.coinsDisplay.node && this.coinsDisplay.node.isValid) {
-            const node = this.coinsDisplay.node;
-            const original = node.scale.clone();
-            tween(node)
-                .to(0.12, { scale: new Vec3(original.x * 1.15, original.y * 1.15, original.z) })
-                .to(0.18, { scale: original })
-                .start();
-        }
+        // 视觉反馈：金币数字节点放大回弹（受控，避免叠加变大）
+        this.playCoinsPulse();
     }
     
     /**
@@ -284,5 +285,48 @@ export class TopBarManager extends Component {
             console.error('[顶部面板管理器] 实例不存在，无法扣除金币');
             return false;
         }
+    }
+
+    /**
+     * 金币字体放大动画（受控）
+     * - 停止旧动画，归位到基础缩放
+     * - 单次放大到限定倍数，再回落
+     * - 避免多次触发导致累计变大
+     */
+    private playCoinsPulse(): void {
+        if (!this.coinsDisplay || !this.coinsDisplay.node || !this.coinsDisplay.node.isValid) {
+            return;
+        }
+        const node = this.coinsDisplay.node;
+
+        // 初始化基础缩放（仅一次）
+        if (!this.coinsBaseScale) {
+            this.coinsBaseScale = node.scale.clone();
+        }
+
+        // 停止旧的缩放动画并清空引用
+        if (this.coinsScaleTween) {
+            try { this.coinsScaleTween.stop(); } catch {}
+            this.coinsScaleTween = null;
+        }
+
+        // 每次新动画前强制归位，避免多次触发累计变大
+        node.setScale(this.coinsBaseScale!);
+
+        // 计算目标缩放（受放大上限约束）
+        const maxFactor = this.coinsPulseMaxFactor;
+        const upFactor = Math.min(this.coinsPulseUpFactor, maxFactor);
+        const target = new Vec3(
+            this.coinsBaseScale!.x * upFactor,
+            this.coinsBaseScale!.y * upFactor,
+            this.coinsBaseScale!.z
+        );
+
+        // 执行受控放大回落动画
+        this.coinsScaleTween = tween(node)
+            .to(this.coinsPulseUpTime, { scale: target })
+            .to(this.coinsPulseDownTime, { scale: this.coinsBaseScale! })
+            .call(() => { this.coinsScaleTween = null; })
+            .start();
     }
 }
