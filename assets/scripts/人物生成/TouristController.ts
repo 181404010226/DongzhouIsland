@@ -1,5 +1,5 @@
-import { _decorator, Component, Node, Vec3, tween, Tween, CCString } from 'cc';
-import { NavigationSystem } from './NavigationSystem';
+import { _decorator, Component, Node, Vec3, tween, Tween, CCString, director } from 'cc';
+import { TileEditorTool } from '../工具/TileEditorTool';
 const { ccclass, property } = _decorator;
 
 /**
@@ -46,7 +46,7 @@ export class TouristController extends Component {
      * 移动速度（像素/秒）
      */
     @property
-    moveSpeed: number = 10;
+    moveSpeed: number = 100;
     
     /**
      * 到达目标点的检测范围
@@ -106,9 +106,9 @@ export class TouristController extends Component {
     private isStaying: boolean = false;
     
     /**
-     * 导航系统引用
+     * TileEditorTool 引用
      */
-    private navigationSystem: NavigationSystem = null;
+    private tileEditorTool: TileEditorTool = null;
     
     
     /**
@@ -174,35 +174,39 @@ export class TouristController extends Component {
      * 重新计算路径（带冷却时间）
      */
     private recalculatePathIfNeeded(): void {
-        const currentTime = Date.now() / 1000;
-        
-        // 检查冷却时间
-        if (currentTime - this._lastPathRecalculationTime < this._pathRecalculationCooldown) {
+        // 仅在“要移动过去的点”变为不可通行时重新计算路径
+        if (!this.tileEditorTool || !this._finalDestination) {
             return;
         }
-        
-        // 检测是否有障碍
-        if (!this.checkForObstacles()) {
+
+        // 场景1：正在移动到某个目标点，过程中该点变为不可通行
+        if (this.isMoving && this._targetPoint) {
+            const walkable = this.tileEditorTool.isNavigationPointWalkable(this._targetPoint);
+            if (!walkable) {
+                console.warn(`目标点变为不可通行，重新规划路径: ${this._targetPoint}`);
+                this.stopMoving();
+                this.stopFollowingPath();
+                this.navigateToDestination();
+            }
             return;
         }
-        
-        console.log(`重新计算路径，从 ${this._currentPoint} 到 ${this._finalDestination}`);
-        
-        // 停止当前移动
-        this.stopMoving();
-        this.stopFollowingPath();
-        
-        // 重新计算路径
-        this.navigateToDestination();
-        
-        // 更新重新计算时间
-        this._lastPathRecalculationTime = currentTime;
+
+        // 场景2：准备开始移动到路径中的下一个节点，但该节点当前不可通行
+        if (!this.isMoving && this._isFollowingPath && this._currentPathIndex < this._currentPath.length) {
+            const nextPoint = this._currentPath[this._currentPathIndex];
+            const walkable = this.tileEditorTool.isNavigationPointWalkable(nextPoint);
+            if (!walkable) {
+                console.warn(`下一节点不可通行，重新规划路径: ${nextPoint}`);
+                this.stopFollowingPath();
+                this.navigateToDestination();
+            }
+        }
     }
     
     start() {
-        this.navigationSystem = NavigationSystem.getInstance();
-        if (!this.navigationSystem) {
-            console.error('导航系统未初始化');
+        this.tileEditorTool = this.getTileEditorTool();
+        if (!this.tileEditorTool) {
+            console.error('TileEditorTool 未找到');
             return;
         }
         
@@ -211,17 +215,14 @@ export class TouristController extends Component {
             this.findNearestNavigationPoint();
         }
         
-        // 在导航系统中注册当前游客
-        if (this._currentPoint) {
-            this.navigationSystem.registerTouristAtPoint(this._currentPoint, this);
-        }
+        // 当前点已设置，无需在导航系统注册
         
         // 初始化只读字段显示
         this.updateReadonlyFields();
     }
     
     update(deltaTime: number) {
-        if (!this.navigationSystem) {
+        if (!this.tileEditorTool) {
             return;
         }
         
@@ -246,14 +247,29 @@ export class TouristController extends Component {
         
         // 如果没有在移动且没有在停留，且正在跟随路径，开始移动
         if (!this.isMoving && !this.isStaying && this._isFollowingPath && this._currentPath.length > 0 && this._currentPathIndex < this._currentPath.length) {
-            // 跟随路径移动
+            // 跟随路径移动前，检查下一节点是否可通行
             const nextPoint = this._currentPath[this._currentPathIndex];
-            this.moveToPoint(nextPoint);
+            if (this.tileEditorTool && !this.tileEditorTool.isNavigationPointWalkable(nextPoint)) {
+                console.warn(`下一节点不可通行，重新规划路径: ${nextPoint}`);
+                this.stopFollowingPath();
+                this.navigateToDestination();
+            } else {
+                this.moveToPoint(nextPoint);
+            }
         }
         
         // 检查是否到达目标点
         if (this.isMoving && this._targetPoint) {
-            const targetPosition = this.navigationSystem.getNavigationPointPosition(this._targetPoint);
+            // 正在移动过程中，如目标点变为不可通行则立即重新规划
+            if (this.tileEditorTool && !this.tileEditorTool.isNavigationPointWalkable(this._targetPoint)) {
+                console.warn(`移动过程中目标点不可通行，路径重算: ${this._targetPoint}`);
+                this.stopMoving();
+                this.stopFollowingPath();
+                this.navigateToDestination();
+                this.updateReadonlyFields();
+                return;
+            }
+            const targetPosition = this.tileEditorTool.getNavigationPointPosition(this._targetPoint);
             if (targetPosition) {
                 const currentPosition = this.node.getWorldPosition();
                 const distance = Vec3.distance(currentPosition, targetPosition);
@@ -276,22 +292,16 @@ export class TouristController extends Component {
      * @param pointName 导航点名称
      */
     setCurrentPoint(pointName: string): void {
-        // 如果有之前的点，先注销
-        if (this._currentPoint && this.navigationSystem) {
-            this.navigationSystem.unregisterTouristFromPoint(this._currentPoint, this);
-        }
+        // 直接更新当前点
         
         this._currentPoint = pointName;
         
-        // 在新的点注册
-        if (this._currentPoint && this.navigationSystem) {
-            this.navigationSystem.registerTouristAtPoint(this._currentPoint, this);
-        }
+        // 不再在导航系统中注册
         
         this.updateReadonlyFields();
         
         // 如果有最终目标点且导航系统可用，开始导航
-        if (this._finalDestination && this._currentPoint && this.navigationSystem) {
+        if (this._finalDestination && this._currentPoint && this.tileEditorTool) {
             console.log(`当前点已设置为: ${pointName}, 开始导航到目标点: ${this._finalDestination}`);
             this.navigateToDestination();
         }
@@ -321,13 +331,23 @@ export class TouristController extends Component {
      * @param pointName 目标导航点名称
      */
     moveToPoint(pointName: string): void {
-        if (!this.navigationSystem) {
+        if (!this.tileEditorTool) {
             return;
         }
         
-        const targetPosition = this.navigationSystem.getNavigationPointPosition(pointName);
+        const targetPosition = this.tileEditorTool.getNavigationPointPosition(pointName);
         if (!targetPosition) {
             console.error(`无法找到导航点: ${pointName}`);
+            return;
+        }
+
+        // 如果目标点当前不可通行，则不发起移动，改为重新规划路径
+        if (!this.tileEditorTool.isNavigationPointWalkable(pointName)) {
+            console.warn(`目标点不可通行，取消本次移动并重新规划: ${pointName}`);
+            if (this._finalDestination) {
+                this.stopFollowingPath();
+                this.navigateToDestination();
+            }
             return;
         }
         
@@ -425,29 +445,14 @@ export class TouristController extends Component {
      * 查找最近的导航点
      */
     private findNearestNavigationPoint(): void {
-        if (!this.navigationSystem) {
+        if (!this.tileEditorTool) {
             return;
         }
         
         const currentPosition = this.node.getWorldPosition();
-        const allPointNames = this.navigationSystem.getAllNavigationPointNames();
-        
-        let nearestPoint: string = null;
-        let nearestDistance = Infinity;
-        
-        for (const pointName of allPointNames) {
-            const pointPosition = this.navigationSystem.getNavigationPointPosition(pointName);
-            if (pointPosition) {
-                const distance = Vec3.distance(currentPosition, pointPosition);
-                if (distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestPoint = pointName;
-                }
-            }
-        }
-        
-        if (nearestPoint) {
-            this.setCurrentPoint(nearestPoint);
+        const nearest = this.tileEditorTool.findNearestNavigationPointName(currentPosition, true);
+        if (nearest) {
+            this.setCurrentPoint(nearest);
         }
     }
     
@@ -456,11 +461,11 @@ export class TouristController extends Component {
      * @param pointName 导航点名称
      */
     teleportToPoint(pointName: string): void {
-        if (!this.navigationSystem) {
+        if (!this.tileEditorTool) {
             return;
         }
         
-        const targetPosition = this.navigationSystem.getNavigationPointPosition(pointName);
+        const targetPosition = this.tileEditorTool.getNavigationPointPosition(pointName);
         if (!targetPosition) {
             console.error(`无法找到导航点: ${pointName}`);
             return;
@@ -532,8 +537,8 @@ export class TouristController extends Component {
         statusInfo.push(`停留时间: ${this.stayDuration} 秒`);
         
         // 目标节点详细信息
-        if (this._targetPoint && this.navigationSystem) {
-            const targetPosition = this.navigationSystem.getNavigationPointPosition(this._targetPoint);
+        if (this._targetPoint && this.tileEditorTool) {
+            const targetPosition = this.tileEditorTool.getNavigationPointPosition(this._targetPoint);
             if (targetPosition) {
                 targetDetails.push(`目标点名称: ${this._targetPoint}`);
                 targetDetails.push(`目标位置: (${targetPosition.x.toFixed(2)}, ${targetPosition.y.toFixed(2)}, ${targetPosition.z.toFixed(2)})`);
@@ -548,7 +553,7 @@ export class TouristController extends Component {
                 }
                 
                 // 获取相邻点信息
-                const adjacentPoints = this.navigationSystem.getAdjacentPoints(this._targetPoint);
+                const adjacentPoints = this.tileEditorTool.getAdjacentPoints(this._targetPoint);
                 if (adjacentPoints && adjacentPoints.length > 0) {
                     targetDetails.push(`目标点相邻点: ${adjacentPoints.join(', ')}`);
                 }
@@ -558,8 +563,8 @@ export class TouristController extends Component {
         }
         
         // 当前点详细信息
-        if (this._currentPoint && this.navigationSystem) {
-            const currentAdjacentPoints = this.navigationSystem.getAdjacentPoints(this._currentPoint);
+        if (this._currentPoint && this.tileEditorTool) {
+            const currentAdjacentPoints = this.tileEditorTool.getAdjacentPoints(this._currentPoint);
             if (currentAdjacentPoints && currentAdjacentPoints.length > 0) {
                 statusInfo.push(`当前点相邻点: ${currentAdjacentPoints.join(', ')}`);
             }
@@ -627,7 +632,7 @@ export class TouristController extends Component {
         this._finalDestination = destinationName;
         this.start();
         // 如果设置了最终目标点且有当前点，开始导航
-        if (this._finalDestination && this._currentPoint && this.navigationSystem) {
+        if (this._finalDestination && this._currentPoint && this.tileEditorTool) {
             console.log(`设置目标点: ${destinationName}, 当前点: ${this._currentPoint}`);
             this.navigateToDestination();
         } else if (this._finalDestination && !this._currentPoint) {
@@ -646,7 +651,7 @@ export class TouristController extends Component {
      * 导航到最终目标点
      */
     private navigateToDestination(): void {
-        if (!this._finalDestination || !this.navigationSystem) {
+        if (!this._finalDestination || !this.tileEditorTool) {
             return;
         }
         
@@ -657,7 +662,7 @@ export class TouristController extends Component {
         }
         
         // 使用A*算法计算路径
-        const path = this.navigationSystem.getPath(this._currentPoint, this._finalDestination);
+        const path = this.tileEditorTool.getPath(this._currentPoint, this._finalDestination);
         
         if (path.length === 0) {
             console.warn(`无法找到从 ${this._currentPoint} 到 ${this._finalDestination} 的路径`);
@@ -717,7 +722,7 @@ export class TouristController extends Component {
         console.log(`游客 ${this.node.name} 被要求重新计算路径`);
         
         // 如果没有最终目标点，无需重新计算
-        if (!this._finalDestination || !this.navigationSystem) {
+        if (!this._finalDestination || !this.tileEditorTool) {
             console.log('没有最终目标点或导航系统不可用，跳过路径重新计算');
             return;
         }
@@ -757,11 +762,19 @@ export class TouristController extends Component {
     }
     
     onDestroy() {
-        // 在销毁时从导航系统中注销
-        if (this._currentPoint && this.navigationSystem) {
-            this.navigationSystem.unregisterTouristFromPoint(this._currentPoint, this);
-        }
-        
+        // 清理移动状态
         this.stopMoving();
+    }
+
+    /** 获取场景中的第一个 TileEditorTool */
+    private getTileEditorTool(): TileEditorTool | null {
+        try {
+            const scene = director.getScene();
+            if (!scene) return null;
+            const tools = scene.getComponentsInChildren(TileEditorTool) || [];
+            return tools.length > 0 ? tools[0] : null;
+        } catch {
+            return null;
+        }
     }
 }

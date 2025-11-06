@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, instantiate, Sprite, SpriteFrame, Color, Graphics, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, Sprite, SpriteFrame, Color, Graphics, UITransform, Vec3, CCString } from 'cc';
 import { EDITOR } from 'cc/env';
 const { ccclass, property, executeInEditMode, disallowMultiple, menu } = _decorator;
 
@@ -37,6 +37,10 @@ export class TileEditorTool extends Component {
     scenicEntranceNodes: Node[] = [];
     @property({ tooltip: '打印调试日志' })
     debugLog: boolean = true;
+
+    // 编辑器可视化：显示当前已注册的导航点键名列表（_tilesByName 的键）
+    @property({ type: [CCString], tooltip: '调试：当前导航点名称列表（来自 _tilesByName）' })
+    tilesByNameDebug: string[] = [];
 
     // 运行期：可选的起点与终点 Tile 节点（不设置则自动选择首/尾可通行地块）
     @property({ type: Node, tooltip: '起点 Tile（可选）' })
@@ -249,12 +253,10 @@ export class TileEditorTool extends Component {
             this._tilesByName.set(tile.name, tile);
 
             // 权重容器不参与占用判断，仅依据颜色确定成本；占用判断在障碍容器进行
-            const floorName = `${tile.name}`;
             let cost = 1;
             let blocked = false;
 
             // 根据 floor 的图片确定成本/障碍
-            console.log(tile.name)
             const sp =  this.findSprite(tile);
             const type = this.getColorType(sp);
             // 新规则：仅黄色(FFFF00)与绿色(00FF5C)可通行，其它颜色不可通行（按背景节点颜色）
@@ -311,6 +313,8 @@ export class TileEditorTool extends Component {
             }
         }
         this.dbg('graph stats', { walkable: walkableCount, blocked: blockedCount, blockedByColor, sampleBlocked, sampleWalkable, edges: potentialEdges });
+        // 更新调试可视化的导航点名称列表
+        this.refreshTilesByNameDebug();
     }
 
     /** 在障碍容器中收集名为 enter 的入口节点 */
@@ -398,11 +402,17 @@ export class TileEditorTool extends Component {
             }
         }
         this.dbg('applyOccupancyBlocks', { applied, total: keys.length });
+        // 应用占用更新后刷新调试列表
+        this.refreshTilesByNameDebug();
     }
 
     /** 查找最短路径（Dijkstra），仅四向，返回 Tile 名称数组 */
     private findPath(startName: string, endName: string): string[] {
-        if (!this._tilesByName.has(startName) || !this._tilesByName.has(endName)) return [];
+        if (!this._tilesByName.has(startName) || !this._tilesByName.has(endName)) {
+            console.log('findPath: 起点或终点不存在', { start: startName, end: endName });
+            return [];
+        }
+        console.log('findPath: 开始最短路搜索', { start: startName, end: endName });
         const dist = new Map<string, number>();
         const prev = new Map<string, string | null>();
         const visited = new Set<string>();
@@ -412,6 +422,7 @@ export class TileEditorTool extends Component {
             prev.set(key, null);
         }
         dist.set(startName, 0);
+        console.log('findPath: 初始化完成，起点距离=0，节点数=', this._tilesByName.size);
 
         const pickMinUnvisited = () => {
             let bestKey: string | null = null;
@@ -425,31 +436,58 @@ export class TileEditorTool extends Component {
             return bestKey;
         };
 
+        let step = 0;
         while (true) {
             const u = pickMinUnvisited();
+            if (!u) {
+                console.log('findPath: 无未访问且可到达的节点，终止');
+                break;
+            }
+            console.log(`findPath: 步骤 ${step}，取最小未访问节点`, { u, dist: dist.get(u) });
             if (!u) break;
             if (u === endName) break;
             visited.add(u);
             const neigh = this._neighbors.get(u) || [];
+            console.log('findPath: 邻居集合', { u, neighbors: neigh });
             for (const v of neigh) {
                 const costV = this._costByName.get(v) ?? Number.POSITIVE_INFINITY;
-                if (!isFinite(costV)) continue; // 障碍
-                const alt = (dist.get(u) || Number.POSITIVE_INFINITY) + costV;
-                if (alt < (dist.get(v) || Number.POSITIVE_INFINITY)) {
+                if (!isFinite(costV)) {
+                    console.log('findPath: 跳过不可通行邻居', { u, v });
+                    continue; // 障碍
+                }
+                const du = dist.get(u) ?? Number.POSITIVE_INFINITY;
+                // 边代价恒为0；进入节点时才增加节点代价
+                const edgeCost = 0;
+                const nodeCost = costV;
+                const alt = du + edgeCost + nodeCost;
+                const dvOld = dist.get(v) ?? Number.POSITIVE_INFINITY;
+                if (alt < dvOld) {
                     dist.set(v, alt);
                     prev.set(v, u);
+                    console.log('findPath: 松弛成功', { u, v, old: dvOld, new: alt, prev: u, edgeCost, nodeCost });
+                } else {
+                    console.log('findPath: 无需松弛', { u, v, current: dvOld, candidate: alt, edgeCost, nodeCost });
                 }
             }
+            step++;
         }
 
         // 回溯路径
         const path: string[] = [];
         let cur: string | null = endName;
-        if (!isFinite(dist.get(endName) || Number.POSITIVE_INFINITY)) return [];
+        const dEnd = dist.get(endName) ?? Number.POSITIVE_INFINITY;
+        if (!isFinite(dEnd)) {
+            console.log('findPath: 无法到达终点', { start: startName, end: endName });
+            return [];
+        }
+        console.log('findPath: 开始回溯', { end: endName, distance: dEnd });
         while (cur) {
             path.unshift(cur);
-            cur = prev.get(cur) || null;
+            const p = prev.get(cur) || null;
+            console.log('findPath: 回溯步', { cur, prev: p });
+            cur = p;
         }
+        console.log('findPath: 最终路径', path);
         return path;
     }
 
@@ -615,6 +653,13 @@ export class TileEditorTool extends Component {
         const obstacleEntrances = this.collectObstacleEntrances(this._obstacleContainer);
         const externalEntrances = (this.scenicEntranceNodes || []).filter(n => n && n.isValid);
         this.connectEntrancesToNearestTiles([...obstacleEntrances, ...externalEntrances]);
+        // 入口重连后刷新调试列表
+        this.refreshTilesByNameDebug();
+    }
+
+    /** 刷新编辑器调试列表（_tilesByName 的键集） */
+    public refreshTilesByNameDebug(): void {
+        this.tilesByNameDebug = Array.from(this._tilesByName.keys());
     }
 
     // ====== 公开 API：运行期访问导航点/路径 ======
