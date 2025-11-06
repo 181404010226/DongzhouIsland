@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Vec3, tween, Tween, CCString, director, UIOpacity } from 'cc';
 import { TileEditorTool } from '../工具/TileEditorTool';
+import { TopBarManager } from '../UI面板/TopBarManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -468,9 +469,7 @@ export class TouristController extends Component {
                     this.handleArrivalAtEntrance();
                 } else {
                     this.stopFollowingPath();
-                    // 开始停留（普通点）
-                    this.isStaying = true;
-                    this.stayTimer = 0;
+                    // 普通点到达后不再停顿，由生成器或上层逻辑决定下一步
                 }
             } else {
                 // 移动到路径中的下一个节点
@@ -478,21 +477,18 @@ export class TouristController extends Component {
                 if (this._currentPathIndex < this._currentPath.length) {
                     const nextPoint = this._currentPath[this._currentPathIndex];
                     console.log(`路径跟随中，移动到下一个节点: ${nextPoint} (${this._currentPathIndex}/${this._currentPath.length - 1})`);
-                    // 短暂停留后继续移动
-                    this.isStaying = true;
-                    this.stayTimer = 0;
+                    // 直接继续移动到下一个节点，不再停顿
+                    this.moveToPoint(nextPoint);
                 } else {
                     // 路径已完成，但没有到达最终目标（可能路径计算有问题）
                     console.warn(`路径跟随完成但未到达最终目标。当前点: ${this._currentPoint}, 目标: ${this._finalDestination}`);
                     this.stopFollowingPath();
-                    this.isStaying = true;
-                    this.stayTimer = 0;
+                    // 立即尝试重新规划以继续移动
+                    this.navigateToDestination();
                 }
             }
         } else {
-            // 普通移动模式，开始停留
-            this.isStaying = true;
-            this.stayTimer = 0;
+            // 普通移动模式：不再自动停留
         }
 
         // 抵达后确保父节点为当前 Tile
@@ -551,6 +547,25 @@ export class TouristController extends Component {
             .call(() => {
                 // 结束隐身停留，前往下一个入口
                 this.isStaying = false;
+
+                // 离开建筑入口时（非景区入口）奖励金币并播放上涨效果
+                try {
+                    if (this.tileEditorTool && this.tileEditorTool.isEntrancePointName(this._currentPoint)) {
+                        const isScenic = this.tileEditorTool.isScenicEntrancePointName(this._currentPoint);
+                        if (!isScenic) {
+                            const topBar = TopBarManager.getInstance();
+                            if (topBar) {
+                                const amount = Math.floor(30 + Math.random() * 271); // 30~300 随机
+                                const addAnimated = (topBar as any).addCoinsAnimated;
+                                if (typeof addAnimated === 'function') {
+                                    (topBar as any).addCoinsAnimated(amount);
+                                } else {
+                                    topBar.addCoins(amount);
+                                }
+                            }
+                        }
+                    }
+                } catch {}
                 const next = this.selectNextEntrance();
                 if (next) {
                     // 更新访问计划索引到下一个

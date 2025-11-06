@@ -1,4 +1,4 @@
-import { _decorator, Component, find } from 'cc';
+import { _decorator, Component, find, tween, Vec3 } from 'cc';
 import { NumberDisplayComponent } from '../组件/NumberDisplayComponent';
 const { ccclass, property } = _decorator;
 
@@ -128,6 +128,44 @@ export class TopBarManager extends Component {
     public addCoins(amount: number): void {
         this.currentCoins += amount;
         this.updateCoinsDisplay();
+    }
+
+    /**
+     * 增加金币（带上涨动画效果）
+     * @param amount 增加的金币数量（应为正数）
+     * @param duration 数字上涨动画时长（秒），默认0.6秒
+     */
+    public addCoinsAnimated(amount: number, duration: number = 0.6): void {
+        if (!amount || amount <= 0) {
+            return;
+        }
+        const start = this.currentCoins;
+        const end = start + amount;
+        const holder = { value: start };
+        // 数字上涨动画：逐帧更新 NumberDisplayComponent 的值
+        tween(holder)
+            .to(duration, { value: end }, {
+                onUpdate: () => {
+                    this.currentCoins = Math.round(holder.value);
+                    this.updateCoinsDisplay();
+                }
+            })
+            .call(() => {
+                // 归位，确保最终值正确
+                this.currentCoins = end;
+                this.updateCoinsDisplay();
+            })
+            .start();
+
+        // 视觉反馈：金币数字节点轻微放大回弹
+        if (this.coinsDisplay && this.coinsDisplay.node && this.coinsDisplay.node.isValid) {
+            const node = this.coinsDisplay.node;
+            const original = node.scale.clone();
+            tween(node)
+                .to(0.12, { scale: new Vec3(original.x * 1.15, original.y * 1.15, original.z) })
+                .to(0.18, { scale: original })
+                .start();
+        }
     }
     
     /**

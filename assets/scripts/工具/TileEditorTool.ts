@@ -70,6 +70,8 @@ export class TileEditorTool extends Component {
     private _navContainer: Node | null = null; // 指向权重容器（背景）
     private _obstacleContainer: Node | null = null; // 指向障碍容器（MapContainer）
     private _entranceCounter = 0; // 生成唯一入口名称用
+    // 记录景区入口对应的导航点键名（Enter_*）
+    private _scenicEntranceKeys: Set<string> = new Set();
 
     onLoad() {
         // 不做自动构建，等待外部显式调用 buildNavigationGraph(container)
@@ -350,6 +352,8 @@ export class TileEditorTool extends Component {
      * 入口只参与绘制与起终点使用，不改变原有 Tile 成本。
      */
     private connectEntrancesToNearestTiles(entrances: Node[]): void {
+        // 每次连接入口前重置景区入口键集合
+        this._scenicEntranceKeys.clear();
         let connected = 0;
         // 仅在已有可通行点时进行
         const walkableTiles: string[] = [];
@@ -383,6 +387,10 @@ export class TileEditorTool extends Component {
             nlist.push(key);
             this._neighbors.set(bestName, nlist);
             this._neighbors.set(key, [bestName]);
+            // 若为景区入口，记录其键名
+            if ((this.scenicEntranceNodes || []).includes(ent)) {
+                this._scenicEntranceKeys.add(key);
+            }
             connected++;
         }
         this.dbg('connectEntrancesToNearestTiles', { connected });
@@ -634,6 +642,8 @@ export class TileEditorTool extends Component {
      * - 将入口与当前可通行的最近Tile建立双向邻接，入口权重为0。
      */
     public reconnectEntrancesAfterOccupancy(): void {
+        // 清空景区入口键集合
+        this._scenicEntranceKeys.clear();
         // 移除已有入口点及其邻接
         const isEntranceKey = (k: string) => /^Enter_/i.test(k);
         const toRemove: string[] = [];
@@ -672,6 +682,11 @@ export class TileEditorTool extends Component {
     /** 判断名称是否为入口点（Enter_* 前缀） */
     public isEntrancePointName(name: string): boolean {
         return /^enter_/i.test(name) || /^Enter_/i.test(name);
+    }
+
+    /** 判断入口导航点名称是否为景区入口（来自 scenicEntranceNodes） */
+    public isScenicEntrancePointName(name: string): boolean {
+        return this._scenicEntranceKeys.has(name);
     }
 
     /** 获取所有入口点名称（可选仅返回可通行入口） */

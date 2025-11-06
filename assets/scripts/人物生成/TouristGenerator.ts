@@ -266,6 +266,14 @@ export class TouristGenerator extends Component {
             this.currentTouristCount--;
         });
         
+        // 如果最终没有分配到目标点，则逐渐隐藏并消失
+        try {
+            const dest = touristController.getTargetDestination();
+            if (!dest) {
+                this.hideTouristGradually(touristNode);
+            }
+        } catch {}
+        
         return touristNode;
     }
     
@@ -501,6 +509,7 @@ export class TouristGenerator extends Component {
             touristController.setTargetDestination(newTarget);
         } else {
             console.warn(`无法为游客找到新的目标点，当前位置: ${currentPoint}`);
+            this.hideTouristGradually(touristController.node);
         }
     }
     
