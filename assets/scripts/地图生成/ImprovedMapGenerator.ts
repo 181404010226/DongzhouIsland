@@ -55,7 +55,9 @@ export class ImprovedMapGenerator extends Component {
 
         // 生成或读取完成后，触发导航图构建
         if (this.tileEditorTool && this.getMapContainer()) {
-            this.tileEditorTool.buildNavigationGraph(this.getMapContainer());
+            const cont = this.getMapContainer();
+            // 权重容器通过cocos面板配置
+            this.tileEditorTool.buildNavigationGraph(cont);
             this.tileEditorTool.refreshVisualization();
         }
     }
@@ -84,7 +86,8 @@ export class ImprovedMapGenerator extends Component {
 
         // 生成后构建导航图
         if (this.tileEditorTool && this.getMapContainer()) {
-            this.tileEditorTool.buildNavigationGraph(this.getMapContainer());
+            const cont = this.getMapContainer();
+            this.tileEditorTool.buildNavigationGraph(cont, cont);
             this.tileEditorTool.refreshVisualization();
         }
     }
@@ -168,7 +171,8 @@ export class ImprovedMapGenerator extends Component {
 
         // 读取现有地图后构建导航图
         if (this.tileEditorTool && this.getMapContainer()) {
-            this.tileEditorTool.buildNavigationGraph(this.getMapContainer());
+            const cont = this.getMapContainer();
+            this.tileEditorTool.buildNavigationGraph(cont, cont);
             this.tileEditorTool.refreshVisualization();
         }
 

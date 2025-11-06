@@ -175116,6 +175116,9 @@
     "mapGenerator": {
       "__id__": 5453
     },
+    "tileEditorTool": {
+      "__id__": 1818
+    },
     "buildableRegions": [
       {
         "__id__": 5461
@@ -177198,7 +177201,7 @@
     "touristParent": {
       "__id__": 5518
     },
-    "autoGenerate": true,
+    "autoGenerate": false,
     "baseGenerateInterval": 5,
     "maxTourists": 20,
     "trafficFlowMultiplier": 1,

@@ -2,6 +2,7 @@ import { _decorator, Component, Node, Sprite, instantiate, Vec2, Vec3, UITransfo
 import { BuildInfo } from './BuildInfo';
 import { ImprovedMapGenerator } from './ImprovedMapGenerator';
 import { BuildingManager } from './BuildingManager';
+import { TileEditorTool } from '../工具/TileEditorTool';
 
 const { ccclass, property } = _decorator;
 
@@ -27,6 +28,9 @@ export interface TileOccupancyInfo {
 export class TileOccupancyManager extends Component {
     @property({ type: ImprovedMapGenerator, tooltip: '地图生成器' })
     mapGenerator: ImprovedMapGenerator = null;
+    
+    @property({ type: TileEditorTool, tooltip: '导航图编辑器（构建/刷新导航图）' })
+    tileEditorTool: TileEditorTool = null;
     
     @property({ type: [Node], tooltip: '可建造区域节点数组（每个节点需带UITransform）' })
     buildableRegions: Node[] = [];
@@ -135,6 +139,11 @@ export class TileOccupancyManager extends Component {
         
         // 标记地块为已占用
         this.markTilesAsOccupied(row, col, buildInfo, buildingId, buildingNode);
+        
+        // 导航图：根据占用将对应地块的导航点标记不可用，并处理入口
+        const occKeys = this.computeOccupiedKeysForBuilding(row, col, buildInfo.getWidth(), buildInfo.getHeight());
+        // 导航图不自行计算占用，由 TileOccupancyManager 统一提供全量占用键
+        this.updateNavGraphWithOccupancy();
         
 
         // 处理建筑放置时的导航点禁用
@@ -320,6 +329,9 @@ export class TileOccupancyManager extends Component {
         
         // 更新编辑器只读字段
         this.updateReadonlyFields();
+
+        // 重新应用当前占用并刷新导航图
+        this.updateNavGraphWithOccupancy();
     }
     
     /**
@@ -353,6 +365,9 @@ export class TileOccupancyManager extends Component {
         this.tileOccupancyMap.clear();
         // 更新编辑器只读字段
         this.updateReadonlyFields();
+
+        // 清空占用后重建导航图并刷新
+        this.updateNavGraphWithOccupancy([]);
     }
     
     /**
@@ -426,7 +441,46 @@ export class TileOccupancyManager extends Component {
         // 确保清空占用映射
         this.clearAllOccupancy();
         
+        // 清空后刷新导航图
+        this.updateNavGraphWithOccupancy([]);
 
+    }
+
+    /** 计算某一建筑覆盖的占用键列表（row_col） */
+    private computeOccupiedKeysForBuilding(anchorRow: number, anchorCol: number, width: number, height: number): string[] {
+        const keys: string[] = [];
+        for (let r = anchorRow - height + 1; r <= anchorRow; r++) {
+            for (let c = anchorCol - width + 1; c <= anchorCol; c++) {
+                if (r < 0 || c < 0) continue;
+                keys.push(`${r}_${c}`);
+            }
+        }
+        return keys;
+    }
+
+    /** 重建导航图并应用占用块；若未传入keys则使用当前占用映射中的全部键 */
+    public updateNavGraphWithOccupancy(keys?: string[]): void {
+        try {
+            const editor = this.tileEditorTool;
+            const mapCont = this.mapGenerator ? this.mapGenerator.getMapContainer() : null;
+            if (!editor || !mapCont) {
+                console.warn('[TileOccupancyManager] 缺少 tileEditorTool 或 MapContainer，无法更新导航图');
+                return;
+            }
+            // 重建基础导航图（权重容器通过cocos面板配置）
+            editor.buildNavigationGraph(mapCont);
+            // 应用占用块（使对应地块不可通行）
+            const allKeys = keys && keys.length > 0 ? keys : Array.from(this.tileOccupancyMap.keys());
+            if (allKeys.length > 0) {
+                editor.applyOccupancyBlocks(allKeys);
+            }
+            // 应用占用后重新连接入口到最近的可通行Tile
+            editor.reconnectEntrancesAfterOccupancy();
+            // 刷新绘制
+            editor.refreshVisualization();
+        } catch (e) {
+            console.warn('[TileOccupancyManager] 更新导航图失败:', e);
+        }
     }
 
     /**

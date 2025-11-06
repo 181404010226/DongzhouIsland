@@ -233,18 +233,14 @@ export class TileEditorTool extends Component {
         this._obstacleContainer = obstacleRoot;
 
         const weightTiles = this.collectTiles(weightRoot);
-        const obstacleTilesMap: Map<string, Node> = new Map();
-        if (obstacleRoot) {
-            for (const t of this.collectTiles(obstacleRoot)) obstacleTilesMap.set(t.name, t);
-        }
-        this.dbg('buildNavigationGraph: weightRoot=', weightRoot.name, 'tiles=', weightTiles.length, 'obstacleRoot=', obstacleRoot ? obstacleRoot.name : 'none', 'obstacleTiles=', obstacleTilesMap.size);
+        this.dbg('buildNavigationGraph: weightRoot=', weightRoot.name, 'tiles=', weightTiles.length, 'obstacleRoot=', obstacleRoot ? obstacleRoot.name : 'none');
         this._tilesByName.clear();
         this._costByName.clear();
         this._neighbors.clear();
 
         let blockedCount = 0;
         let walkableCount = 0;
-        let blockedByObstacle = 0;
+        // 不再在此处进行“障碍容器”占用判断，改由 TileOccupancyManager 统一传递占用键
         let blockedByColor = 0;
         const sampleBlocked: string[] = [];
         const sampleWalkable: string[] = [];
@@ -270,16 +266,7 @@ export class TileEditorTool extends Component {
                 blocked = true; blockedByColor++;
             }
 
-            // 来自障碍容器（MapContainer）的占用覆写：如果对应 Tile 在障碍容器存在且含非 floor 子节点，则视为不可通行
-            if (!blocked && obstacleRoot) {
-                const occ = obstacleTilesMap.get(tile.name);
-                if (occ) {
-                    const occFloorName = `${occ.name}-floor`;
-                    // 忽略名为 enter 的子节点（建筑入口不会导致该 Tile 变为障碍）
-                    const occHasNonFloorChild = occ.children.some(c => c.name !== occFloorName && !this.isEntranceNode(c));
-                    if (occHasNonFloorChild) { blocked = true; blockedByObstacle++; }
-                }
-            }
+            // 不根据障碍容器进行占用覆写，阻塞仅由颜色与后续 applyOccupancyBlocks(keys) 决定
 
             this._costByName.set(tile.name, blocked ? Number.POSITIVE_INFINITY : cost);
 
@@ -323,19 +310,21 @@ export class TileEditorTool extends Component {
                 if (u < v) potentialEdges++;
             }
         }
-        this.dbg('graph stats', { walkable: walkableCount, blocked: blockedCount, blockedByColor, blockedByObstacle, sampleBlocked, sampleWalkable, edges: potentialEdges });
+        this.dbg('graph stats', { walkable: walkableCount, blocked: blockedCount, blockedByColor, sampleBlocked, sampleWalkable, edges: potentialEdges });
     }
 
     /** 在障碍容器中收集名为 enter 的入口节点 */
     private collectObstacleEntrances(obstacleRoot: Node | null): Node[] {
         const result: Node[] = [];
         if (!obstacleRoot) return result;
+        const collectDeep = (n: Node) => {
+            // 直接命中
+            if (this.isEntranceNode(n)) result.push(n);
+            // 递归子节点
+            for (const c of n.children) collectDeep(c);
+        };
         for (const tile of this.collectTiles(obstacleRoot)) {
-            for (const c of tile.children) {
-                for (const enter of c.children) {
-                    if (this.isEntranceNode(enter)) result.push(enter);
-                }
-            }
+            collectDeep(tile);
         }
         this.dbg('collectObstacleEntrances', { count: result.length });
         return result;
@@ -393,6 +382,22 @@ export class TileEditorTool extends Component {
             connected++;
         }
         this.dbg('connectEntrancesToNearestTiles', { connected });
+    }
+
+    /** 根据占用键数组（如 "row_col"）将对应 Tile 标记为不可通行 */
+    public applyOccupancyBlocks(keys: string[]): void {
+        if (!keys || keys.length === 0) return;
+        let applied = 0;
+        for (const key of keys) {
+            const m = key.match(/^(\d+)_(\d+)$/);
+            if (!m) continue;
+            const name = `Tile_${parseInt(m[1], 10)}_${parseInt(m[2], 10)}`;
+            if (this._tilesByName.has(name)) {
+                this._costByName.set(name, Number.POSITIVE_INFINITY);
+                applied++;
+            }
+        }
+        this.dbg('applyOccupancyBlocks', { applied, total: keys.length });
     }
 
     /** 查找最短路径（Dijkstra），仅四向，返回 Tile 名称数组 */
@@ -582,5 +587,33 @@ export class TileEditorTool extends Component {
         // 编辑器与运行期都可刷新
         if (this.showPath) this.updatePathVisualization();
         else this.clearPathVisualization();
+    }
+
+    /**
+     * 在应用占用块（障碍）之后，重新收集并连接入口到最近的可通行Tile。
+     * - 会清除之前添加到图中的所有入口点（Enter_ 开头），并从邻接表中移除引用；
+     * - 重新从障碍容器递归收集名为 enter 的节点，以及 scenicEntranceNodes；
+     * - 将入口与当前可通行的最近Tile建立双向邻接，入口权重为0。
+     */
+    public reconnectEntrancesAfterOccupancy(): void {
+        // 移除已有入口点及其邻接
+        const isEntranceKey = (k: string) => /^Enter_/i.test(k);
+        const toRemove: string[] = [];
+        for (const k of this._tilesByName.keys()) {
+            if (isEntranceKey(k)) toRemove.push(k);
+        }
+        for (const k of toRemove) {
+            this._tilesByName.delete(k);
+            this._costByName.delete(k);
+            this._neighbors.delete(k);
+        }
+        for (const [u, neigh] of this._neighbors) {
+            this._neighbors.set(u, neigh.filter(v => !isEntranceKey(v)));
+        }
+
+        // 重新收集入口并连接到最近可通行Tile
+        const obstacleEntrances = this.collectObstacleEntrances(this._obstacleContainer);
+        const externalEntrances = (this.scenicEntranceNodes || []).filter(n => n && n.isValid);
+        this.connectEntrancesToNearestTiles([...obstacleEntrances, ...externalEntrances]);
     }
 }
