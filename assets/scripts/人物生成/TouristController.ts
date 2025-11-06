@@ -140,12 +140,18 @@ export class TouristController extends Component {
     @property({ tooltip: '到达入口后沿当前移动方向继续前进的距离（像素）' })
     enterForwardDistance: number = 30;
 
+    /** 消失前向左移动的距离（像素） */
+    @property({ tooltip: '无路或计划结束时，销毁前向左移动的距离（像素）' })
+    despawnLeftDistance: number = 30;
+
     /** 当前访问计划索引 */
     private _currentVisitIndex: number = 0;
 
     /** 最近一次移动的起点与终点，用于计算进入方向 */
     private _lastMoveStart: Vec3 = new Vec3();
     private _lastMoveTarget: Vec3 = new Vec3();
+    /** 记录已访问的入口（用于判断访问计划是否完成） */
+    private _visitedEntrances: Set<string> = new Set();
     
     
     /**
@@ -466,6 +472,14 @@ export class TouristController extends Component {
                 console.log(`游客已到达最终目标点: ${this._finalDestination}`);
                 // 目的地为入口时执行进入/停留/再出发流程
                 if (this.tileEditorTool && this.tileEditorTool.isEntrancePointName(this._finalDestination)) {
+                    // 标记已访问并判断是否完成访问计划
+                    this._visitedEntrances.add(this._currentPoint);
+                    const planList = (this.visitPlan || []).filter(n => !!n);
+                    const planFinished = planList.length > 0 && planList.every(n => this._visitedEntrances.has(n));
+                    if (planFinished) {
+                        this.despawnSelf();
+                        return;
+                    }
                     this.handleArrivalAtEntrance();
                 } else {
                     this.stopFollowingPath();
@@ -841,6 +855,7 @@ export class TouristController extends Component {
         
         if (path.length === 0) {
             console.warn(`无法找到从 ${this._currentPoint} 到 ${this._finalDestination} 的路径`);
+            this.despawnSelf();
             return;
         }
         
@@ -939,6 +954,52 @@ export class TouristController extends Component {
     onDestroy() {
         // 清理移动状态
         this.stopMoving();
+    }
+
+    /** 无路可走或访问计划结束时：向左移动后渐隐销毁 */
+    private despawnSelf(): void {
+        try {
+            this.stopMoving();
+            this.stopFollowingPath();
+        } catch {}
+        if (!this.node || !this.node.isValid) {
+            return;
+        }
+
+        // 目标：世界坐标向左移动一定距离
+        const cur = this.node.getWorldPosition();
+        const leftTarget = new Vec3(
+            cur.x - this.despawnLeftDistance,
+            cur.y,
+            cur.z
+        );
+        const moveTime = this.despawnLeftDistance / Math.max(this.moveSpeed, 1);
+
+        // 获取/添加 UIOpacity，用于渐隐
+        let opacity = this.node.getComponent(UIOpacity);
+        if (!opacity) {
+            opacity = this.node.addComponent(UIOpacity);
+        }
+        opacity.opacity = 255;
+
+        // 先向左移动，再淡出并销毁
+        this.isMoving = true;
+        tween(this.node)
+            .to(moveTime, { worldPosition: leftTarget })
+            .call(() => {
+                this.isMoving = false;
+                tween(opacity)
+                    .to(this.fadeDuration, { opacity: 0 })
+                    .call(() => {
+                        try {
+                            if (this.node && this.node.isValid) {
+                                this.node.destroy();
+                            }
+                        } catch {}
+                    })
+                    .start();
+            })
+            .start();
     }
 
     /** 获取场景中的第一个 TileEditorTool */

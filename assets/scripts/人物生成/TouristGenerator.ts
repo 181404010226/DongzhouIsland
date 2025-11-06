@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, instantiate, Vec3, sp, CCString, tween, director } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, Vec3, sp, CCString, tween, director, UIOpacity } from 'cc';
 import { TouristController } from './TouristController';
 import { TopBarManager } from '../UI面板/TopBarManager';
 import { TileEditorTool } from '../工具/TileEditorTool';
@@ -266,7 +266,7 @@ export class TouristGenerator extends Component {
             this.currentTouristCount--;
         });
         
-        // 如果最终没有分配到目标点，则逐渐隐藏并消失
+        // 如果最终没有分配到目标点，则立即销毁
         try {
             const dest = touristController.getTargetDestination();
             if (!dest) {
@@ -514,34 +514,44 @@ export class TouristGenerator extends Component {
     }
     
     /**
-     * 让游客逐渐隐藏并消失
+     * 立即删除游客（无目标点时）
      * @param touristNode 游客节点
      */
     private hideTouristGradually(touristNode: Node): void {
-        if (!touristNode.isValid) {
-            return;
-        }
-        
-        // 创建渐隐动画
-        tween(touristNode)
-            .to(2.0, { 
-                scale: new Vec3(0.1, 0.1, 1),
-                position: new Vec3(
-                    touristNode.position.x,
-                    touristNode.position.y + 50, // 向上飘移
-                    touristNode.position.z
-                )
-            }, {
-                easing: 'sineOut'
-            })
-            .call(() => {
-                // 动画完成后销毁节点
-                if (touristNode.isValid) {
-                    touristNode.destroy();
-                }
-            })
-            .start();
-            
+        if (!touristNode || !touristNode.isValid) return;
+        try {
+            // 依据控制器参数计算移动与淡出
+            const controller = touristNode.getComponent(TouristController);
+            const moveSpeed = controller ? controller.moveSpeed : 100;
+            const fadeDuration = controller ? controller.fadeDuration : 0.5;
+            const leftDistance = controller && (controller as any).despawnLeftDistance !== undefined
+                ? (controller as any).despawnLeftDistance
+                : 30;
+
+            const cur = touristNode.getWorldPosition();
+            const target = new Vec3(cur.x - leftDistance, cur.y, cur.z);
+            const moveTime = leftDistance / Math.max(moveSpeed, 1);
+
+            let opacity = touristNode.getComponent(UIOpacity);
+            if (!opacity) {
+                opacity = touristNode.addComponent(UIOpacity);
+            }
+            opacity.opacity = 255;
+
+            tween(touristNode)
+                .to(moveTime, { worldPosition: target })
+                .call(() => {
+                    tween(opacity)
+                        .to(fadeDuration, { opacity: 0 })
+                        .call(() => {
+                            if (touristNode && touristNode.isValid) {
+                                try { touristNode.destroy(); } catch {}
+                            }
+                        })
+                        .start();
+                })
+                .start();
+        } catch {}
     }
     
     /**
