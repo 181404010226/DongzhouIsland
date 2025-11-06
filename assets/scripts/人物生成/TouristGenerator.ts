@@ -1,7 +1,7 @@
-import { _decorator, Component, Node, Prefab, instantiate, Vec3, sp, CCString, tween } from 'cc';
-import { NavigationSystem } from './NavigationSystem';
+import { _decorator, Component, Node, Prefab, instantiate, Vec3, sp, CCString, tween, director } from 'cc';
 import { TouristController } from './TouristController';
 import { TopBarManager } from '../UI面板/TopBarManager';
+import { TileEditorTool } from '../工具/TileEditorTool';
 const { ccclass, property } = _decorator;
 
 /**
@@ -146,35 +146,51 @@ export class TouristGenerator extends Component {
             console.error('游客预制体未设置');
             return null;
         }
-        
-        const navigationSystem = NavigationSystem.getInstance();
-        if (!navigationSystem) {
-            console.error('导航系统未初始化');
+
+        const tileTool = this.getTileEditorTool();
+        if (!tileTool && !this.useNodeArrayMode) {
+            console.error('未找到 TileEditorTool，且未启用节点数组模式');
             return null;
         }
         
         let finalStartPoint = startPointName;
         let finalTargetPoint = targetPointName;
+        let startPosition: Vec3 | null = null;
+
+        // 优先：在 TileEditorTool.scenicEntranceNodes 处生成
+        const scenicEntranceNodes = this.getScenicEntranceNodes();
+        if (!finalStartPoint && scenicEntranceNodes.length > 0) {
+            const randomIndex = Math.floor(Math.random() * scenicEntranceNodes.length);
+            const entranceNode = scenicEntranceNodes[randomIndex];
+            if (entranceNode && entranceNode.isValid) {
+                startPosition = entranceNode.getWorldPosition();
+                // 将当前点设为距离入口最近的 TileEditorTool 导航点名称
+                if (tileTool) {
+                    finalStartPoint = tileTool.findNearestNavigationPointName(startPosition) || tileTool.getRandomNavigationPointName(true);
+                }
+            }
+        }
         
-        // 根据模式选择起点和终点
-        if (this.useNodeArrayMode) {
-            const result = this.selectStartAndTargetFromNodes(finalStartPoint, finalTargetPoint);
-            if (!result) {
-                return null;
+        // 如果没有景区入口或未能获取有效起点，则按原逻辑选择
+        if (!finalStartPoint) {
+            if (this.useNodeArrayMode) {
+                const result = this.selectStartAndTargetFromNodes(finalStartPoint, finalTargetPoint);
+                if (!result) {
+                    return null;
+                }
+                finalStartPoint = result.startPoint;
+                finalTargetPoint = result.targetPoint;
+                console.log(`[TouristGenerator] 生成游客: 起点=${finalStartPoint}, 终点=${finalTargetPoint}`);
+            } else {
+                // 使用 TileEditorTool 的导航点
+                finalStartPoint = tileTool ? tileTool.getRandomNavigationPointName(true) : null;
             }
-            finalStartPoint = result.startPoint;
-            finalTargetPoint = result.targetPoint;
-            console.log(`[TouristGenerator] 生成游客: 起点=${finalStartPoint}, 终点=${finalTargetPoint}`);
-        } else {
-            // 使用原有的导航系统逻辑
-            if (!finalStartPoint) {
-                finalStartPoint = navigationSystem.getRandomNavigationPointName();
-            }
-            
-            if (!finalStartPoint || !navigationSystem.hasNavigationPoint(finalStartPoint)) {
-                console.error('无效的起点:', finalStartPoint);
-                return null;
-            }
+        }
+
+        // 校验起点
+        if (!finalStartPoint || (tileTool && !tileTool.hasNavigationPoint(finalStartPoint))) {
+            console.error('无效的起点:', finalStartPoint);
+            return null;
         }
         
         // 实例化游客
@@ -188,11 +204,12 @@ export class TouristGenerator extends Component {
         touristNode.setParent(this.touristParent);
         
         // 设置起始位置
-        let startPosition: Vec3;
-        if (this.useNodeArrayMode) {
-            startPosition = this.getNodePositionByName(finalStartPoint);
-        } else {
-            startPosition = navigationSystem.getNavigationPointPosition(finalStartPoint);
+        if (!startPosition) {
+            if (this.useNodeArrayMode) {
+                startPosition = this.getNodePositionByName(finalStartPoint);
+            } else {
+                startPosition = tileTool ? tileTool.getNavigationPointPosition(finalStartPoint) : null;
+            }
         }
         
         if (startPosition) {
@@ -208,15 +225,21 @@ export class TouristGenerator extends Component {
             touristController = touristNode.addComponent(TouristController);
         }
         
-        // 设置起点
+        // 设置起点（若使用景区入口，则已转换为最近的导航点名称）
         touristController.setCurrentPoint(finalStartPoint);
         
-        // 如果有目标点，设置目标点并添加到达回调
+        // 如果有目标点，设置目标点并添加到达回调；否则随机一个与起点不同的目标
         if (finalTargetPoint) {
             touristController.setTargetDestination(finalTargetPoint);
-            
-            // 为游客控制器添加到达终点的回调
             this.setupTouristArrivalCallback(touristController, touristNode);
+        } else {
+            const allPoints = tileTool ? tileTool.getAllNavigationPointNames() : [];
+            const candidates = allPoints.filter(n => n !== finalStartPoint && (!tileTool || tileTool.isNavigationPointWalkable(n)));
+            if (candidates.length > 0) {
+                const idx = Math.floor(Math.random() * candidates.length);
+                touristController.setTargetDestination(candidates[idx]);
+                this.setupTouristArrivalCallback(touristController, touristNode);
+            }
         }
         
         // 增加游客计数
@@ -300,6 +323,45 @@ export class TouristGenerator extends Component {
             .filter(node => node && node.isValid)
             .map(node => node.name);
     }
+
+    /** 从场景中获取 TileEditorTool 的 scenicEntranceNodes 列表 */
+    private getScenicEntranceNodes(): Node[] {
+        const result: Node[] = [];
+        try {
+            const scene = director.getScene();
+            if (!scene) return result;
+            const tools = scene.getComponentsInChildren(TileEditorTool) || [];
+            for (const tool of tools) {
+                if (!tool) continue;
+                const arr = tool.scenicEntranceNodes || [];
+                for (const n of arr) {
+                    if (n && n.isValid) result.push(n);
+                }
+            }
+        } catch (e) {
+            console.warn('获取景区入口节点失败:', e);
+        }
+        return result;
+    }
+
+    /** 获取场景中的第一个 TileEditorTool */
+    private getTileEditorTool(): TileEditorTool | null {
+        try {
+            const scene = director.getScene();
+            if (!scene) return null;
+            const tools = scene.getComponentsInChildren(TileEditorTool) || [];
+            return tools.length > 0 ? tools[0] : null;
+        } catch {
+            return null;
+        }
+    }
+
+    /** 通过世界坐标查找最近的导航点名称 */
+    private findNearestNavigationPointName(worldPos: Vec3): string | null {
+        const tool = this.getTileEditorTool();
+        if (!tool) return null;
+        return tool.findNearestNavigationPointName(worldPos, true);
+    }
     
     /**
      * 生成随机游客
@@ -362,12 +424,11 @@ export class TouristGenerator extends Component {
                 newTarget = availableTargets[randomIndex];
             }
         } else {
-            // 使用导航系统选择新目标
-            const navigationSystem = NavigationSystem.getInstance();
-            if (navigationSystem) {
-                const allPoints = navigationSystem.getAllNavigationPointNames();
-                const availableTargets = allPoints.filter(name => name !== currentPoint);
-                
+            // 使用 TileEditorTool 选择新目标
+            const tileTool = this.getTileEditorTool();
+            if (tileTool) {
+                const allPoints = tileTool.getAllNavigationPointNames();
+                const availableTargets = allPoints.filter(name => name !== currentPoint && tileTool.isNavigationPointWalkable(name));
                 if (availableTargets.length > 0) {
                     const randomIndex = Math.floor(Math.random() * availableTargets.length);
                     newTarget = availableTargets[randomIndex];

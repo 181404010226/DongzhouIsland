@@ -616,4 +616,74 @@ export class TileEditorTool extends Component {
         const externalEntrances = (this.scenicEntranceNodes || []).filter(n => n && n.isValid);
         this.connectEntrancesToNearestTiles([...obstacleEntrances, ...externalEntrances]);
     }
+
+    // ====== 公开 API：运行期访问导航点/路径 ======
+
+    /** 获取所有导航点名称（包含入口 Enter_* 与 Tile_*） */
+    public getAllNavigationPointNames(): string[] {
+        return Array.from(this._tilesByName.keys());
+    }
+
+    /** 检查指定导航点是否存在 */
+    public hasNavigationPoint(name: string): boolean {
+        return this._tilesByName.has(name);
+    }
+
+    /** 获取导航点的世界坐标 */
+    public getNavigationPointPosition(name: string): Vec3 | null {
+        const node = this._tilesByName.get(name);
+        if (!node) return null;
+        const p = node.worldPosition;
+        return new Vec3(p.x, p.y, p.z);
+    }
+
+    /** 导航点是否可通行（成本有限） */
+    public isNavigationPointWalkable(name: string): boolean {
+        const c = this._costByName.get(name);
+        return c !== undefined && isFinite(c);
+    }
+
+    /** 获取所有可通行导航点名称 */
+    public getAllWalkableNavigationPointNames(): string[] {
+        const result: string[] = [];
+        for (const [name, cost] of this._costByName) {
+            if (isFinite(cost)) result.push(name);
+        }
+        return result;
+    }
+
+    /** 随机返回一个导航点名称（默认仅从可通行点中选择） */
+    public getRandomNavigationPointName(walkableOnly: boolean = true): string | null {
+        const names = walkableOnly ? this.getAllWalkableNavigationPointNames() : this.getAllNavigationPointNames();
+        if (names.length === 0) return null;
+        const idx = Math.floor(Math.random() * names.length);
+        return names[idx];
+    }
+
+    /** 查找指定世界坐标最近的导航点名称（默认仅考虑可通行点） */
+    public findNearestNavigationPointName(worldPos: Vec3, walkableOnly: boolean = true): string | null {
+        const names = walkableOnly ? this.getAllWalkableNavigationPointNames() : this.getAllNavigationPointNames();
+        let best: string | null = null;
+        let bestDist = Number.POSITIVE_INFINITY;
+        for (const name of names) {
+            const node = this._tilesByName.get(name);
+            if (!node) continue;
+            const p = node.worldPosition;
+            const dx = worldPos.x - p.x;
+            const dy = worldPos.y - p.y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < bestDist) { bestDist = d2; best = name; }
+        }
+        return best;
+    }
+
+    /** 获取指定导航点的相邻点（仅返回已注册邻接，不过滤通行性） */
+    public getAdjacentPoints(name: string): string[] {
+        return [...(this._neighbors.get(name) || [])];
+    }
+
+    /** 公开路径查询（Dijkstra） */
+    public getPath(startName: string, endName: string): string[] {
+        return this.findPath(startName, endName);
+    }
 }

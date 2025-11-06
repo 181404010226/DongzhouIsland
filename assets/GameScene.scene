@@ -177176,10 +177176,7 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "navigationJsonAsset": {
-      "__uuid__": "a9ef8091-3678-4be7-9012-e95aa3ee7974",
-      "__expectedType__": "cc.JsonAsset"
-    },
+    "navigationJsonAsset": null,
     "_disabledPointsDisplay": [],
     "_id": "2eeXVJ7NZMy4ZSDRwrJgEN"
   },
@@ -177201,16 +177198,12 @@
     "touristParent": {
       "__id__": 5518
     },
-    "autoGenerate": false,
+    "autoGenerate": true,
     "baseGenerateInterval": 5,
     "maxTourists": 20,
     "trafficFlowMultiplier": 1,
-    "spawnNodes": [
-      null,
-      null,
-      null
-    ],
-    "useNodeArrayMode": true,
+    "spawnNodes": [],
+    "useNodeArrayMode": false,
     "_id": "04H42hdsdB6oCZR2UXYnnN"
   },
   {
