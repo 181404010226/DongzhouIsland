@@ -569,20 +569,78 @@ export class TouristGenerator extends Component {
         
         // 确定皮肤名称
         let finalSkinName = skinName;
-        if (!finalSkinName && this.availableSkins.length > 0) {
-            const randomIndex = Math.floor(Math.random() * this.availableSkins.length);
-            finalSkinName = this.availableSkins[randomIndex];
+        if (!finalSkinName) {
+            // 优先使用配置的皮肤列表
+            if (this.availableSkins && this.availableSkins.length > 0) {
+                const randomIndex = Math.floor(Math.random() * this.availableSkins.length);
+                finalSkinName = this.availableSkins[randomIndex];
+            } else {
+                // 从骨骼组件数据中提取皮肤名称并随机选择
+                const skinNames = this.getSkinNamesFromSkeleton(spineComponent);
+                if (skinNames.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * skinNames.length);
+                    finalSkinName = skinNames[randomIndex];
+                    // 缓存一次，后续复用
+                    this.availableSkins = skinNames;
+                }
+            }
         }
         
         // 设置皮肤
         if (finalSkinName) {
             try {
                 spineComponent.setSkin(finalSkinName);
+                // 使插槽重置到设置姿态，避免某些皮肤切换后残留
+                spineComponent.setSlotsToSetupPose();
 
             } catch (error) {
                 console.error(`设置皮肤失败: ${finalSkinName}`, error);
             }
+        } else {
+            console.warn('未能获取到任何可用皮肤名称');
         }
+    }
+
+    /**
+     * 从骨骼组件中提取皮肤名称列表（兼容不同数据结构）
+     */
+    private getSkinNamesFromSkeleton(skeletonComp: sp.Skeleton): string[] {
+        const names: string[] = [];
+        try {
+            const sk: any = (skeletonComp as any).skeleton;
+            const data = sk?.data;
+            const skins = data?.skins;
+            if (Array.isArray(skins)) {
+                for (const s of skins) {
+                    const n = (s && typeof s.name === 'string') ? s.name : null;
+                    if (n) names.push(n);
+                }
+            }
+
+            // 兜底：从 SkeletonData 的原始 JSON 中解析皮肤
+            if (names.length === 0) {
+                const sd: any = (skeletonComp as any).skeletonData;
+                const raw = sd?.skeletonJson ?? sd?._skeletonJson;
+                if (raw) {
+                    const json = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                    const skinsJson = json?.skins;
+                    if (Array.isArray(skinsJson)) {
+                        for (const item of skinsJson) {
+                            const n = item?.name;
+                            if (typeof n === 'string') names.push(n);
+                        }
+                    } else if (skinsJson && typeof skinsJson === 'object') {
+                        for (const key of Object.keys(skinsJson)) {
+                            names.push(key);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('提取骨骼皮肤名称失败', e);
+        }
+        // 过滤空字符串并去重
+        return names.filter(n => !!n).filter((v, i, arr) => arr.indexOf(v) === i);
     }
     
     

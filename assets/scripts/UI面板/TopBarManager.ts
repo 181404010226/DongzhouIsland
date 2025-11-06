@@ -29,7 +29,7 @@ export class TopBarManager extends Component {
     
     // 游戏数据
     private currentCoins: number = 1000; // 初始金币
-    private currentTrafficFlow: number = 0; // 当前客流量
+    private currentTrafficFlow: number = 2; // 初始客流量
 
     
     onLoad() {
