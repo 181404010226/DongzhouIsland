@@ -669,6 +669,27 @@ export class TileEditorTool extends Component {
         return Array.from(this._tilesByName.keys());
     }
 
+    /** 判断名称是否为入口点（Enter_* 前缀） */
+    public isEntrancePointName(name: string): boolean {
+        return /^enter_/i.test(name) || /^Enter_/i.test(name);
+    }
+
+    /** 获取所有入口点名称（可选仅返回可通行入口） */
+    public getEntrancePointNames(walkableOnly: boolean = true): string[] {
+        const all = this.getAllNavigationPointNames();
+        const entrances = all.filter(n => this.isEntrancePointName(n));
+        if (!walkableOnly) return entrances;
+        return entrances.filter(n => this.isNavigationPointWalkable(n));
+    }
+
+    /** 随机选择一个入口名称（可排除当前名称） */
+    public getRandomEntranceName(excludeName?: string): string | null {
+        const list = this.getEntrancePointNames(true).filter(n => n !== excludeName);
+        if (list.length === 0) return null;
+        const idx = Math.floor(Math.random() * list.length);
+        return list[idx];
+    }
+
     /** 检查指定导航点是否存在 */
     public hasNavigationPoint(name: string): boolean {
         return this._tilesByName.has(name);

@@ -233,12 +233,18 @@ export class TouristGenerator extends Component {
             touristController.setTargetDestination(finalTargetPoint);
             this.setupTouristArrivalCallback(touristController, touristNode);
         } else {
-            const allPoints = tileTool ? tileTool.getAllNavigationPointNames() : [];
-            const candidates = allPoints.filter(n => n !== finalStartPoint && (!tileTool || tileTool.isNavigationPointWalkable(n)));
+            const entrances = tileTool ? tileTool.getEntrancePointNames(true) : [];
+            const candidates = entrances.filter(n => n !== finalStartPoint);
             if (candidates.length > 0) {
                 const idx = Math.floor(Math.random() * candidates.length);
                 touristController.setTargetDestination(candidates[idx]);
                 this.setupTouristArrivalCallback(touristController, touristNode);
+            } else if (tileTool) {
+                const anyEntrance = tileTool.getRandomEntranceName(finalStartPoint);
+                if (anyEntrance) {
+                    touristController.setTargetDestination(anyEntrance);
+                    this.setupTouristArrivalCallback(touristController, touristNode);
+                }
             }
         }
         

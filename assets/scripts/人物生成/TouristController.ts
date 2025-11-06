@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Vec3, tween, Tween, CCString, director } from 'cc';
+import { _decorator, Component, Node, Vec3, tween, Tween, CCString, director, UIOpacity } from 'cc';
 import { TileEditorTool } from '../工具/TileEditorTool';
 const { ccclass, property } = _decorator;
 
@@ -109,6 +109,35 @@ export class TouristController extends Component {
      * TileEditorTool 引用
      */
     private tileEditorTool: TileEditorTool = null;
+
+    /**
+     * 访问计划：入口名称队列（Enter_*），按顺序前往
+     */
+    @property({ type: [CCString], tooltip: '访问计划：依次前往的入口名称（Enter_*）' })
+    visitPlan: string[] = [];
+
+    /** 自动按访问计划选择下一个入口 */
+    @property({ tooltip: '到达入口后是否自动前往访问计划中的下一个入口' })
+    autoFollowPlan: boolean = true;
+
+    /** 进入建筑后停留时间（秒） */
+    @property({ tooltip: '进入建筑后隐身停留时间（秒）' })
+    visitStayDuration: number = 3;
+
+    /** 淡入淡出时间（秒） */
+    @property({ tooltip: '进入/离开建筑的淡入淡出时间（秒）' })
+    fadeDuration: number = 0.5;
+
+    /** 进入建筑时向前推进距离（像素） */
+    @property({ tooltip: '到达入口后沿当前移动方向继续前进的距离（像素）' })
+    enterForwardDistance: number = 30;
+
+    /** 当前访问计划索引 */
+    private _currentVisitIndex: number = 0;
+
+    /** 最近一次移动的起点与终点，用于计算进入方向 */
+    private _lastMoveStart: Vec3 = new Vec3();
+    private _lastMoveTarget: Vec3 = new Vec3();
     
     
     /**
@@ -363,9 +392,11 @@ export class TouristController extends Component {
         const distance = Vec3.distance(currentPosition, targetPosition);
         const moveTime = distance / this.moveSpeed;
         
-        // 记录移动开始时间和位置（用于障碍检测）
+        // 记录移动开始时间和位置（用于障碍检测与进入方向）
         this._moveStartTime = Date.now() / 1000;
         this._lastPosition.set(currentPosition);
+        this._lastMoveStart.set(currentPosition);
+        this._lastMoveTarget.set(targetPosition);
         
         // 开始移动
         this.isMoving = true;
@@ -410,10 +441,15 @@ export class TouristController extends Component {
             // 检查是否到达最终目标点
             if (this._currentPoint === this._finalDestination) {
                 console.log(`游客已到达最终目标点: ${this._finalDestination}`);
-                this.stopFollowingPath();
-                // 开始停留
-                this.isStaying = true;
-                this.stayTimer = 0;
+                // 目的地为入口时执行进入/停留/再出发流程
+                if (this.tileEditorTool && this.tileEditorTool.isEntrancePointName(this._finalDestination)) {
+                    this.handleArrivalAtEntrance();
+                } else {
+                    this.stopFollowingPath();
+                    // 开始停留（普通点）
+                    this.isStaying = true;
+                    this.stayTimer = 0;
+                }
             } else {
                 // 移动到路径中的下一个节点
                 this._currentPathIndex++;
@@ -439,6 +475,105 @@ export class TouristController extends Component {
         
         // 更新只读字段
         this.updateReadonlyFields();
+    }
+
+    /**
+     * 到达入口后的处理：淡出+向前推进，隐身等待，再淡入并前往下一个入口
+     */
+    private handleArrivalAtEntrance(): void {
+        // 停止路径跟随
+        this.stopFollowingPath();
+
+        // 计算向前推进目标
+        const dir = new Vec3(
+            this._lastMoveTarget.x - this._lastMoveStart.x,
+            this._lastMoveTarget.y - this._lastMoveStart.y,
+            this._lastMoveTarget.z - this._lastMoveStart.z
+        );
+        const len = Math.sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z) || 1;
+        dir.x /= len; dir.y /= len; dir.z /= len;
+
+        const cur = this.node.getWorldPosition();
+        const forwardTarget = new Vec3(
+            cur.x + dir.x * this.enterForwardDistance,
+            cur.y + dir.y * this.enterForwardDistance,
+            cur.z + dir.z * this.enterForwardDistance
+        );
+        const forwardTime = this.enterForwardDistance / Math.max(this.moveSpeed, 1);
+
+        // 获取/添加 UIOpacity 进行淡入淡出
+        let opacity = this.node.getComponent(UIOpacity);
+        if (!opacity) {
+            opacity = this.node.addComponent(UIOpacity);
+        }
+        opacity.opacity = 255;
+
+        // 并行：向前移动与淡出
+        this.isMoving = true;
+        tween(this.node)
+            .to(forwardTime, { worldPosition: forwardTarget })
+            .call(() => {
+                this.isMoving = false;
+                this.isStaying = true;
+                this.stayTimer = 0;
+            })
+            .start();
+
+        tween(opacity)
+            .to(this.fadeDuration, { opacity: 0 })
+            .delay(this.visitStayDuration)
+            .to(this.fadeDuration, { opacity: 255 })
+            .call(() => {
+                // 结束隐身停留，前往下一个入口
+                this.isStaying = false;
+                const next = this.selectNextEntrance();
+                if (next) {
+                    // 更新访问计划索引到下一个
+                    if (this.autoFollowPlan && this.visitPlan && this.visitPlan.length > 0) {
+                        // 将索引推进到 next 的后一个位置
+                        const idx = this.visitPlan.findIndex(n => n === next);
+                        if (idx >= 0) this._currentVisitIndex = (idx + 1) % this.visitPlan.length;
+                    }
+                    this.setTargetDestination(next);
+                }
+            })
+            .start();
+
+        // 更新只读字段
+        this.updateReadonlyFields();
+    }
+
+    /** 选择下一个入口（优先访问计划） */
+    private selectNextEntrance(): string | null {
+        if (!this.tileEditorTool) return null;
+
+        // 访问计划优先
+        if (this.autoFollowPlan && this.visitPlan && this.visitPlan.length > 0) {
+            const len = this.visitPlan.length;
+            for (let attempt = 0; attempt < len; attempt++) {
+                const idx = (this._currentVisitIndex + attempt) % len;
+                const name = this.visitPlan[idx];
+                if (!name) continue;
+                if (name === this._currentPoint) continue; // 必须是其他入口
+                if (this.tileEditorTool.hasNavigationPoint(name) && this.tileEditorTool.isNavigationPointWalkable(name)) {
+                    this._currentVisitIndex = (idx + 1) % len; // 下次从下一个开始
+                    return name;
+                }
+            }
+        }
+
+        // 退化：随机入口（排除当前）
+        const rand = this.tileEditorTool.getRandomEntranceName(this._currentPoint);
+        return rand;
+    }
+
+    /** 保证目的地为“其他入口”，否则改为选择下一个入口 */
+    private ensureEntranceDestination(dest: string): string {
+        if (this.tileEditorTool && this.tileEditorTool.isEntrancePointName(dest) && dest !== this._currentPoint) {
+            return dest;
+        }
+        const next = this.selectNextEntrance();
+        return next || dest;
     }
     
     /**
@@ -629,14 +764,14 @@ export class TouristController extends Component {
      * @param destinationName 最终目标点名称
      */
     setTargetDestination(destinationName: string): void {
-        this._finalDestination = destinationName;
+        this._finalDestination = this.ensureEntranceDestination(destinationName);
         this.start();
         // 如果设置了最终目标点且有当前点，开始导航
         if (this._finalDestination && this._currentPoint && this.tileEditorTool) {
-            console.log(`设置目标点: ${destinationName}, 当前点: ${this._currentPoint}`);
+            console.log(`设置目标点: ${this._finalDestination}, 当前点: ${this._currentPoint}`);
             this.navigateToDestination();
         } else if (this._finalDestination && !this._currentPoint) {
-            console.log(`目标点已设置为: ${destinationName}, 等待设置当前点后开始导航`);
+            console.log(`目标点已设置为: ${this._finalDestination}, 等待设置当前点后开始导航`);
         }
     }
     
