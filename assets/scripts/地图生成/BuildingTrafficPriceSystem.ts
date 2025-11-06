@@ -602,10 +602,15 @@ export class BuildingTrafficPriceSystem extends Component {
             const totalIncome = this.calculateTotalIncome();
             const buildingCount = this.buildingTrafficPriceMap.size;
             
-            console.log(`[客流量单价系统] 更新显示: 总客流量 ${totalTrafficFlow}/秒, 总收入 ${totalIncome}/秒, 建筑数: ${buildingCount}`);
+            // 将基础客流量（初始客流量）叠加到总客流量中
+            const topBar = TopBarManager.getInstance();
+            const baseFlow = topBar ? topBar.getBaseTrafficFlow() : 0;
+            const finalTrafficFlow = baseFlow + totalTrafficFlow;
+
+            console.log(`[客流量单价系统] 更新显示: 基础客流量 ${baseFlow}/秒, 建筑客流量 ${totalTrafficFlow}/秒, 合计 ${finalTrafficFlow}/秒, 总收入 ${totalIncome}/秒, 建筑数: ${buildingCount}`);
             
-            // 调用TopBarManager更新客流量显示（传递客流量而不是收入）
-            TopBarManager.setTrafficFlow(totalTrafficFlow);
+            // 调用TopBarManager更新客流量显示（传递合计客流量）
+            TopBarManager.setTrafficFlow(finalTrafficFlow);
             
         } catch (error) {
             console.error(`[客流量单价系统] 更新总收入显示时发生错误:`, error);

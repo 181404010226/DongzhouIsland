@@ -490,7 +490,7 @@ export class TouristController extends Component {
                 this._currentPathIndex++;
                 if (this._currentPathIndex < this._currentPath.length) {
                     const nextPoint = this._currentPath[this._currentPathIndex];
-                    console.log(`路径跟随中，移动到下一个节点: ${nextPoint} (${this._currentPathIndex}/${this._currentPath.length - 1})`);
+                    // console.log(`路径跟随中，移动到下一个节点: ${nextPoint} (${this._currentPathIndex}/${this._currentPath.length - 1})`);
                     // 直接继续移动到下一个节点，不再停顿
                     this.moveToPoint(nextPoint);
                 } else {
@@ -589,6 +589,8 @@ export class TouristController extends Component {
                         if (idx >= 0) this._currentVisitIndex = (idx + 1) % this.visitPlan.length;
                     }
                     this.setTargetDestination(next);
+                } else {
+                    this.despawnSelf();
                 }
             })
             .start();

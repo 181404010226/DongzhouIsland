@@ -420,7 +420,7 @@ export class TileEditorTool extends Component {
             console.log('findPath: 起点或终点不存在', { start: startName, end: endName });
             return [];
         }
-        console.log('findPath: 开始最短路搜索', { start: startName, end: endName });
+        //console.log('findPath: 开始最短路搜索', { start: startName, end: endName });
         const dist = new Map<string, number>();
         const prev = new Map<string, string | null>();
         const visited = new Set<string>();
@@ -430,7 +430,7 @@ export class TileEditorTool extends Component {
             prev.set(key, null);
         }
         dist.set(startName, 0);
-        console.log('findPath: 初始化完成，起点距离=0，节点数=', this._tilesByName.size);
+        //console.log('findPath: 初始化完成，起点距离=0，节点数=', this._tilesByName.size);
 
         const pickMinUnvisited = () => {
             let bestKey: string | null = null;
@@ -448,19 +448,19 @@ export class TileEditorTool extends Component {
         while (true) {
             const u = pickMinUnvisited();
             if (!u) {
-                console.log('findPath: 无未访问且可到达的节点，终止');
+                //console.log('findPath: 无未访问且可到达的节点，终止');
                 break;
             }
-            console.log(`findPath: 步骤 ${step}，取最小未访问节点`, { u, dist: dist.get(u) });
+            //console.log(`findPath: 步骤 ${step}，取最小未访问节点`, { u, dist: dist.get(u) });
             if (!u) break;
             if (u === endName) break;
             visited.add(u);
             const neigh = this._neighbors.get(u) || [];
-            console.log('findPath: 邻居集合', { u, neighbors: neigh });
+            //console.log('findPath: 邻居集合', { u, neighbors: neigh });
             for (const v of neigh) {
                 const costV = this._costByName.get(v) ?? Number.POSITIVE_INFINITY;
                 if (!isFinite(costV)) {
-                    console.log('findPath: 跳过不可通行邻居', { u, v });
+                    //console.log('findPath: 跳过不可通行邻居', { u, v });
                     continue; // 障碍
                 }
                 const du = dist.get(u) ?? Number.POSITIVE_INFINITY;
@@ -472,9 +472,9 @@ export class TileEditorTool extends Component {
                 if (alt < dvOld) {
                     dist.set(v, alt);
                     prev.set(v, u);
-                    console.log('findPath: 松弛成功', { u, v, old: dvOld, new: alt, prev: u, edgeCost, nodeCost });
+                    //console.log('findPath: 松弛成功', { u, v, old: dvOld, new: alt, prev: u, edgeCost, nodeCost });
                 } else {
-                    console.log('findPath: 无需松弛', { u, v, current: dvOld, candidate: alt, edgeCost, nodeCost });
+                    //console.log('findPath: 无需松弛', { u, v, current: dvOld, candidate: alt, edgeCost, nodeCost });
                 }
             }
             step++;
@@ -485,17 +485,17 @@ export class TileEditorTool extends Component {
         let cur: string | null = endName;
         const dEnd = dist.get(endName) ?? Number.POSITIVE_INFINITY;
         if (!isFinite(dEnd)) {
-            console.log('findPath: 无法到达终点', { start: startName, end: endName });
+            // console.log('findPath: 无法到达终点', { start: startName, end: endName });
             return [];
         }
-        console.log('findPath: 开始回溯', { end: endName, distance: dEnd });
+        // console.log('findPath: 开始回溯', { end: endName, distance: dEnd });
         while (cur) {
             path.unshift(cur);
             const p = prev.get(cur) || null;
-            console.log('findPath: 回溯步', { cur, prev: p });
+            // console.log('findPath: 回溯步', { cur, prev: p });
             cur = p;
         }
-        console.log('findPath: 最终路径', path);
+        // console.log('findPath: 最终路径', path);
         return path;
     }
 

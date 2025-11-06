@@ -29,7 +29,10 @@ export class TopBarManager extends Component {
     
     // 游戏数据
     private currentCoins: number = 1000; // 初始金币
-    private currentTrafficFlow: number = 2; // 初始客流量
+    /** 基础客流量（初始客流量） */
+    private baseTrafficFlow: number = 2;
+    /** 当前客流量（基础客流量 + 系统计算增量） */
+    private currentTrafficFlow: number = 2; // 当前客流量
 
     
     onLoad() {
@@ -212,6 +215,11 @@ export class TopBarManager extends Component {
      */
     public getCurrentTrafficFlow(): number {
         return this.currentTrafficFlow;
+    }
+    
+    /** 获取基础客流量（初始客流量） */
+    public getBaseTrafficFlow(): number {
+        return this.baseTrafficFlow;
     }
     
     /**

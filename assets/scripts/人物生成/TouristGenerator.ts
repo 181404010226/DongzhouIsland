@@ -238,23 +238,28 @@ export class TouristGenerator extends Component {
         // 将 MapContainer 传递给控制器用于中途换挂载
         touristController.mapContainer = this.mapContainer;
         
-        // 如果有目标点，设置目标点并添加到达回调；否则随机一个与起点不同的目标
+        // 为游客随机生成三个游览计划（入口名称），排除起点且需可通行
+        let visitPlan: string[] = [];
+        if (tileTool) {
+            const entrances = tileTool.getEntrancePointNames(true) || [];
+            const candidates = entrances.filter(n => n && n !== finalStartPoint && tileTool.isNavigationPointWalkable(n));
+            for (let i = 0; i < 3 && candidates.length > 0; i++) {
+                const idx = Math.floor(Math.random() * candidates.length);
+                const chosen = candidates.splice(idx, 1)[0];
+                visitPlan.push(chosen);
+            }
+            touristController.visitPlan = visitPlan;
+            touristController.autoFollowPlan = true;
+        }
+        
+        // 如果有目标点，设置目标点并添加到达回调；否则使用游览计划的第一个入口作为目标
         if (finalTargetPoint) {
             touristController.setTargetDestination(finalTargetPoint);
             this.setupTouristArrivalCallback(touristController, touristNode);
         } else {
-            const entrances = tileTool ? tileTool.getEntrancePointNames(true) : [];
-            const candidates = entrances.filter(n => n !== finalStartPoint);
-            if (candidates.length > 0) {
-                const idx = Math.floor(Math.random() * candidates.length);
-                touristController.setTargetDestination(candidates[idx]);
+            if (visitPlan.length > 0) {
+                touristController.setTargetDestination(visitPlan[0]);
                 this.setupTouristArrivalCallback(touristController, touristNode);
-            } else if (tileTool) {
-                const anyEntrance = tileTool.getRandomEntranceName(finalStartPoint);
-                if (anyEntrance) {
-                    touristController.setTargetDestination(anyEntrance);
-                    this.setupTouristArrivalCallback(touristController, touristNode);
-                }
             }
         }
         
