@@ -110,6 +110,13 @@ export class TouristController extends Component {
      */
     private tileEditorTool: TileEditorTool = null;
 
+    /** 地图容器（包含所有 Tile_x_y 子节点） */
+    @property({ type: Node, tooltip: '地图容器（包含所有 Tile_* 节点）' })
+    mapContainer: Node | null = null;
+
+    /** 中途换挂载是否已完成（一次移动只触发一次） */
+    private _midReparentDone: boolean = false;
+
     /**
      * 访问计划：入口名称队列（Enter_*），按顺序前往
      */
@@ -238,6 +245,11 @@ export class TouristController extends Component {
             console.error('TileEditorTool 未找到');
             return;
         }
+
+        // 自动解析场景中的 MapContainer（若未在面板指定）
+        if (!this.mapContainer) {
+            this.mapContainer = this.findMapContainerNode();
+        }
         
         // 如果没有设置当前点，尝试找到最近的导航点
         if (!this._currentPoint) {
@@ -302,14 +314,16 @@ export class TouristController extends Component {
             if (targetPosition) {
                 const currentPosition = this.node.getWorldPosition();
                 const distance = Vec3.distance(currentPosition, targetPosition);
-                
+
                 if (distance <= this.arrivalRange) {
                     this.onArriveAtTarget();
                 } else {
                     // 检查是否需要重新计算路径（障碍检测）
                     this.recalculatePathIfNeeded();
+                    // 在移动到另一 Tile 的过程中，累计到一半距离后切换父节点到目标 Tile
+                    this.tryMidwayReparent();
                 }
-                
+
                 // 移动过程中定期更新只读字段显示
                 this.updateReadonlyFields();
             }
@@ -328,6 +342,9 @@ export class TouristController extends Component {
         // 不再在导航系统中注册
         
         this.updateReadonlyFields();
+
+        // 初始挂载到当前点对应的 Tile
+        this.reparentToTileForPoint(this._currentPoint);
         
         // 如果有最终目标点且导航系统可用，开始导航
         if (this._finalDestination && this._currentPoint && this.tileEditorTool) {
@@ -398,6 +415,10 @@ export class TouristController extends Component {
         this._lastMoveStart.set(currentPosition);
         this._lastMoveTarget.set(targetPosition);
         
+        // 每次新移动重置中途换挂载标记，并确保当前挂载为起点 Tile
+        this._midReparentDone = false;
+        this.reparentToTileForPoint(this._currentPoint);
+
         // 开始移动
         this.isMoving = true;
         this.currentTween = tween(this.node)
@@ -435,7 +456,8 @@ export class TouristController extends Component {
         
         // 停止移动
         this.stopMoving();
-        
+        this._midReparentDone = false;
+
         // 检查是否正在跟随路径
         if (this._isFollowingPath && this._currentPath.length > 0) {
             // 检查是否到达最终目标点
@@ -472,7 +494,10 @@ export class TouristController extends Component {
             this.isStaying = true;
             this.stayTimer = 0;
         }
-        
+
+        // 抵达后确保父节点为当前 Tile
+        this.reparentToTileForPoint(this._currentPoint);
+
         // 更新只读字段
         this.updateReadonlyFields();
     }
@@ -908,6 +933,85 @@ export class TouristController extends Component {
             if (!scene) return null;
             const tools = scene.getComponentsInChildren(TileEditorTool) || [];
             return tools.length > 0 ? tools[0] : null;
+        } catch {
+            return null;
+        }
+    }
+
+    /** 在移动到另一 Tile 的路径中途执行一次换父节点 */
+    private tryMidwayReparent(): void {
+        if (this._midReparentDone || !this._targetPoint) return;
+        const total = Vec3.distance(this._lastMoveStart, this._lastMoveTarget);
+        if (total <= 0) return;
+        const cur = this.node.getWorldPosition();
+        const moved = Vec3.distance(cur, this._lastMoveStart);
+        if (moved >= total * 0.5) {
+            this.reparentToTileForPoint(this._targetPoint);
+            this._midReparentDone = true;
+        }
+    }
+
+    /** 根据导航点名称确定应挂载的 Tile 名称，并进行挂载 */
+    private reparentToTileForPoint(pointName: string): void {
+        const tileName = this.getTileNameForPoint(pointName);
+        if (!tileName) return;
+        const tileNode = this.getTileNodeByName(tileName);
+        if (tileNode) {
+            this.node.setParent(tileNode, true);
+        } else if (this.mapContainer) {
+            this.node.setParent(this.mapContainer, true);
+        }
+    }
+
+    /** 获取某导航点对应的 Tile 名称（入口点映射到最近Tile） */
+    private getTileNameForPoint(pointName: string): string | null {
+        if (!pointName) return null;
+        // 已是 Tile 名称
+        if (/^Tile_\d+_\d+$/i.test(pointName)) return pointName;
+        // 入口：寻找与其相邻的 Tile
+        if (this.tileEditorTool && this.tileEditorTool.isEntrancePointName(pointName)) {
+            const adj = this.tileEditorTool.getAdjacentPoints(pointName) || [];
+            const tileAdj = adj.find(n => /^Tile_\d+_\d+$/i.test(n));
+            if (tileAdj) return tileAdj;
+            // 兜底：按入口世界坐标查找最近可通行 Tile
+            const pos = this.tileEditorTool.getNavigationPointPosition(pointName);
+            if (pos) {
+                const nearest = this.tileEditorTool.findNearestNavigationPointName(pos, true);
+                if (nearest && /^Tile_\d+_\d+$/i.test(nearest)) return nearest;
+            }
+        }
+        return null;
+    }
+
+    /** 通过名称在 MapContainer 下查找 Tile 节点 */
+    private getTileNodeByName(tileName: string): Node | null {
+        if (!this.mapContainer || !tileName) return null;
+        // 直接子节点优先
+        const direct = this.mapContainer.getChildByName(tileName);
+        if (direct) return direct;
+        // 兜底：遍历搜索
+        for (const child of this.mapContainer.children) {
+            if (child.name === tileName) return child;
+        }
+        return null;
+    }
+
+    /** 尝试在场景中查找名为 MapContainer 的节点 */
+    private findMapContainerNode(): Node | null {
+        try {
+            const scene = director.getScene();
+            if (!scene) return null;
+            let candidate: Node | null = scene.getChildByName('MapContainer');
+            if (candidate) return candidate;
+            const stack: Node[] = [scene];
+            while (stack.length > 0) {
+                const n = stack.pop()!;
+                for (const c of n.children) {
+                    if (c.name === 'MapContainer') return c;
+                    stack.push(c);
+                }
+            }
+            return null;
         } catch {
             return null;
         }

@@ -27,10 +27,10 @@ export class TouristGenerator extends Component {
     availableSkins: string[] = [];
     
     /**
-     * 生成的游客父节点
+     * 地图容器（包含所有 Tile_x_y 子节点）
      */
-    @property(Node)
-    touristParent: Node = null;
+    @property({ type: Node, tooltip: '地图容器（包含所有 Tile_* 节点）' })
+    mapContainer: Node | null = null;
     
     /**
      * 自动生成游客（基于客流量）
@@ -91,8 +91,8 @@ export class TouristGenerator extends Component {
     }
     
     start() {
-        if (!this.touristParent) {
-            this.touristParent = this.node;
+        if (!this.mapContainer) {
+            this.mapContainer = this.findMapContainerNode() || this.node;
         }
     }
     
@@ -200,8 +200,16 @@ export class TouristGenerator extends Component {
             return null;
         }
         
-        // 设置父节点
-        touristNode.setParent(this.touristParent);
+        // 初始父节点：根据起点对应的 Tile 将游客挂到 MapContainer 下的具体 Tile
+        const startTileName = this.getTileNameForPoint(finalStartPoint, tileTool);
+        const startTileNode = this.getTileNodeByName(startTileName);
+        if (startTileNode) {
+            touristNode.setParent(startTileNode, true);
+        } else if (this.mapContainer) {
+            touristNode.setParent(this.mapContainer, true);
+        } else {
+            touristNode.setParent(this.node);
+        }
         
         // 设置起始位置
         if (!startPosition) {
@@ -227,6 +235,8 @@ export class TouristGenerator extends Component {
         
         // 设置起点（若使用景区入口，则已转换为最近的导航点名称）
         touristController.setCurrentPoint(finalStartPoint);
+        // 将 MapContainer 传递给控制器用于中途换挂载
+        touristController.mapContainer = this.mapContainer;
         
         // 如果有目标点，设置目标点并添加到达回调；否则随机一个与起点不同的目标
         if (finalTargetPoint) {
@@ -315,6 +325,50 @@ export class TouristGenerator extends Component {
             return node.getWorldPosition();
         }
         return null;
+    }
+
+    /** 根据导航点名称获取应挂载的 Tile 名称（入口映射为其相邻Tile） */
+    private getTileNameForPoint(pointName: string, tileTool?: TileEditorTool | null): string | null {
+        if (!pointName) return null;
+        if (/^Tile_\d+_\d+$/i.test(pointName)) return pointName;
+        if (tileTool && tileTool.isEntrancePointName(pointName)) {
+            const adj = tileTool.getAdjacentPoints(pointName) || [];
+            const tileAdj = adj.find(n => /^Tile_\d+_\d+$/i.test(n));
+            return tileAdj || null;
+        }
+        return null;
+    }
+
+    /** 在 MapContainer 下通过名称获取 Tile 节点 */
+    private getTileNodeByName(tileName: string | null): Node | null {
+        if (!tileName || !this.mapContainer) return null;
+        const direct = this.mapContainer.getChildByName(tileName);
+        if (direct) return direct;
+        for (const c of this.mapContainer.children) {
+            if (c.name === tileName) return c;
+        }
+        return null;
+    }
+
+    /** 尝试在场景中查找名为 MapContainer 的节点 */
+    private findMapContainerNode(): Node | null {
+        try {
+            const scene = director.getScene();
+            if (!scene) return null;
+            let candidate: Node | null = scene.getChildByName('MapContainer');
+            if (candidate) return candidate;
+            const stack: Node[] = [scene];
+            while (stack.length > 0) {
+                const n = stack.pop()!;
+                for (const c of n.children) {
+                    if (c.name === 'MapContainer') return c;
+                    stack.push(c);
+                }
+            }
+            return null;
+        } catch {
+            return null;
+        }
     }
     
     /**
@@ -512,20 +566,7 @@ export class TouristGenerator extends Component {
         }
     }
     
-    /**
-     * 清除所有游客
-     */
-    clearAllTourists(): void {
-        if (this.touristParent) {
-            this.touristParent.children.forEach(child => {
-                const touristController = child.getComponent(TouristController);
-                if (touristController) {
-                    child.destroy();
-                }
-            });
-        }
-        this.currentTouristCount = 0;
-    }
+    
     
     /**
      * 获取当前游客数量
@@ -604,9 +645,5 @@ export class TouristGenerator extends Component {
         return false;
     }
     
-    set clearTouristsButton(value: boolean) {
-        if (value) {
-            this.clearAllTourists();
-        }
-    }
+    
 }
