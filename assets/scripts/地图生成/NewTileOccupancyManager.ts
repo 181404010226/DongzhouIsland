@@ -305,15 +305,11 @@ export class NewTileOccupancyManager extends Component {
                     // 获取瓦片信息
                     const tiledTile = this.tileLayer.getTiledTileAt(col, row);
                     
-                    // 等距（isometric）中心公式，计算瓦片中心像素坐标
-                    // dx = col - mapWidth/2 + 0.5
-                    // dy = row - mapHeight/2 + 0.5
-                    // px = (dx - dy) * (tileWidth/2)
-                    // py = -(dx + dy) * (tileHeight/2)
-                    const dx = col - mapSize.width / 2 + 0.5;
-                    const dy = row - mapSize.height / 2 + 0.5;
-                    const px = (dx - dy) * (tileSize.width / 2);
-                    const py = -(dx + dy) * (tileSize.height / 2);
+                    // 统一采用 GridTile 的中心公式计算瓦片中心像素坐标
+                    // px = (col - mapWidth/2 + 0.5) * tileWidth
+                    // py = (mapHeight/2 - row - 0.5) * tileHeight
+                    const px = (col - mapSize.width / 2 + 0.5) * tileSize.width;
+                    const py = (mapSize.height / 2 - row - 0.5) * tileSize.height;
 
                     // 使用 TiledMap 的 UITransform 将像素坐标转换为世界坐标（与 GridTile 一致）
                     const worldPos = new Vec3();
@@ -439,17 +435,10 @@ export class NewTileOccupancyManager extends Component {
             
             console.log(`[NewTileOccupancyManager] 瓦片尺寸: ${tileSize.width}x${tileSize.height}`);
 
-            // 使用等距（isometric）中心坐标系进行行列换算（GridTile 同步公式）
+            // 使用 GridTile 的中心坐标系进行行列换算
             const mapSize = this.tiledMap.getMapSize();
-            const halfW = tileSize.width / 2;
-            const halfH = tileSize.height / 2;
-            // 由 px = (dx - dy)*halfW, py = -(dx + dy)*halfH 反解 dx, dy
-            const a = localPos.x / halfW;    // dx - dy
-            const b = -localPos.y / halfH;   // dx + dy
-            const dx = (a + b) / 2;
-            const dy = (b - a) / 2;
-            let col = Math.floor(dx + mapSize.width / 2);
-            let row = Math.floor(dy + mapSize.height / 2);
+            let col = Math.floor(localPos.x / tileSize.width + mapSize.width / 2);
+            let row = Math.floor(mapSize.height / 2 - localPos.y / tileSize.height);
             
             // 处理边界情况
             col = Math.max(0, Math.min(col, this.columns - 1));
@@ -787,10 +776,8 @@ export class NewTileOccupancyManager extends Component {
         // 设置位置（与 GridTile 中心公式一致，使用地图中心为原点）
         const tileSize = this.tiledMap.getTileSize();
         const mapSize = this.tiledMap.getMapSize();
-            const dx2 = col - mapSize.width / 2 + 0.5;
-            const dy2 = row - mapSize.height / 2 + 0.5;
-            const px = (dx2 - dy2) * (tileSize.width / 2);
-            const py = -(dx2 + dy2) * (tileSize.height / 2);
+        const px = (col - mapSize.width / 2 + 0.5) * tileSize.width;
+        const py = (mapSize.height / 2 - row - 0.5) * tileSize.height;
         previewNode.setPosition(new Vec3(px, py, 1));
         
         // 添加UITransform组件
